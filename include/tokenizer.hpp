@@ -6,7 +6,7 @@
 /*   By: sbibers <sbibers@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 11:51:22 by sbibers           #+#    #+#             */
-/*   Updated: 2025/08/11 12:48:05 by sbibers          ###   ########.fr       */
+/*   Updated: 2025/08/11 14:16:13 by sbibers          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,3 +33,5 @@ typedef struct s_tokenizer
     std::string word;
     Type        type;
 }  t_tokenizer;
+
+std::vector<t_tokenizer> tokenize_string(const std::string &buffer);
