@@ -11,21 +11,28 @@
 /* ************************************************************************** */
 
 #include "../include/tokenizer.hpp"
+#include "../include/Exceptions.hpp"
+#include <cstdlib>
+#include <exception>
+#include <new>
 
 static const std::string read_file(const std::string &file_name)
 // check file and read.
 {
     std::ifstream file(file_name.c_str());
     if (!file.is_open())
+        throw WebservExceptions::FileOpenFailure();
+    try
     {
-        std::cerr << "Error: Cannot open file '" << file_name << "'\n";
-        std::exit(1);
+        std :: stringstream buffer;
+        buffer << file.rdbuf();
+        std::string content = buffer.str();
+    	return (content);
+    } 
+    catch (const std::exception& e)
+    {
+		throw;
     }
-    std :: stringstream buffer;
-    buffer << file.rdbuf();
-    std::string content = buffer.str();    
-    file.close();
-    return (content);
 }
 
 int main(int argc, char **argv)
@@ -35,11 +42,19 @@ int main(int argc, char **argv)
         std::cerr << "Error, Use ./webserv ./conf_file/file_name\n";
         return (1);
     }
-    const std::string buffer = read_file(argv[1]);
-    std::vector<t_tokenizer> tokens = tokenize_string(buffer);
-    for (size_t i = 0; i < tokens.size(); ++i) // to test vector after tokenizer.
-    {
-        std::cout << "[" << tokens[i].word << "] type: " << tokens[i].type << "\n";
-    }
+	try
+	{
+		const std::string buffer = read_file(argv[1]);
+    	std::vector<t_tokenizer> tokens = tokenize_string(buffer);
+    	for (size_t i = 0; i < tokens.size(); ++i) // to test vector after tokenizer.
+    	{
+    	    std::cout << "[" << tokens[i].word << "] type: " << tokens[i].type << "\n";
+    	}
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << e.what() << std::endl;
+		return EXIT_FAILURE;
+	}
     return (0);
 }

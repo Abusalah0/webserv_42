@@ -10,8 +10,12 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
+#include <exception>
 
-class Exceptions
+namespace WebservExceptions
 {
-};
+    class FileOpenFailure: public std::exception
+    {
+        const char* what() const throw();
+    };
+}
