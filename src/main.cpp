@@ -22,17 +22,10 @@ static const std::string read_file(const std::string &file_name)
     std::ifstream file(file_name.c_str());
     if (!file.is_open())
         throw WebservExceptions::FileOpenFailure();
-    try
-    {
-        std :: stringstream buffer;
-        buffer << file.rdbuf();
-        std::string content = buffer.str();
-    	return (content);
-    } 
-    catch (const std::exception& e)
-    {
-		throw;
-    }
+    std :: stringstream buffer;
+    buffer << file.rdbuf();
+    std::string content = buffer.str();
+    return (content);
 }
 
 int main(int argc, char **argv)
