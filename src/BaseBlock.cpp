@@ -51,8 +51,8 @@ const std::string& BaseBlock::getErrorPage() const
 }
 
 BaseBlock::BaseBlock():
-	m_autoIndex(),
-	m_clientMaxBodySize(),
+	m_autoIndex(false),
+	m_clientMaxBodySize(1073741824),
 	m_indexes(),
 	m_root()
 {}
