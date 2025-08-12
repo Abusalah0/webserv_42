@@ -18,4 +18,8 @@ namespace WebservExceptions
     {
         const char* what() const throw();
     };
+    class InvalidValue: public std::exception
+    {
+        const char* what() const throw();
+    };
 }

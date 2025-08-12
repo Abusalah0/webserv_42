@@ -1,26 +1,43 @@
+#ifndef BASEBLOCK_HPP
+#define BASEBLOCK_HPP
+
 #include <string>
+#include <map>
 #include <set>
+#include <cstdint>
+
+typedef struct s_page_info
+{
+	const std::string& page_path;
+	uint32_t code;
+} page_info;
 
 class BaseBlock
 {
 	private:
-		bool m_autoIndex;
+		bool m_auto_index;
 		std::string m_root;
-		std::size_t m_clientMaxBodySize;
-		std::set<std::string> m_indexes;
-		std::set<std::string> m_errorPages;
+		std::size_t m_client_max_body_size;
+		std::set<std::string*> m_indexes;
+		std::map<uint32_t, std::string*> m_error_pages;
+		std::map<uint32_t, std::string*> m_redirect_pages;
+		std::set<std::string> m_pages_cache;
 	public:
-		void toggleAutoIndex();
-		void setRoot(const std::string& root);
-		void setClientMaxBodySize(const std::string& size);
-		void insertIndexPages(const std::set<std::string>& indexes);
-		void insertErrorPages(const std::set<std::string>& indexes);
-		bool getAutoIndex() const;
-		const std::string& getRoot() const;
-		std::size_t getClientMaxBodySize() const;
-		const std::string& getIndexPage() const;
-		const std::string& getErrorPage() const;
+		void toggle_auto_index();
+		void set_root(const std::string& root);
+		void set_client_max_body_size(const std::string& str_size);
+		void insert_index_pages(const std::set<std::string>& indexes);
+		void insert_error_pages(uint32_t code, const std::set<std::string>& pages);
+		void insert_redirect_pages(uint32_t code, const std::set<std::string>& pages);
+		bool get_auto_index() const;
+		const std::string& get_root() const;
+		std::size_t get_client_max_body_size() const;
+		const std::string& get_index_page() const;
+		const std::string& get_error_page(uint32_t code) const;
+		page_info get_redirect_page() const;
 		BaseBlock();
 		BaseBlock(BaseBlock& obj);
 		virtual ~BaseBlock();
 };
+
+#endif

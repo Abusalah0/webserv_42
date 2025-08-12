@@ -1,65 +1,126 @@
-#include <BaseBlock.hpp>
+#include "../include/BaseBlock.hpp"
+#include "../include/CommonUtils.hpp"
+#include "../include/Exceptions.hpp"
 
-void BaseBlock::toggleAutoIndex()
+void BaseBlock::toggle_auto_index()
 {
-	this->m_autoIndex = true;
+	this->m_auto_index = true;
 }
 
-void BaseBlock::setRoot(const std::string& root)
+void BaseBlock::set_root(const std::string& root)
+{
+	this->m_root.clear();
+    if (root.empty() || root[0] != '/')
+        this->m_root = ROOT_PREFIX;
+    this->m_root.append(root);
+    if (str_back(root) != '/')
+        this->m_root.push_back('/');
+}
+
+void BaseBlock::set_client_max_body_size(const std::string& str_size)
+{
+	char sizeCategory = 0;
+    char *endptr;
+	const char *excpected_endptr;
+
+	if (str_size.empty())
+		throw WebservExceptions::InvalidValue();
+    if (str_size.find('.') != std::string::npos)
+        throw WebservExceptions::InvalidValue();
+	excpected_endptr = str_size.c_str() + str_size.size();
+    if (!isdigit(str_back(str_size)))
+	{
+        sizeCategory = tolower(str_back(str_size));
+		--excpected_endptr;
+	}
+    this->m_client_max_body_size = strtoul(str_size.c_str(), &endptr, 10);
+    if (endptr != excpected_endptr || errno == ERANGE)
+        throw WebservExceptions::InvalidValue();
+    switch (sizeCategory)
+    {
+    	case 0:
+    	    return;
+    	case 'k':
+    	    if (this->m_client_max_body_size > MAX_KILOBYTE)
+    	        throw WebservExceptions::InvalidValue();
+    	    this->m_client_max_body_size *= KILOBYTE;
+    	    return;
+    	case 'm':
+    	    if (this->m_client_max_body_size > MAX_MEGABYTE)
+    	        throw WebservExceptions::InvalidValue();
+    	    this->m_client_max_body_size *= MEGABYTE;
+    	    return;
+    	case 'g':
+    	    if (this->m_client_max_body_size > MAX_GIGABYTE)
+    	        throw WebservExceptions::InvalidValue();
+    	    this->m_client_max_body_size *= GIGABYTE;
+    	    return;
+    	default:
+    	    throw WebservExceptions::InvalidValue();
+    }
+}
+
+void BaseBlock::insert_index_pages(const std::set<std::string>& indexes)
+{
+	this->m_indexes.insert(indexes.cbegin(), indexes.cend());
+}
+
+void BaseBlock::insert_error_pages(uint32_t code, const std::set<std::string>& pages)
+{
+	
+}
+
+void BaseBlock::insert_redirect_pages(uint32_t code, const std::set<std::string>& pages)
 {
 
 }
 
-void BaseBlock::setClientMaxBodySize(const std::string& size)
+bool BaseBlock::get_auto_index() const
 {
-
+	return this->m_auto_index;
 }
 
-void BaseBlock::insertIndexPages(const std::set<std::string>& indexes)
-{
-
-}
-
-void BaseBlock::insertErrorPages(const std::set<std::string>& indexes)
-{
-
-}
-
-bool BaseBlock::getAutoIndex() const
-{
-	return this->m_autoIndex;
-}
-
-const std::string& BaseBlock::getRoot() const
+const std::string& BaseBlock::get_root() const
 {
 	return this->m_root;
 }
 
-std::size_t BaseBlock::getClientMaxBodySize() const
+std::size_t BaseBlock::get_client_max_body_size() const
 {
-	return this->m_clientMaxBodySize;
+	return this->m_client_max_body_size;
 }
 
-const std::string& BaseBlock::getIndexPage() const
+const std::string& BaseBlock::get_index_page() const
+{
+	
+}
+
+const std::string& BaseBlock::get_error_page(uint32_t code) const
 {
 
 }
 
-const std::string& BaseBlock::getErrorPage() const
+page_info BaseBlock::get_redirect_page() const
 {
 
 }
 
 BaseBlock::BaseBlock():
-	m_autoIndex(false),
-	m_clientMaxBodySize(1073741824),
+	m_auto_index(false),
+	m_root(),
+	m_client_max_body_size(1073741824),
 	m_indexes(),
-	m_root()
+	m_error_pages(),
+	m_redirect_pages(),
+	m_pages_cache()
 {}
 
 BaseBlock::BaseBlock(BaseBlock& obj):
-	m_autoIndex(obj.m_autoIndex),
-	m_clientMaxBodySize(obj.m_clientMaxBodySize),
+	m_auto_index(obj.m_auto_index),
+	m_root(obj.m_root),
+	m_client_max_body_size(obj.m_client_max_body_size),
 	m_indexes(obj.m_indexes),
-	m_root(obj.m_root)
+	m_error_pages(obj.m_error_pages),
+	m_redirect_pages(obj.m_redirect_pages),
+	m_pages_cache
 {}
