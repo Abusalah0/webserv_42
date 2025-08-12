@@ -15,7 +15,12 @@ void BaseBlock::setClientMaxBodySize(const std::string& size)
 
 }
 
-void BaseBlock::insertIndexFiles(const std::set<std::string>& indexes)
+void BaseBlock::insertIndexPages(const std::set<std::string>& indexes)
+{
+
+}
+
+void BaseBlock::insertErrorPages(const std::set<std::string>& indexes)
 {
 
 }
@@ -35,7 +40,12 @@ std::size_t BaseBlock::getClientMaxBodySize() const
 	return this->m_clientMaxBodySize;
 }
 
-const std::string& BaseBlock::getIndexFile() const
+const std::string& BaseBlock::getIndexPage() const
+{
+
+}
+
+const std::string& BaseBlock::getErrorPage() const
 {
 
 }
