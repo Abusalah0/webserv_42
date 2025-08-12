@@ -2,9 +2,14 @@
 #include "../include/CommonUtils.hpp"
 #include "../include/Exceptions.hpp"
 
-void BaseBlock::toggle_auto_index()
+void BaseBlock::set_auto_index(const std::string& str)
 {
-	this->m_auto_index = true;
+	if (str.compare("on"))
+		this->m_auto_index = true;
+	else if (str.compare("off"))
+		this->m_auto_index = false;
+	else
+		throw WebservExceptions::InvalidValue();
 }
 
 void BaseBlock::set_root(const std::string& root)
@@ -62,17 +67,33 @@ void BaseBlock::set_client_max_body_size(const std::string& str_size)
 
 void BaseBlock::insert_index_pages(const std::set<std::string>& indexes)
 {
-	this->m_indexes.insert(indexes.cbegin(), indexes.cend());
+	this->m_pages_cache.insert(indexes.cbegin(), indexes.cend());
+	std::set<std::string>::const_iterator it_end = indexes.cend();
+	for (std::set<std::string>::const_iterator it = indexes.cbegin();
+		it != it_end;
+		it++)
+	{
+		const std::string* str_ptr = &(*this->m_pages_cache.find(*it));
+		this->m_indexes.insert(str_ptr);
+	}
 }
 
-void BaseBlock::insert_error_pages(uint32_t code, const std::set<std::string>& pages)
+void BaseBlock::insert_error_page(uint32_t code, const std::string& page)
 {
-	
+	if (this->m_error_page.find(code) == this->m_error_page.cend())
+		return;
+	this->m_pages_cache.insert(page);
+	const std::string* str_ptr = &(*this->m_pages_cache.find(page));
+	this->m_error_page[code] = str_ptr;
 }
 
-void BaseBlock::insert_redirect_pages(uint32_t code, const std::set<std::string>& pages)
+void BaseBlock::insert_redirect_page(uint32_t code, const std::string& page)
 {
-
+	if (this->m_redirect_page.find(code) == this->m_redirect_page.cend())
+		return;
+	this->m_pages_cache.insert(page);
+	const std::string* str_ptr = &(*this->m_pages_cache.find(page));
+	this->m_redirect_page[code] = str_ptr;
 }
 
 bool BaseBlock::get_auto_index() const
@@ -100,27 +121,25 @@ const std::string& BaseBlock::get_error_page(uint32_t code) const
 
 }
 
-page_info BaseBlock::get_redirect_page() const
+const std::string& BaseBlock::get_redirect_page(uint32_t code) const
 {
 
 }
 
 BaseBlock::BaseBlock():
 	m_auto_index(false),
-	m_root(),
-	m_client_max_body_size(1073741824),
+	m_root(DEFAULT_ROOT_PATH),
+	m_client_max_body_size(MEGABYTE),
 	m_indexes(),
-	m_error_pages(),
-	m_redirect_pages(),
+	m_error_page(),
+	m_redirect_page(),
 	m_pages_cache()
 {}
 
 BaseBlock::BaseBlock(BaseBlock& obj):
 	m_auto_index(obj.m_auto_index),
 	m_root(obj.m_root),
-	m_client_max_body_size(obj.m_client_max_body_size),
-	m_indexes(obj.m_indexes),
-	m_error_pages(obj.m_error_pages),
-	m_redirect_pages(obj.m_redirect_pages),
-	m_pages_cache
-{}
+	m_client_max_body_size(obj.m_client_max_body_size)
+{
+
+}
