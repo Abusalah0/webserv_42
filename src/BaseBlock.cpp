@@ -67,9 +67,14 @@ void BaseBlock::set_client_max_body_size(const std::string& str_size)
 
 void BaseBlock::insert_index_pages(const std::set<std::string>& indexes)
 {
-	this->m_pages_cache.insert(indexes.cbegin(), indexes.cend());
-	std::set<std::string>::const_iterator it_end = indexes.cend();
-	for (std::set<std::string>::const_iterator it = indexes.cbegin();
+	if (!this->m_index_set)
+	{
+		this->m_indexes.clear();	
+		this->m_index_set = true;
+	}
+	this->m_pages_cache.insert(indexes.begin(), indexes.end());
+	std::set<std::string>::iterator it_end = indexes.end();
+	for (std::set<std::string>::iterator it = indexes.begin();
 		it != it_end;
 		it++)
 	{
@@ -78,22 +83,80 @@ void BaseBlock::insert_index_pages(const std::set<std::string>& indexes)
 	}
 }
 
-void BaseBlock::insert_error_page(uint32_t code, const std::string& page)
+ushort parse_http_code(const std::string& str)
 {
-	if (this->m_error_page.find(code) == this->m_error_page.cend())
-		return;
-	this->m_pages_cache.insert(page);
-	const std::string* str_ptr = &(*this->m_pages_cache.find(page));
-	this->m_error_page[code] = str_ptr;
+	char* endptr;
+
+	if (str.empty())
+		throw WebservExceptions::InvalidValue();
+	if (!std::isdigit(str[0]))
+		throw WebservExceptions::InvalidValue();
+	long code = strtol(str.c_str(), &endptr, 10);
+	if (*endptr || errno == ERANGE)
+		throw WebservExceptions::InvalidValue();
+	if (code < 0 || code > 999)
+		throw WebservExceptions::HttpCodeOutOfRange();
+	return code;
 }
 
-void BaseBlock::insert_redirect_page(uint32_t code, const std::string& page)
+void BaseBlock::insert_error_page(const std::set<std::string>& codes, const std::string& page)
 {
-	if (this->m_redirect_page.find(code) == this->m_redirect_page.cend())
-		return;
-	this->m_pages_cache.insert(page);
-	const std::string* str_ptr = &(*this->m_pages_cache.find(page));
-	this->m_redirect_page[code] = str_ptr;
+	std::set<std::string>::iterator it_end = codes.end();
+	const std::string* str_ptr = &(*this->m_pages_cache.insert(page).first);
+
+	for (std::set<std::string>::iterator it = codes.begin();
+		it != it_end;
+		it++)
+	{
+		try
+		{
+			ushort code = parse_http_code(*it);
+			if (code < 300 || code > 599)
+				throw WebservExceptions::HttpErrorCodeOutOfRange();
+			if (this->m_set_error_pages.find(code) != this->m_set_error_pages.end())
+				continue;
+			this->m_error_page[code] = str_ptr;
+			this->m_set_error_pages.insert(code);
+		}
+		catch(const WebservExceptions::HttpCodeOutOfRange& e)
+		{
+			throw WebservExceptions::HttpErrorCodeOutOfRange();
+		}
+		catch(const std::exception& e)
+		{
+			throw e;
+		}
+	}
+}
+
+void BaseBlock::insert_redirect_page(const std::set<std::string>& codes, const std::string& page)
+{
+	std::set<std::string>::iterator it_end = codes.end();
+	const std::string* str_ptr = &(*this->m_pages_cache.insert(page).first);
+
+	for (std::set<std::string>::iterator it = codes.begin();
+		it != it_end;
+		it++)
+	{
+		try
+		{
+			ushort code = parse_http_code(*it);
+			if (code < 300 || code > 399)
+				throw WebservExceptions::HttpRedirectCodeOutOfRange();
+			if (this->m_set_redirect_pages.find(code) != this->m_set_redirect_pages.end())
+				continue;
+			this->m_error_page[code] = str_ptr;
+			this->m_set_redirect_pages.insert(code);
+		}
+		catch(const WebservExceptions::HttpCodeOutOfRange& e)
+		{
+			throw WebservExceptions::HttpRedirectCodeOutOfRange();
+		}
+		catch(const std::exception& e)
+		{
+			throw e;
+		}
+	}
 }
 
 bool BaseBlock::get_auto_index() const
@@ -111,26 +174,52 @@ std::size_t BaseBlock::get_client_max_body_size() const
 	return this->m_client_max_body_size;
 }
 
-const std::string& BaseBlock::get_index_page() const
+const std::string& BaseBlock::get_index_page(const std::string& route) const
 {
-	
+	std::string currentRoot = this->m_root;
 }
 
-const std::string& BaseBlock::get_error_page(uint32_t code) const
+const std::string& BaseBlock::get_error_page(ushort code) const
 {
+	std::map<ushort, const std::string*>::const_iterator it = this->m_error_page.find(code);
+	struct stat statbuf;
 
+	if (this->m_error_page.find(code) == this->m_error_page.end())
+		throw WebservExceptions::NoAvailablePage();
+	const std::string& str_ref = *it->second;
+	if (str_ref[0] != '/')
+		return (str_ref);
+
+	std::string file_path = this->m_root;
+	file_path.erase(file_path.size() - 1);
+	file_path.append(str_ref);
+
+	if (access(file_path.c_str(), F_OK))
+		throw WebservExceptions::NoAvailablePage();
+	if (access(file_path.c_str(), R_OK))
+		throw WebservExceptions::ForbiddenAccess();
+	if (stat(file_path.c_str(), &statbuf))
+		throw WebservExceptions::NoAvailablePage();
+	if (S_ISDIR(statbuf.st_mode))
+		throw WebservExceptions::ForbiddenAccess();
+	if (!S_ISREG(statbuf.st_mode))
+		throw WebservExceptions::NonRegularFile();
+	return (str_ref);
 }
 
-const std::string& BaseBlock::get_redirect_page(uint32_t code) const
+const std::string& BaseBlock::get_redirect_page(ushort code) const
 {
 
 }
 
 BaseBlock::BaseBlock():
 	m_auto_index(false),
+	m_index_set(false),
 	m_root(DEFAULT_ROOT_PATH),
 	m_client_max_body_size(MEGABYTE),
 	m_indexes(),
+	m_set_error_pages(),
+	m_set_redirect_pages(),
 	m_error_page(),
 	m_redirect_page(),
 	m_pages_cache()
@@ -138,8 +227,15 @@ BaseBlock::BaseBlock():
 
 BaseBlock::BaseBlock(BaseBlock& obj):
 	m_auto_index(obj.m_auto_index),
+	m_index_set(false),
 	m_root(obj.m_root),
-	m_client_max_body_size(obj.m_client_max_body_size)
+	m_client_max_body_size(obj.m_client_max_body_size),
+	m_indexes(),
+	m_set_error_pages(),
+	m_set_redirect_pages(),
+	m_error_page(),
+	m_redirect_page(),
+	m_pages_cache()
 {
 
 }

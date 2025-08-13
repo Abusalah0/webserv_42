@@ -22,4 +22,32 @@ namespace WebservExceptions
     {
         const char* what() const throw();
     };
+	class HttpCodeOutOfRange: public std::exception
+    {
+        const char* what() const throw();
+    };
+	class HttpRedirectCodeOutOfRange: public std::exception
+    {
+        const char* what() const throw();
+    };
+	class HttpErrorCodeOutOfRange: public std::exception
+    {
+        const char* what() const throw();
+    };
+	class HttpRedirectCodeOutOfRange: public std::exception
+    {
+        const char* what() const throw();
+    };
+	class NoAvailablePage: public std::exception
+	{
+		const char* what() const throw();
+	};
+	class ForbiddenAccess: public std::exception
+	{
+		const char* what() const throw();
+	};
+	class NonRegularFile: public std::exception
+	{
+		const char* what() const throw();
+	};
 }
