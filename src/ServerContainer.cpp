@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/14 14:43:38 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/14 17:19:13 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,12 +44,13 @@ void ServerContainer::add_server(const Server& server)
 {
     if (server.get_default() && default_exists)    
     {
-        return; //throw some shit
+        throw WebservExceptions::ADefaultServerAlreadyExists();
     }
     default_exists = default_exists & server.get_default();
     servers.push_back(server);
 }
 
+//lol
 void ServerContainer::remove_server(int index)
 {
     if (index < 0 || index >= static_cast<int>(servers.size()))
@@ -57,7 +58,6 @@ void ServerContainer::remove_server(int index)
         throw std::out_of_range("Index out of range");
     }
     servers.erase(servers.begin() + index);
-    // server_map.erase(index);
 }
 
 // Server* ServerContainer::get_server(int index)
