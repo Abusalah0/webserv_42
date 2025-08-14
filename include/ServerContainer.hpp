@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 15:42:52 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/14 09:25:28 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/14 14:38:02 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,8 @@
 class ServerContainer
 {
     private:
+        bool default_exists;
         std::vector<Server> servers;
-        // std::map<int, Server*> server_map;
     public:
         ServerContainer();
         ServerContainer(const ServerContainer& other);

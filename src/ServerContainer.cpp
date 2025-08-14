@@ -6,18 +6,17 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/14 09:26:18 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/14 14:43:38 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ServerContainer.hpp"
 #include <stdexcept>
 
-ServerContainer::ServerContainer() {}
+ServerContainer::ServerContainer() : servers(), default_exists(false) {}
 
 ServerContainer::ServerContainer(const ServerContainer& other) :
-    servers(other.servers)
-    // server_map(other.server_map)
+    servers(other.servers), default_exists(other.default_exists)
 {}
 
 ServerContainer& ServerContainer::operator=(const ServerContainer& other)
@@ -25,20 +24,29 @@ ServerContainer& ServerContainer::operator=(const ServerContainer& other)
     if (this != &other)
     {
         servers = other.servers;
-        // server_map = other.server_map;
+        default_exists = other.default_exists;
     }
     return (*this);
 }
 
-ServerContainer::ServerContainer(const std::vector<Server>& servers) :
-    servers(servers)
-    // server_map(server_map)
-{}
+ServerContainer::ServerContainer(const std::vector<Server>& servers) 
+{
+    for (size_t i = 0; i < servers.size(); i++)
+    {
+        add_server(servers[i]);
+    }
+    
+}
 
 ServerContainer::~ServerContainer() {}
 
 void ServerContainer::add_server(const Server& server)
 {
+    if (server.get_default() && default_exists)    
+    {
+        return; //throw some shit
+    }
+    default_exists = default_exists & server.get_default();
     servers.push_back(server);
 }
 

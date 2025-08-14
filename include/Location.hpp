@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:28:59 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/14 11:31:19 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/14 12:44:09 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@
 class Location : public BaseBlock
 {
     private:
-        bool dir_listing;
         std::set<std::string> allowed_methods;
         std::string upload_path;
         std::map<std::string, std::string> cgi_handlers;
@@ -38,8 +37,6 @@ class Location : public BaseBlock
         Location& operator=(const Location& other);
         ~Location();
 
-        void set_dir_listing(bool enabled);
-        bool get_dir_listing() const;
         void set_allowed_methods(const std::set<std::string>& methods);
         const std::set<std::string>& get_allowed_methods() const;
         void set_upload_path(const std::string& path);
