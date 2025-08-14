@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:28:59 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/13 21:11:56 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/14 11:31:19 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,6 @@ class Location : public BaseBlock
         void remove_allowed_method(const std::string& method);
         void add_cgi_handler(const std::string& extension, const std::string& handler);
         void remove_cgi_handler(const std::string& extension);
-        
 };
-
 
 #endif // LOCATION_HPP
