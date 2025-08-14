@@ -4,9 +4,9 @@
 
 void BaseBlock::set_auto_index(const std::string& str)
 {
-	if (str.compare("on"))
+	if (!str.compare("on"))
 		this->m_auto_index = true;
-	else if (str.compare("off"))
+	else if (!str.compare("off"))
 		this->m_auto_index = false;
 	else
 		throw WebservExceptions::InvalidValue();
@@ -136,10 +136,10 @@ BaseBlock::BaseBlock():
 	m_pages_cache()
 {}
 
-BaseBlock::BaseBlock(BaseBlock& obj):
+BaseBlock::BaseBlock(const BaseBlock& obj):
 	m_auto_index(obj.m_auto_index),
 	m_root(obj.m_root),
 	m_client_max_body_size(obj.m_client_max_body_size)
 {
-
+	// Copy other members if needed
 }

@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:09:36 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/08/13 14:10:18 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/13 18:13:57 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ class BaseBlock
 		const std::string& get_error_page(uint32_t code) const;
 		const std::string& get_redirect_page(uint32_t code) const;
 		BaseBlock();
-		BaseBlock(BaseBlock& obj);
+		BaseBlock(const BaseBlock& obj);
 		virtual ~BaseBlock();
 };
 
