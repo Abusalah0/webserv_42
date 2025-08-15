@@ -2,11 +2,11 @@ NAME = webserv
 
 CXX = c++
 
-FLAGS = -Wall -Wextra -Werror -std=c++98
+FLAGS = -Wall -Wextra -Werror -std=c++98 -g
 
 SRC_DIR = src
 
-SRC = $(SRC_DIR)/main.cpp $(SRC_DIR)/tokenizer.cpp $(SRC_DIR)/Exceptions.cpp
+SRC = $(SRC_DIR)/main.cpp $(SRC_DIR)/tokenizer.cpp $(SRC_DIR)/Exceptions.cpp $(SRC_DIR)/BaseBlock.cpp $(SRC_DIR)/CommonUtils.cpp
 
 OBJ_DIR = obj
 

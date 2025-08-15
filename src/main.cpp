@@ -12,9 +12,9 @@
 
 #include "../include/tokenizer.hpp"
 #include "../include/Exceptions.hpp"
+#include "../include/BaseBlock.hpp"
 #include <cstdlib>
 #include <exception>
-#include <new>
 
 static const std::string read_file(const std::string &file_name)
 // check file and read.
@@ -30,6 +30,7 @@ static const std::string read_file(const std::string &file_name)
 
 int main(int argc, char **argv)
 {
+	(void)argv;
     if (argc != 2)
     {
         std::cerr << "Error, Use ./webserv ./conf_file/file_name\n";
@@ -43,6 +44,28 @@ int main(int argc, char **argv)
     	{
     	    std::cout << "[" << tokens[i].word << "] type: " << tokens[i].type << "\n";
     	}
+		// BaseBlock* obj = new BaseBlock();
+		// std::set<std::string> codes;
+		// std::vector<std::string> indexes;
+		// indexes.push_back("...");
+		// indexes.push_back("dir");
+		// indexes.push_back("index.html");
+		// indexes.push_back("/");
+		// codes.insert("300");
+		// obj->set_root("");
+		// obj->set_client_max_body_size("1g");
+		// obj->set_auto_index("on");
+		// obj->insert_error_page(codes, "/error.html");
+		// obj->insert_redirect_page(codes, "www.redirect.com");
+		// obj->insert_index_pages(indexes);
+		// BaseBlock obj2(*obj);
+		// delete obj;
+		// std::cout << "Root: " << obj2.get_root() << std::endl;
+		// std::cout << "Autoindex: " << obj2.get_auto_index() << std::endl;
+		// std::cout << "Max body size: " << obj2.get_client_max_body_size() << std::endl;
+		// std::cout << "Index page: " << obj2.get_index_page("/") << std::endl;
+		// std::cout << "Error page: " << obj2.get_error_page(300) << std::endl;
+		// std::cout << "Redirect page: " << obj2.get_redirect_page(300) << std::endl;
 	}
 	catch (const std::exception& e)
 	{

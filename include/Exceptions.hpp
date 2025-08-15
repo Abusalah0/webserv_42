@@ -10,6 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#ifndef EXCEPTIONS_HPP
+#define EXCEPTIONS_HPP
+
 #include <exception>
 
 namespace WebservExceptions
@@ -34,10 +37,6 @@ namespace WebservExceptions
     {
         const char* what() const throw();
     };
-	class HttpRedirectCodeOutOfRange: public std::exception
-    {
-        const char* what() const throw();
-    };
 	class NoAvailablePage: public std::exception
 	{
 		const char* what() const throw();
@@ -50,4 +49,10 @@ namespace WebservExceptions
 	{
 		const char* what() const throw();
 	};
+	class InternalRedirectsLimitReached: public std::exception
+	{
+		const char* what() const throw();
+	};
 }
+
+#endif
