@@ -1,6 +1,9 @@
 #include "../include/BaseBlock.hpp"
 #include "../include/CommonUtils.hpp"
 #include "../include/Exceptions.hpp"
+#include <cerrno>
+#include <cstdlib>
+#include <cstdint>
 
 void BaseBlock::set_auto_index(const std::string& str)
 {
@@ -67,9 +70,9 @@ void BaseBlock::set_client_max_body_size(const std::string& str_size)
 
 void BaseBlock::insert_index_pages(const std::set<std::string>& indexes)
 {
-	this->m_pages_cache.insert(indexes.cbegin(), indexes.cend());
-	std::set<std::string>::const_iterator it_end = indexes.cend();
-	for (std::set<std::string>::const_iterator it = indexes.cbegin();
+	this->m_pages_cache.insert(indexes.begin(), indexes.end());
+	std::set<std::string>::const_iterator it_end = indexes.end();
+	for (std::set<std::string>::const_iterator it = indexes.begin();
 		it != it_end;
 		it++)
 	{
@@ -80,7 +83,7 @@ void BaseBlock::insert_index_pages(const std::set<std::string>& indexes)
 
 void BaseBlock::insert_error_page(uint32_t code, const std::string& page)
 {
-	if (this->m_error_page.find(code) == this->m_error_page.cend())
+	if (this->m_error_page.find(code) == this->m_error_page.end())
 		return;
 	this->m_pages_cache.insert(page);
 	const std::string* str_ptr = &(*this->m_pages_cache.find(page));
@@ -89,7 +92,7 @@ void BaseBlock::insert_error_page(uint32_t code, const std::string& page)
 
 void BaseBlock::insert_redirect_page(uint32_t code, const std::string& page)
 {
-	if (this->m_redirect_page.find(code) == this->m_redirect_page.cend())
+	if (this->m_redirect_page.find(code) == this->m_redirect_page.end())
 		return;
 	this->m_pages_cache.insert(page);
 	const std::string* str_ptr = &(*this->m_pages_cache.find(page));
