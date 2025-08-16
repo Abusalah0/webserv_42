@@ -9,9 +9,9 @@
  */
 void BaseBlock::set_auto_index(const std::string& str)
 {
-	if (str.compare("on"))
+	if (!str.compare("on"))
 		this->m_auto_index = true;
-	else if (str.compare("off"))
+	else if (!str.compare("off"))
 		this->m_auto_index = false;
 	else
 		throw WebservExceptions::InvalidValue();
@@ -327,7 +327,7 @@ BaseBlock::BaseBlock():
  * @param[in] BaseBlock
  * @return Copied BaseBlock
  */
-BaseBlock::BaseBlock(BaseBlock& obj):
+BaseBlock::BaseBlock(const BaseBlock& obj):
 	m_auto_index(obj.m_auto_index),
 	m_index_set(false),
 	m_root(obj.m_root),
@@ -344,14 +344,14 @@ BaseBlock::BaseBlock(BaseBlock& obj):
 		std::set<std::string>::iterator it_str = this->m_pages_cache.find(*obj.m_indexes[i]);
 		this->m_indexes.push_back(&(*it_str));
 	}
-	for (std::map<ushort, const std::string*>::iterator it = obj.m_error_page.begin();
+	for (std::map<ushort, const std::string*>::const_iterator it = obj.m_error_page.begin();
 		it != obj.m_error_page.end();
 		it++)
 	{
 		std::set<std::string>::iterator it_str = this->m_pages_cache.find(*(*it).second);
 		this->m_error_page[(*it).first] = &(*it_str);
 	}
-	for (std::map<ushort, const std::string*>::iterator it = obj.m_redirect_page.begin();
+	for (std::map<ushort, const std::string*>::const_iterator it = obj.m_redirect_page.begin();
 		it != obj.m_redirect_page.end();
 		it++)
 	{

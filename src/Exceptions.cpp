@@ -44,3 +44,8 @@ const char* WebservExceptions::InternalRedirectsLimitReached::what() const throw
 {
     return "Internal redirects limit reached.";
 }
+
+const char* WebservExceptions::ADefaultServerAlreadyExists::what() const throw()
+{
+    return "A default server already exists!";
+}

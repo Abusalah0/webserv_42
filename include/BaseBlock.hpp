@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   BaseBlock.hpp                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/08/13 14:09:36 by amsaleh           #+#    #+#             */
+/*   Updated: 2025/08/14 17:23:54 by abdsalah         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef BASEBLOCK_HPP
 #define BASEBLOCK_HPP
 
@@ -36,7 +48,7 @@ class BaseBlock
 		std::string get_error_page(ushort code) const;
 		std::string get_redirect_page(ushort code) const;
 		BaseBlock();
-		BaseBlock(BaseBlock& obj);
+		BaseBlock(const BaseBlock& obj);
 		virtual ~BaseBlock();
 };
 
