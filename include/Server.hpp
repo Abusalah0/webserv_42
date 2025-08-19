@@ -24,7 +24,7 @@ class Server : public BaseBlock
 {
     private:
         std::vector<Location> locations;
-        std::vector<std::pair<std::string, int> > listen;
+        std::vector<std::pair<uint32_t, ushort> > listen;
         std::set<std::string> server_names;
         bool                    is_default;
     public:
@@ -33,7 +33,7 @@ class Server : public BaseBlock
         Server(const Server& other);
         Server(const BaseBlock& baseBlock,
                const std::vector<Location>& locations,
-               const std::vector<std::pair<std::string, int> >& listen,
+               const std::vector<std::pair<uint32_t, ushort> >& listen,
                const std::set<std::string>& serverNames,
                bool is_default);
         // copy operator
@@ -52,8 +52,8 @@ class Server : public BaseBlock
         void remove_server_name(std::string& name);
 
         // listen methods
-        void set_listen(std::vector<std::pair<std::string, int> >& listen);
-        void add_listen(std::pair<std::string, int>& listen);
+        void set_listen(std::vector<std::pair<uint32_t, ushort> >& listen);
+        void add_listen(const std::string& listen);
         void remove_listen(std::pair<std::string, int>& listen);
 
         // is default methodes
@@ -62,7 +62,7 @@ class Server : public BaseBlock
 
         // getters
         const std::vector<Location> get_locations() const;
-        const std::vector<std::pair<std::string, int> > get_listen() const;
+        const std::vector<std::pair<uint32_t, ushort> > get_listen() const;
         const std::set<std::string> get_server_names() const;
 
 };
