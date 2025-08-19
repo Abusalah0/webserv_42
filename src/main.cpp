@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbibers <sbibers@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 12:01:26 by sbibers           #+#    #+#             */
-/*   Updated: 2025/08/11 14:17:50 by sbibers          ###   ########.fr       */
+/*   Updated: 2025/08/19 16:34:22 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	try
 	{
 		const std::string buffer = read_file(argv[1]);
-    	std::vector<t_tokenizer> tokens = tokenize_string(buffer);
+    	std::vector<t_token> tokens = tokenize_string(buffer);
     	for (size_t i = 0; i < tokens.size(); ++i) // to test vector after tokenizer.
     	{
     	    std::cout << "[" << tokens[i].word << "] type: " << tokens[i].type << "\n";

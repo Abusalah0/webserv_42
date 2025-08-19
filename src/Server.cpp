@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/14 14:29:43 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/20 00:50:25 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,14 @@ Server::Server(const Server& other) :
         listen(other.listen),
         is_default(other.is_default),
         server_names(other.server_names)
+{}
+
+Server::Server(BaseBlock& baseBlock) :
+        BaseBlock(baseBlock),
+        locations(),
+        listen(),
+        is_default(false),
+        server_names()
 {}
 
 Server::Server(const BaseBlock& baseBlock,

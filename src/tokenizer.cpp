@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   tokenizer.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbibers <sbibers@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 14:15:44 by sbibers           #+#    #+#             */
-/*   Updated: 2025/08/11 14:18:06 by sbibers          ###   ########.fr       */
+/*   Updated: 2025/08/19 16:34:22 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,11 +35,11 @@ static Type find_type(const std::string &str)
     return (WORD);
 }
 
-std::vector<t_tokenizer> tokenize_string(const std::string &buffer)
+std::vector<t_token> tokenize_string(const std::string &buffer)
 // tokenize and return all vector (tokens).
 {
-    std::vector<t_tokenizer> vector_tokens;
-    t_tokenizer token;
+    std::vector<t_token> vector_tokens;
+    t_token token;
     std::string current;
     
     for (size_t i = 0; i < buffer.length(); i++)

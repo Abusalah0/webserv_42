@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:26:51 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/14 17:10:19 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/20 00:49:49 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ class Server : public BaseBlock
     public:
         // construtors
         Server();
+        Server(BaseBlock& baseBlock);
         Server(const Server& other);
         Server(const BaseBlock& baseBlock,
                const std::vector<Location>& locations,
