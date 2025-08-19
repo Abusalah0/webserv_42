@@ -28,7 +28,7 @@ Server::Server(const Server& other) :
 
 Server::Server(const BaseBlock& baseBlock,
                const std::vector<Location>& locations,
-               const std::vector<std::pair<uint32_t, ushort> >& listen,
+               const std::vector<std::pair<std::string, std::string> >& listen,
                const std::set<std::string>& serverNames, bool is_default)
     : BaseBlock(baseBlock),
       locations(locations),
@@ -60,10 +60,11 @@ void Server::add_location(Location& location)
 {
     this->locations.push_back(location);
 }
-void Server::remove_location(Location& location)
-{
+
+//void Server::remove_location(Location& location)
+//{
     
-}
+//}
 
 void Server::set_server_names(std::set<std::string>& names)
 {
@@ -73,32 +74,37 @@ void Server::add_server_name(std::string& name)
 {
     this->server_names.insert(name);
 }
-void Server::remove_server_name(std::string& name)
-{
-    this->server_names.erase(name);
-}
 
-void Server::set_listen(std::vector<std::pair<uint32_t, ushort> >& listen)
+//void Server::remove_server_name(std::string& name)
+//{
+//    this->server_names.erase(name);
+//}
+
+void Server::set_listen(std::vector<std::pair<std::string, std::string> >& listen)
 {
     this->listen = listen;
 }
+
 void Server::add_listen(const std::string& listen)
 {
-	
-    // this->listen.push_back(listen);
+	std::pair<std::string, std::string> entry;
+    std::size_t pos = listen.find(':');
+    entry.first = listen.substr(0, pos);
+    entry.second = listen.substr(pos + 1, std::string::npos);
+    this->listen.push_back(entry);
 }
 
-void Server::remove_listen(std::pair<std::string, int>& listen)
-{
+//void Server::remove_listen(std::pair<std::string, int>& listen)
+//{
     
-}
+//}
 
 const std::vector<Location> Server::get_locations() const
 {
     return (this->locations);
 }
 
-const std::vector<std::pair<uint32_t, ushort> > Server::get_listen() const
+const std::vector<std::pair<std::string, std::string> > Server::get_listen() const
 {
     return (this->listen);
 }

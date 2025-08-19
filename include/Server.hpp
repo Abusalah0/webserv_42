@@ -24,7 +24,7 @@ class Server : public BaseBlock
 {
     private:
         std::vector<Location> locations;
-        std::vector<std::pair<uint32_t, ushort> > listen;
+        std::vector<std::pair<std::string, std::string> > listen;
         std::set<std::string> server_names;
         bool                    is_default;
     public:
@@ -33,7 +33,7 @@ class Server : public BaseBlock
         Server(const Server& other);
         Server(const BaseBlock& baseBlock,
                const std::vector<Location>& locations,
-               const std::vector<std::pair<uint32_t, ushort> >& listen,
+               const std::vector<std::pair<std::string, std::string> >& listen,
                const std::set<std::string>& serverNames,
                bool is_default);
         // copy operator
@@ -44,17 +44,17 @@ class Server : public BaseBlock
         // locations methods
         void set_locations(std::vector<Location>& locations);
         void add_location(Location& location);
-        void remove_location(Location& location);
+        //void remove_location(Location& location);
         
         // server name methods
         void set_server_names(std::set<std::string>& names);
         void add_server_name(std::string& name);
-        void remove_server_name(std::string& name);
+        //void remove_server_name(std::string& name);
 
         // listen methods
-        void set_listen(std::vector<std::pair<uint32_t, ushort> >& listen);
+        void set_listen(std::vector<std::pair<std::string, std::string> >& listen);
         void add_listen(const std::string& listen);
-        void remove_listen(std::pair<std::string, int>& listen);
+        //void remove_listen(std::pair<std::string, int>& listen);
 
         // is default methodes
         void set_default(bool& is_default);
@@ -62,7 +62,7 @@ class Server : public BaseBlock
 
         // getters
         const std::vector<Location> get_locations() const;
-        const std::vector<std::pair<uint32_t, ushort> > get_listen() const;
+        const std::vector<std::pair<std::string, std::string> > get_listen() const;
         const std::set<std::string> get_server_names() const;
 
 };
