@@ -6,7 +6,15 @@ CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iinclude
 
 SRC_DIR = src
 
-SRC = $(SRC_DIR)/main.cpp $(SRC_DIR)/tokenizer.cpp $(SRC_DIR)/Exceptions.cpp $(SRC_DIR)/BaseBlock.cpp $(SRC_DIR)/CommonUtils.cpp
+SRC = \
+	$(SRC_DIR)/main.cpp \
+	$(SRC_DIR)/tokenizer.cpp \
+	$(SRC_DIR)/Exceptions.cpp \
+	$(SRC_DIR)/BaseBlock.cpp \
+	$(SRC_DIR)/CommonUtils.cpp \
+	$(SRC_DIR)/Server.cpp \
+	$(SRC_DIR)/ServerContainer.cpp \
+	$(SRC_DIR)/Location.cpp
 
 OBJ_DIR = obj
 

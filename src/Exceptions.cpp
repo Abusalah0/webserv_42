@@ -49,3 +49,23 @@ const char* WebservExceptions::ADefaultServerAlreadyExists::what() const throw()
 {
     return "A default server already exists!";
 }
+
+const char* WebservExceptions::SocketFailed::what() const throw()
+{
+    return "Socket failed!";
+}
+
+const char* WebservExceptions::GAIFailed::what() const throw()
+{
+    return "getaddrinfo failed!";
+}
+
+const char* WebservExceptions::BindFailed::what() const throw()
+{
+    return "Bind failed!";
+}
+
+const char* WebservExceptions::ListenFailed::what() const throw()
+{
+    return "Listen failed!";
+}

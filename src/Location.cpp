@@ -41,6 +41,7 @@ Location& Location::operator=(const Location& other)
     allowed_methods = other.allowed_methods;
     upload_path = other.upload_path;
     cgi_handlers = other.cgi_handlers;
+    return (*this);
 }
 
 Location::~Location()
@@ -90,7 +91,7 @@ void Location::remove_allowed_method(const std::string& method)
 
 void Location::add_cgi_handler(const std::string& extension, const std::string& handler)
 {
-    this->cgi_handlers.insert({extension, handler});
+    this->cgi_handlers[extension] = handler;
 }
 
 void Location::remove_cgi_handler(const std::string& extension)

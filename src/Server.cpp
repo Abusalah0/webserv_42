@@ -22,8 +22,8 @@ Server::Server(const Server& other) :
         BaseBlock(other),
         locations(other.locations),
         listen(other.listen),
-        is_default(other.is_default),
-        server_names(other.server_names)
+        server_names(other.server_names),
+        is_default(other.is_default)
 {}
 
 Server::Server(const BaseBlock& baseBlock,
@@ -33,8 +33,8 @@ Server::Server(const BaseBlock& baseBlock,
     : BaseBlock(baseBlock),
       locations(locations),
       listen(listen),
-      is_default(is_default),
-      server_names(serverNames)
+      server_names(serverNames),
+      is_default(is_default)
 {}
 
 Server& Server::operator=(const Server& other)

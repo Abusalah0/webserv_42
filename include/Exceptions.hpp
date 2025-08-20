@@ -57,6 +57,22 @@ namespace WebservExceptions
     {
         const char* what() const throw();
     };
+    class SocketFailed: public std::exception
+    {
+        const char* what() const throw();
+    };
+    class GAIFailed: public std::exception
+    {
+        const char* what() const throw();
+    };
+    class BindFailed: public std::exception
+    {
+        const char* what() const throw();
+    };
+    class ListenFailed: public std::exception
+    {
+        const char* what() const throw();
+    };
 }
 
 #endif

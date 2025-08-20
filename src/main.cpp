@@ -14,19 +14,19 @@
 #include "../include/Exceptions.hpp"
 #include "../include/BaseBlock.hpp"
 #include <cstdlib>
-#include <exception>
+#include "../include/ServerContainer.hpp"
+#include "../include/Server.hpp"
 
-static const std::string read_file(const std::string &file_name)
-// check file and read.
-{
-    std::ifstream file(file_name.c_str());
-    if (!file.is_open())
-        throw WebservExceptions::FileOpenFailure();
-    std :: stringstream buffer;
-    buffer << file.rdbuf();
-    std::string content = buffer.str();
-    return (content);
-}
+//static const std::string read_file(const std::string &file_name)
+//{
+//    std::ifstream file(file_name.c_str());
+//    if (!file.is_open())
+//        throw WebservExceptions::FileOpenFailure();
+//    std :: stringstream buffer;
+//    buffer << file.rdbuf();
+//    std::string content = buffer.str();
+//    return (content);
+//}
 
 int main(int argc, char **argv)
 {
@@ -38,12 +38,20 @@ int main(int argc, char **argv)
     }
 	try
 	{
-		const std::string buffer = read_file(argv[1]);
-    	std::vector<t_tokenizer> tokens = tokenize_string(buffer);
-    	for (size_t i = 0; i < tokens.size(); ++i) // to test vector after tokenizer.
-    	{
-    	    std::cout << "[" << tokens[i].word << "] type: " << tokens[i].type << "\n";
-    	}
+		ServerContainer server_container;
+		Server server_a;
+		server_a.add_listen("127.0.0.1:9000");
+		server_a.add_listen("127.0.0.1:9001");
+		server_container.add_server(server_a);
+		server_container.setup_webserv();
+		server_container.loop();
+		//const std::string buffer = read_file(argv[1]);
+    	//std::vector<t_tokenizer> tokens = tokenize_string(buffer);
+    	//for (size_t i = 0; i < tokens.size(); ++i) // to test vector after tokenizer.
+    	//{
+    	//    std::cout << "[" << tokens[i].word << "] type: " << tokens[i].type << "\n";
+    	//}
+		
 		// BaseBlock* obj = new BaseBlock();
 		// std::set<std::string> codes;
 		// std::vector<std::string> indexes;
@@ -66,6 +74,7 @@ int main(int argc, char **argv)
 		// std::cout << "Index page: " << obj2.get_index_page("/") << std::endl;
 		// std::cout << "Error page: " << obj2.get_error_page(300) << std::endl;
 		// std::cout << "Redirect page: " << obj2.get_redirect_page(300) << std::endl;
+		
 	}
 	catch (const std::exception& e)
 	{
