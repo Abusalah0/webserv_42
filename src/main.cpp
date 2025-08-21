@@ -13,9 +13,11 @@
 #include "../include/tokenizer.hpp"
 #include "../include/Exceptions.hpp"
 #include "../include/BaseBlock.hpp"
-#include <cstdlib>
 #include "../include/ServerContainer.hpp"
 #include "../include/Server.hpp"
+#include "../include/CommonUtils.hpp"
+
+int g_signum = 0;
 
 //static const std::string read_file(const std::string &file_name)
 //{
@@ -28,6 +30,11 @@
 //    return (content);
 //}
 
+void signal_handler(int signum)
+{
+	g_signum = signum;
+}
+
 int main(int argc, char **argv)
 {
 	(void)argv;
@@ -36,13 +43,16 @@ int main(int argc, char **argv)
         std::cerr << "Error, Use ./webserv ./conf_file/file_name\n";
         return (1);
     }
+	signal(SIGINT, signal_handler);
 	try
 	{
 		ServerContainer server_container;
 		Server server_a;
-		server_a.add_listen("127.0.0.1:9000");
+		server_a.add_listen("0.0.0.0:2000");
 		server_a.add_listen("127.0.0.1:9001");
 		server_container.add_server(server_a);
+		if (g_signum == SIGINT)
+			return 0;
 		server_container.setup_webserv();
 		server_container.loop();
 		//const std::string buffer = read_file(argv[1]);

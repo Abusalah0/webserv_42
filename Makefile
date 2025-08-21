@@ -14,7 +14,8 @@ SRC = \
 	$(SRC_DIR)/CommonUtils.cpp \
 	$(SRC_DIR)/Server.cpp \
 	$(SRC_DIR)/ServerContainer.cpp \
-	$(SRC_DIR)/Location.cpp
+	$(SRC_DIR)/Location.cpp \
+	$(SRC_DIR)/Client.cpp
 
 OBJ_DIR = obj
 

@@ -5,7 +5,10 @@
 #include <stdint.h>
 #include <cstdlib>
 #include <errno.h>
+#include <csignal>
 #include "Exceptions.hpp"
+
+extern int g_signum;
 
 // Used when path of root is not absoulte or relative
 #define ROOT_PREFIX "/var/lib/webserv/"

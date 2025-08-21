@@ -69,3 +69,8 @@ const char* WebservExceptions::ListenFailed::what() const throw()
 {
     return "Listen failed!";
 }
+
+const char* WebservExceptions::PollFailed::what() const throw()
+{
+    return "Poll failed!";
+}

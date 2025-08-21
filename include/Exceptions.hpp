@@ -73,6 +73,10 @@ namespace WebservExceptions
     {
         const char* what() const throw();
     };
+	class PollFailed: public std::exception
+    {
+        const char* what() const throw();
+    };
 }
 
 #endif

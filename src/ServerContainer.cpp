@@ -15,19 +15,21 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <arpa/inet.h>
+#include <stdio.h>
 
-ServerContainer::ServerContainer() : default_exists(false), servers() {}
+ServerContainer::ServerContainer() : m_default_exists(false), m_servers() {}
 
 ServerContainer::ServerContainer(const ServerContainer& other) :
-    default_exists(other.default_exists), servers(other.servers)
+    m_default_exists(other.m_default_exists), m_servers(other.m_servers)
 {}
 
 ServerContainer& ServerContainer::operator=(const ServerContainer& other)
 {
     if (this != &other)
     {
-        servers = other.servers;
-        default_exists = other.default_exists;
+        m_servers = other.m_servers;
+        m_default_exists = other.m_default_exists;
     }
     return (*this);
 }
@@ -40,9 +42,13 @@ ServerContainer::ServerContainer(const std::vector<Server>& servers)
     }
 }
 
-ServerContainer::~ServerContainer() {}
+ServerContainer::~ServerContainer()
+{
+	for (size_t i = 0; i < this->m_poll_fds.size(); i++)
+		close(this->m_poll_fds[i].fd);
+}
 
-int ServerContainer::create_listen_socket(std::pair<std::string, std::string> listen_item)
+int ServerContainer::create_listen_socket(std::pair<std::string, std::string> listen_item, sockaddr_in& server_addr)
 {
     addrinfo hints;
     addrinfo* pai;
@@ -68,6 +74,7 @@ int ServerContainer::create_listen_socket(std::pair<std::string, std::string> li
         if (!bind(sockfd, current_pai->ai_addr, current_pai->ai_addrlen))
         {
             socket_binded = true;
+			server_addr = *(sockaddr_in*)current_pai->ai_addr;
             break;
         }
     }
@@ -87,22 +94,24 @@ int ServerContainer::create_listen_socket(std::pair<std::string, std::string> li
 
 void ServerContainer::setup_webserv()
 {
-    for (std::vector<Server>::iterator it = this->servers.begin();
-        it != this->servers.end();
+    for (std::vector<Server>::iterator it = this->m_servers.begin();
+        it != this->m_servers.end();
         it++)
     {
         Server* server = &(*it);
         std::vector<std::pair<std::string, std::string> > listens = server->get_listen();
+		sockaddr_in server_addr;
         for (size_t i = 0; i < listens.size(); i++)
         {
             try
             {
-                int sockfd = create_listen_socket(listens[i]);
-                this->servers_map[sockfd] = server;
+                int sockfd = create_listen_socket(listens[i], server_addr);
+                this->m_servers_map[sockfd] = server;
+				this->m_servers_addr_map[sockfd] = server_addr;
                 pollfd entry;
                 entry.fd = sockfd;
                 entry.events = POLLIN | POLLOUT;
-                this->poll_fds.push_back(entry);
+                this->m_poll_fds.push_back(entry);
             }
             catch(const std::bad_alloc& e)
             {
@@ -116,28 +125,115 @@ void ServerContainer::setup_webserv()
     }
 }
 
+static void debugClientConn(sockaddr_in& client_addr, sockaddr_in& server_addr)
+{
+	char client_addr_arr[16];
+	char server_addr_arr[16];
+	inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, client_addr_arr, 16);
+	inet_ntop(AF_INET, &server_addr.sin_addr.s_addr, server_addr_arr, 16);
+	std::cout << "Client " << client_addr_arr << ":" << ntohs(client_addr.sin_port)
+		<< " connected to " << server_addr_arr << ":" << ntohs(server_addr.sin_port) << std::endl;
+}
+
+void ServerContainer::remove_client(size_t poll_index)
+{
+	std::cout << "Client disconnected!" << std::endl;
+	close(this->m_poll_fds[poll_index].fd);
+	this->m_clients_map.erase(this->m_poll_fds[poll_index].fd);
+	this->m_poll_fds[poll_index].fd = -1;
+}
+
+void ServerContainer::accept_client(size_t poll_index)
+{
+	pollfd& poll_data = this->m_poll_fds[poll_index];
+	sockaddr_in client_addr;
+	socklen_t client_addrlen = sizeof(sockaddr_in);
+	int client_fd = accept(poll_data.fd, (sockaddr*)&client_addr, &client_addrlen);
+	if (client_fd == -1)
+	{
+		std::cerr << "accept failed!" << std::endl;
+		return;
+	}
+	this->m_clients_map.insert(
+		std::pair<int, Client>(client_fd, Client(client_fd, *this->m_servers_map[poll_data.fd], client_addr))
+	);
+	pollfd entry;
+	entry.fd = client_fd;
+	entry.events = POLLIN | POLLOUT;
+	this->m_poll_fds.push_back(entry);
+	debugClientConn(client_addr, this->m_servers_addr_map[poll_data.fd]);
+}
+
+void ServerContainer::loop_cleanup()
+{
+	size_t i = 0;
+	while (i < this->m_poll_fds.size())
+	{
+		if (this->m_poll_fds[i].fd == -1)
+			this->m_poll_fds.erase(this->m_poll_fds.begin() + i);
+		else
+			i++;
+	}
+}
+
 void ServerContainer::loop()
 {
     while (true)
     {
-        poll(this->poll_fds.data(), this->poll_fds.size(), -1);
-        std::cout << "LOOP COMPLETE!" << std::endl;
+        if (poll(this->m_poll_fds.data(), this->m_poll_fds.size(), -1) < 0)
+		{
+			if (errno == EINTR)
+				break;
+			throw WebservExceptions::PollFailed();
+		}
+		for (size_t i = 0; i < this->m_poll_fds.size(); i++)
+		{
+			pollfd& poll_data = this->m_poll_fds[i];
+			if (poll_data.revents)
+			{
+				if (this->m_servers_map.find(poll_data.fd) != this->m_servers_map.end())
+					accept_client(i);
+				else if (this->m_clients_map.find(poll_data.fd) != this->m_clients_map.end())
+				{
+					if (poll_data.revents & POLLHUP)
+					{
+						remove_client(i);
+						continue;
+					}
+					if (poll_data.revents & POLLIN)
+					{
+						char buff[10000];
+						ssize_t bytes_read = recv(poll_data.fd, buff, 10000, 0);
+						if (bytes_read == 0)
+						{
+							remove_client(i);
+							continue;
+						}
+						buff[bytes_read] = 0;
+						std::cout << buff << std::endl;
+					}
+				}
+			}
+		}
+		if (g_signum == SIGINT)
+			break;
+		loop_cleanup();
     }
 }
 
 Server* ServerContainer::get_sock_server(int sockfd)
 {
-    return this->servers_map[sockfd];
+    return this->m_servers_map[sockfd];
 }
 
 void ServerContainer::add_server(const Server& server)
 {
-    if (server.get_default() && default_exists)
+    if (server.get_default() && m_default_exists)
     {
         throw WebservExceptions::ADefaultServerAlreadyExists();
     }
-    default_exists = default_exists & server.get_default();
-    servers.push_back(server);
+    m_default_exists = m_default_exists & server.get_default();
+    m_servers.push_back(server);
 }
 
 //lol
@@ -161,5 +257,5 @@ void ServerContainer::add_server(const Server& server)
 
 const std::vector<Server>& ServerContainer::get_servers() const
 {
-    return (servers);
+    return (m_servers);
 }
