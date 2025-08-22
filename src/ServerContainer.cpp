@@ -6,17 +6,21 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/14 17:19:13 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/22 01:54:16 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "ServerContainer.hpp"
 #include <stdexcept>
 
-ServerContainer::ServerContainer() : servers(), default_exists(false) {}
+ServerContainer::ServerContainer() :
+            default_exists(false),
+            servers()
+{}
 
 ServerContainer::ServerContainer(const ServerContainer& other) :
-    servers(other.servers), default_exists(other.default_exists)
+        default_exists(other.default_exists),
+        servers(other.servers)
 {}
 
 ServerContainer& ServerContainer::operator=(const ServerContainer& other)

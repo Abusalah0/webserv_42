@@ -6,14 +6,17 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:11:46 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/14 17:19:39 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/22 01:47:18 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Location.hpp"
 
 Location::Location() : 
-    BaseBlock()
+    BaseBlock(),
+    allowed_methods(),
+    upload_path(),
+    cgi_handlers()
 {}
 
 Location::Location(const Location& other) : 
@@ -41,6 +44,7 @@ Location& Location::operator=(const Location& other)
     allowed_methods = other.allowed_methods;
     upload_path = other.upload_path;
     cgi_handlers = other.cgi_handlers;
+    return (*this);
 }
 
 Location::~Location()
@@ -90,7 +94,7 @@ void Location::remove_allowed_method(const std::string& method)
 
 void Location::add_cgi_handler(const std::string& extension, const std::string& handler)
 {
-    this->cgi_handlers.insert({extension, handler});
+    this->cgi_handlers.insert(std::pair<std::string, std::string>(extension, handler));
 }
 
 void Location::remove_cgi_handler(const std::string& extension)

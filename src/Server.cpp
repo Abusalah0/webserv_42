@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/20 00:50:25 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/22 01:44:27 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,16 +22,16 @@ Server::Server(const Server& other) :
         BaseBlock(other),
         locations(other.locations),
         listen(other.listen),
-        is_default(other.is_default),
-        server_names(other.server_names)
+        server_names(other.server_names),
+        is_default(other.is_default)
 {}
 
 Server::Server(BaseBlock& baseBlock) :
         BaseBlock(baseBlock),
         locations(),
         listen(),
-        is_default(false),
-        server_names()
+        server_names(),
+        is_default(false)
 {}
 
 Server::Server(const BaseBlock& baseBlock,
@@ -41,8 +41,8 @@ Server::Server(const BaseBlock& baseBlock,
     : BaseBlock(baseBlock),
       locations(locations),
       listen(listen),
-      is_default(is_default),
-      server_names(serverNames)
+      server_names(serverNames),
+      is_default(is_default)
 {}
 
 Server& Server::operator=(const Server& other)
@@ -70,7 +70,7 @@ void Server::add_location(Location& location)
 }
 void Server::remove_location(Location& location)
 {
-    
+    (void)location; // Placeholder for future implementation
 }
 
 void Server::set_server_names(std::set<std::string>& names)
@@ -97,7 +97,7 @@ void Server::add_listen(std::pair<std::string, int>& listen)
 
 void Server::remove_listen(std::pair<std::string, int>& listen)
 {
-    
+    (void)listen; // Placeholder for future implementation
 }
 
 const std::vector<Location> Server::get_locations() const
