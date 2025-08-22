@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:55:32 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/22 01:59:11 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/22 18:49:17 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,12 +24,14 @@ static void skip_directive(const std::vector<t_token> &tokens, std::size_t &pos)
         if (is_semicolon(tokens[pos]))
         {
             ++pos; // consume ';'
-            return;
+            return ;
         }
         // If we find a brace here, treat it as an error for simple directives
-        // if (is_brace_open(tokens[pos]) || is_brace_close(tokens[pos]))
-            // throw_parse_error("Unexpected brace inside simple directive");
-
+        std::cout << "location current directive -- >" << tokens[pos].word << std::endl;
+        if (is_brace_open(tokens[pos]))
+            throw_parse_error("Unexpected brace inside simple directive");
+        if (is_brace_close(tokens[pos]))
+            return ;
         ++pos; // skip argument token
     }
 }
@@ -38,8 +40,8 @@ void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos)
 {
     // pos expected to be at the location path token when called by skip_server_block
     expect_token(tokens, pos);
-    if (!is_word(tokens[pos]))
-        throw_parse_error("Expected location path after 'location'");
+    // if (!is_word(tokens[pos]))
+        // throw_parse_error("Expected location path after 'location'");
     ++pos; // skip the location path
 
     expect_token(tokens, pos);
@@ -54,12 +56,12 @@ void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos)
         if (is_brace_close(tokens[pos]))
         {
             ++pos; // consume '}'
+            std::cout << "finished location skiping" << std::endl;
             break;
         }
         // should be a directive word
-        if (!is_word(tokens[pos]))
-            throw_parse_error("Expected directive inside location");
-        
+        // if (!is_word(tokens[pos]))
+        //     throw_parse_error("Expected directive inside location");
         skip_directive(tokens, pos);
     }
 }
@@ -75,19 +77,22 @@ void skip_server_block(const std::vector<t_token> &tokens, std::size_t &pos)
     while (true)
     {
         expect_token(tokens, pos);
+        std::cout << "server current directive -- >" << tokens[pos].word << std::endl;
         if (is_brace_close(tokens[pos]))
         {
-            ++pos; // consume '}'
+            // ++pos; // consume '}'
+            std::cout << "finished server parsing" << std::endl;
             break;
         }
+        
         if (!is_word(tokens[pos]))
             throw_parse_error("Expected directive inside server");
-
-        // If we see a location directive, jump to skip_location_block
+       
         if (tokens[pos].word == "location")
         {
             ++pos; // skip the 'location' token
             skip_location_block(tokens, pos);
+            ++pos;
             continue;
         }
         // otherwise skip a general directive (name + args + ;)
@@ -177,20 +182,24 @@ void store_directive(BaseBlock &baseBlock, const std::string &directive, const s
     }
     else if (directive == "root")
     {
-        if (!is_word(tokens[pos])) throw_parse_error("Expected root path after 'root'");
+        if (!is_word(tokens[pos]))
+            throw_parse_error("Expected root path after 'root'");
         baseBlock.set_root(tokens[pos].word);
         ++pos;
         expect_token(tokens, pos);
-        if (!is_semicolon(tokens[pos])) throw_parse_error("Expected ';' after root");
+        if (!is_semicolon(tokens[pos]))
+            throw_parse_error("Expected ';' after root");
         ++pos;
     }
     else if (directive == "auto_index" || directive == "autoindex")
     {
-        if (!is_word(tokens[pos])) throw_parse_error("Expected 'on' or 'off' after 'auto_index'");
+        if (!is_word(tokens[pos]))
+            throw_parse_error("Expected 'on' or 'off' after 'auto_index'");
         baseBlock.set_auto_index(tokens[pos].word);
         ++pos;
         expect_token(tokens, pos);
-        if (!is_semicolon(tokens[pos])) throw_parse_error("Expected ';' after auto_index");
+        if (!is_semicolon(tokens[pos]))
+            throw_parse_error("Expected ';' after auto_index");
         ++pos;
     }
     else if (directive == "index")
@@ -230,11 +239,13 @@ void parse_baseblock(const std::vector<t_token> &tokens, BaseBlock &baseBlock, s
     while (pos < tokens.size())
     {
         expect_token(tokens, pos);
-
+        std::cout << "http current directive -- >" << tokens[pos].word << std::endl;
+        
         // if we hit the closing brace of http block, we're done
         if (is_brace_close(tokens[pos]))
         {
-            return;
+            std::cout << "finished http parsing" << std::endl;
+            return ;
         }
 
         // if token is 'server', skip the entire server block (we only want http defaults here)
@@ -244,6 +255,7 @@ void parse_baseblock(const std::vector<t_token> &tokens, BaseBlock &baseBlock, s
             // now pos should point to '{'
             skip_server_block(tokens, pos);
             // continue scanning for other http directives
+            std::cout << "EXACT directive after server skip -- >" << tokens[pos].word << std::endl;
             continue;
         }
 
@@ -256,10 +268,15 @@ void parse_baseblock(const std::vector<t_token> &tokens, BaseBlock &baseBlock, s
             continue;
         }
 
+        std::cout << "error http current directive -- >" << tokens[pos].word << std::endl;
         // any other token at http level is an error
         throw_parse_error("Unexpected token at http level: " + tokens[pos].word);
     }
-
+    if (is_brace_close(tokens[pos]))
+    {
+        std::cout << "finished http parsing" << std::endl;
+        return ;
+    }
     // if we exit loop without hitting a '}', the config is malformed
     throw_parse_error("Unexpected end of tokens while parsing http defaults");
 }

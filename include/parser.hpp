@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 13:11:23 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/22 01:51:47 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/22 17:55:52 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@
 # include <map>
 # include <stdexcept>
 # include <cstdlib>
+# include <iostream>
 # include <cstddef>
 
 
@@ -36,7 +37,8 @@ bool    is_brace_open(const t_token &t);
 bool    is_brace_close(const t_token &t);
 bool    is_http_directive(const t_token &t);
 
-void parser(const std::vector<t_token> &tokens, ServerContainer &serverContainer);
+void    parser(const std::vector<t_token> &tokens, ServerContainer &serverContainer);
+void    skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos);
 void    parse_baseblock(const std::vector<t_token> &tokens, BaseBlock &baseBlock, std::size_t pos);
 void    parse_servers( const std::vector<t_token> &tokens, ServerContainer &serverContainer, BaseBlock &baseBlock, size_t pos);
 
