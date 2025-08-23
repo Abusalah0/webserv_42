@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:55:32 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/22 18:49:17 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/23 11:21:18 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ void skip_server_block(const std::vector<t_token> &tokens, std::size_t &pos)
         std::cout << "server current directive -- >" << tokens[pos].word << std::endl;
         if (is_brace_close(tokens[pos]))
         {
-            // ++pos; // consume '}'
+            ++pos; // consume '}'
             std::cout << "finished server parsing" << std::endl;
             break;
         }
@@ -92,7 +92,7 @@ void skip_server_block(const std::vector<t_token> &tokens, std::size_t &pos)
         {
             ++pos; // skip the 'location' token
             skip_location_block(tokens, pos);
-            ++pos;
+            // ++pos;
             continue;
         }
         // otherwise skip a general directive (name + args + ;)
@@ -104,13 +104,14 @@ void store_directive(BaseBlock &baseBlock, const std::string &directive, const s
 {
     // store_directive expects pos at the directive token (e.g. "root")
     expect_token(tokens, pos);
-    if (!is_word(tokens[pos])) throw_parse_error("Expected directive word");
+    if (!is_word(tokens[pos]))
+        throw_parse_error("Expected directive word");
     // sanity check
-    if (tokens[pos].word != directive)
-    {
+    // if (tokens[pos].word != directive)
+    // {
         // not fatal, but indicates mismatch — adjust pos to directive
         // we will still proceed, but this shouldn't normally happen
-    }
+    // }
 
     ++pos; // skip directive word
     expect_token(tokens, pos);

@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/22 01:39:29 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/23 11:09:37 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 	catch (const std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;
-		return EXIT_FAILURE;
+		return (EXIT_FAILURE);
 	}
     return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 22:00:55 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/22 01:52:00 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/23 11:09:42 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,10 +48,4 @@ void parser(const std::vector<t_token> &tokens, ServerContainer &serverContainer
     std::cout << "Indexes: ";
     std::cout << baseBlock.get_index_page("/") << "\n";
     std::cout << "Error Pages: ";
-    // for (const auto &error : baseBlock.get_error_page(404))
-    //     std::cout << error << " ";
-    // std::cout << "\nRedirect Pages: ";
-    // for (const auto &redirect : baseBlock.get_redirect_page(301))
-    //     std::cout << redirect << " ";
-    // std::cout << "\n";
 }
