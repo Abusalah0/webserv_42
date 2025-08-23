@@ -204,7 +204,7 @@ void ServerContainer::loop()
 					{
 						char buff[10000];
 						ssize_t bytes_read = recv(poll_data.fd, buff, 10000, 0);
-						if (bytes_read == 0)
+						if (bytes_read == 0 || bytes_read == -1)
 						{
 							remove_client(i);
 							continue;
