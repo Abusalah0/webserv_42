@@ -23,6 +23,7 @@ class RequestBuffer
 {
 	private:
 		std::deque<std::string> m_chunks;
+		size_t m_cursor;
 	public:
 		RequestBuffer();
 		~RequestBuffer();
@@ -32,6 +33,7 @@ class RequestBuffer
 		void remove_chunk();
 		void clear();
 		void add_chunk();
+		bool is_header_finished();
 };
 
 #endif

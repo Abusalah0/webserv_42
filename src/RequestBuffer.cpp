@@ -13,7 +13,8 @@
 #include "../include/RequestBuffer.hpp"
 
 RequestBuffer::RequestBuffer():
-	m_chunks()
+	m_chunks(),
+	m_cursor(0)
 {}
 
 RequestBuffer::~RequestBuffer()
@@ -58,4 +59,12 @@ size_t RequestBuffer::size()
 void RequestBuffer::remove_chunk()
 {
 	this->m_chunks.pop_front();
+}
+
+bool RequestBuffer::is_header_finished()
+{
+	if (this->m_chunks[0].find("\r\n\r\n", this->m_cursor) != std::string::npos)
+		return true;
+	this->m_cursor = this->m_chunks[0].size() - 1;
+	return false;
 }
