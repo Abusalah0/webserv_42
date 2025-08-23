@@ -5,7 +5,7 @@ http
         location / {
             root /lazy;
             limit GET;
-            cgi /php_shit.php
+            cgi /php_shit.php;
         }
     }
 }

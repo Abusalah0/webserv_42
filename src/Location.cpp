@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:11:46 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/22 01:47:18 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/23 18:51:05 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ Location::Location(const Location& other) :
 Location::Location(const BaseBlock& baseBlock,
         const std::set<std::string>& methods,
         const std::string& uploadPath,
-        const std::map<std::string, std::string>& cgiHandlers) :
+        const std::string& cgiHandlers) :
     BaseBlock(baseBlock),
     allowed_methods(methods),
     upload_path(uploadPath),
@@ -72,12 +72,12 @@ const std::string& Location::get_upload_path() const
     return (this->upload_path);
 }
 
-void Location::set_cgi_handlers(const std::map<std::string, std::string>& handlers)
+void Location::set_cgi_handlers(const std::string& handlers)
 {
     this->cgi_handlers = handlers;
 }
 
-const std::map<std::string, std::string>& Location::get_cgi_handlers() const
+const std::string& Location::get_cgi_handlers() const
 {
     return (this->cgi_handlers);
 }
@@ -90,14 +90,4 @@ void Location::add_allowed_method(const std::string& method)
 void Location::remove_allowed_method(const std::string& method)
 {
     this->allowed_methods.erase(method);
-}
-
-void Location::add_cgi_handler(const std::string& extension, const std::string& handler)
-{
-    this->cgi_handlers.insert(std::pair<std::string, std::string>(extension, handler));
-}
-
-void Location::remove_cgi_handler(const std::string& extension)
-{
-    this->cgi_handlers.erase(extension);
 }

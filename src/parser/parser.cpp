@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 22:00:55 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/23 11:09:42 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/23 11:27:31 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,6 @@ void parser(const std::vector<t_token> &tokens, ServerContainer &serverContainer
     std::string tok;
     BaseBlock baseBlock;
     
-    (void)serverContainer; // to avoid unused parameter warning
     if (tokens.empty())
         throw std::runtime_error("Empty token list");
 
@@ -37,7 +36,7 @@ void parser(const std::vector<t_token> &tokens, ServerContainer &serverContainer
     // parse http block directives
     parse_baseblock(tokens, baseBlock, pos);
     // parse server blocks
-    // parse_servers(tokens, serverContainer, baseBlock, pos); // not implemented yet
+    parse_servers(tokens, serverContainer, baseBlock, pos); // not implemented yet
 
     //print baseBlock for debugging
     std::cout << "BaseBlock contents:\n";

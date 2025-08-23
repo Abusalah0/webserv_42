@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/22 01:54:16 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/23 19:12:16 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,11 +46,6 @@ ServerContainer::~ServerContainer() {}
 
 void ServerContainer::add_server(const Server& server)
 {
-    if (server.get_default() && default_exists)    
-    {
-        throw WebservExceptions::ADefaultServerAlreadyExists();
-    }
-    default_exists = default_exists & server.get_default();
     servers.push_back(server);
 }
 

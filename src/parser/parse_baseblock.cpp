@@ -6,13 +6,13 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:55:32 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/23 11:21:18 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/23 19:16:50 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parser.hpp"
 
-static void skip_directive(const std::vector<t_token> &tokens, std::size_t &pos)
+void skip_directive(const std::vector<t_token> &tokens, std::size_t &pos)
 {
     // pos currently points at the directive word or at the first token of the directive
     expect_token(tokens, pos);
@@ -27,7 +27,7 @@ static void skip_directive(const std::vector<t_token> &tokens, std::size_t &pos)
             return ;
         }
         // If we find a brace here, treat it as an error for simple directives
-        std::cout << "location current directive -- >" << tokens[pos].word << std::endl;
+        // std::cout << "location current directive -- >" << tokens[pos].word << std::endl;
         if (is_brace_open(tokens[pos]))
             throw_parse_error("Unexpected brace inside simple directive");
         if (is_brace_close(tokens[pos]))
@@ -77,7 +77,7 @@ void skip_server_block(const std::vector<t_token> &tokens, std::size_t &pos)
     while (true)
     {
         expect_token(tokens, pos);
-        std::cout << "server current directive -- >" << tokens[pos].word << std::endl;
+        // std::cout << "server current directive -- >" << tokens[pos].word << std::endl;
         if (is_brace_close(tokens[pos]))
         {
             ++pos; // consume '}'
@@ -240,7 +240,7 @@ void parse_baseblock(const std::vector<t_token> &tokens, BaseBlock &baseBlock, s
     while (pos < tokens.size())
     {
         expect_token(tokens, pos);
-        std::cout << "http current directive -- >" << tokens[pos].word << std::endl;
+        // std::cout << "http current directive -- >" << tokens[pos].word << std::endl;
         
         // if we hit the closing brace of http block, we're done
         if (is_brace_close(tokens[pos]))
