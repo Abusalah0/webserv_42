@@ -22,17 +22,16 @@
 class RequestBuffer
 {
 	private:
-		bool m_is_expandable;
-		size_t m_push_current_chunk;
-		size_t m_pull_current_chunk;
 		std::deque<std::string> m_chunks;
 	public:
-		RequestBuffer(bool is_expandable);
+		RequestBuffer();
 		~RequestBuffer();
-		void push(char *buf, size_t len);
+		void push(const char *buf, size_t len);
 		std::string pop();
+		size_t size();
 		void remove_chunk();
 		void clear();
+		void add_chunk();
 };
 
 #endif

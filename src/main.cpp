@@ -16,6 +16,7 @@
 #include "../include/ServerContainer.hpp"
 #include "../include/Server.hpp"
 #include "../include/CommonUtils.hpp"
+#include "../include/RequestBuffer.hpp"
 
 int g_signum = 0;
 
@@ -55,6 +56,7 @@ int main(int argc, char **argv)
 			return 0;
 		server_container.setup_webserv();
 		server_container.loop();
+
 		//const std::string buffer = read_file(argv[1]);
     	//std::vector<t_tokenizer> tokens = tokenize_string(buffer);
     	//for (size_t i = 0; i < tokens.size(); ++i) // to test vector after tokenizer.
