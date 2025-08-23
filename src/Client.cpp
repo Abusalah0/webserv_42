@@ -11,6 +11,7 @@ Client::Client(int fd, Server& server, sockaddr_in& client_addr):
 	(void)m_server;
 	(void)m_ip_addr;
 	(void)m_port;
+	std::time(&m_last_activity);
 }
 
 Client::~Client()
