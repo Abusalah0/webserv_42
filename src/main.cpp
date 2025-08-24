@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbibers <sbibers@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/08/11 12:01:26 by sbibers           #+#    #+#             */
-/*   Updated: 2025/08/11 14:17:50 by sbibers          ###   ########.fr       */
+/*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
+/*   Updated: 2025/08/24 19:23:43 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include "../include/Server.hpp"
 #include "../include/CommonUtils.hpp"
 #include "../include/RequestBuffer.hpp"
+#include "../include/parser.hpp"
 
 int g_signum = 0;
 
@@ -49,8 +50,13 @@ int main(int argc, char **argv)
 	{
 		ServerContainer server_container;
 		Server server_a;
-		server_a.add_listen("0.0.0.0:2000");
-		server_a.add_listen("127.0.0.1:9001");
+		std::pair<std::string, std::string> entry;
+		entry.first = "0.0.0.0";
+		entry.second = "2000";
+		server_a.add_listen(entry);
+		entry.first = "127.0.0.1";
+		entry.second = "9000";
+		server_a.add_listen(entry);
 		server_container.add_server(server_a);
 		if (g_signum == SIGINT)
 			return 0;
@@ -87,11 +93,15 @@ int main(int argc, char **argv)
 		// std::cout << "Error page: " << obj2.get_error_page(300) << std::endl;
 		// std::cout << "Redirect page: " << obj2.get_redirect_page(300) << std::endl;
 		
+        // ServerContainer serverContainer;
+		// const std::string buffer = read_file(argv[1]);
+    	// std::vector<t_token> tokens = tokenize_string(buffer);
+    	// parser(tokens, serverContainer);
 	}
 	catch (const std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;
-		return EXIT_FAILURE;
+		return (EXIT_FAILURE);
 	}
     return (0);
 }

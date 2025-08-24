@@ -1,0 +1,17 @@
+http
+{
+    root /;
+    client_max_body_size 10M;
+    error_page 404 /404.html;
+    autoindex on;
+    index /lazy_hello.html;
+
+    server
+    {
+        root /skill_issue;
+        error_page 404 /crazy.html;
+        autoindex off;
+        server_name test;
+        listen 1.1.1.1:80;
+    }
+}

@@ -7,20 +7,24 @@ CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iinclude
 SRC_DIR = src
 
 SRC = \
-	$(SRC_DIR)/main.cpp \
-	$(SRC_DIR)/tokenizer.cpp \
-	$(SRC_DIR)/Exceptions.cpp \
-	$(SRC_DIR)/BaseBlock.cpp \
-	$(SRC_DIR)/CommonUtils.cpp \
-	$(SRC_DIR)/Server.cpp \
-	$(SRC_DIR)/ServerContainer.cpp \
-	$(SRC_DIR)/Location.cpp \
-	$(SRC_DIR)/Client.cpp \
-	$(SRC_DIR)/RequestBuffer.cpp
+	main.cpp \
+	tokenizer.cpp \
+	Exceptions.cpp \
+	BaseBlock.cpp \
+	CommonUtils.cpp \
+	Server.cpp \
+	ServerContainer.cpp \
+	Location.cpp \
+	Client.cpp \
+	RequestBuffer.cpp \
+	parser/parse_baseblock.cpp \
+	parser/parser.cpp \
+	parser/parser_utils.cpp \
+	parser/parse_server.cpp
 
 OBJ_DIR = obj
-
-OBJ = $(SRC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+SRCS = $(addprefix $(SRC_DIR)/, $(SRC)) 
+OBJ = $(SRCS:%.cpp=%.o)
 
 all: $(NAME)
 
@@ -32,7 +36,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(OBJ_DIR)
+	rm -rf $(OBJ_DIR) 
+	rm -f $(OBJ)
 
 fclean: clean
 	rm -f $(NAME)

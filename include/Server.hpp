@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:26:51 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/14 17:10:19 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/24 19:23:30 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,19 +23,18 @@
 class Server : public BaseBlock
 {
     private:
-        std::vector<Location> locations;
-        std::vector<std::pair<std::string, std::string> > listen;
-        std::set<std::string> server_names;
-        bool                    is_default;
+        std::vector<Location> m_locations;
+        std::vector<std::pair<std::string, std::string> > m_listen;
+        std::set<std::string> m_server_names;
     public:
         // construtors
         Server();
+        Server(BaseBlock& baseBlock);
         Server(const Server& other);
         Server(const BaseBlock& baseBlock,
                const std::vector<Location>& locations,
                const std::vector<std::pair<std::string, std::string> >& listen,
-               const std::set<std::string>& serverNames,
-               bool is_default);
+               const std::set<std::string>& serverNames);
         // copy operator
         Server& operator=(const Server& other);
         // destructor
@@ -44,21 +43,19 @@ class Server : public BaseBlock
         // locations methods
         void set_locations(std::vector<Location>& locations);
         void add_location(Location& location);
-        //void remove_location(Location& location);
+        void remove_location(Location& location);
         
         // server name methods
         void set_server_names(std::set<std::string>& names);
         void add_server_name(std::string& name);
-        //void remove_server_name(std::string& name);
+        void remove_server_name(std::string& name);
 
         // listen methods
         void set_listen(std::vector<std::pair<std::string, std::string> >& listen);
-        void add_listen(const std::string& listen);
-        //void remove_listen(std::pair<std::string, int>& listen);
+        void add_listen(const std::pair<std::string, std::string>& entry);
+        void remove_listen(std::pair<std::string, int>& listen);
 
         // is default methodes
-        void set_default(bool& is_default);
-        bool get_default() const;
 
         // getters
         const std::vector<Location> get_locations() const;

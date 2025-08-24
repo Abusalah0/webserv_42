@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerContainer.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/14 17:19:13 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/24 19:09:04 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -228,12 +228,7 @@ Server* ServerContainer::get_sock_server(int sockfd)
 
 void ServerContainer::add_server(const Server& server)
 {
-    if (server.get_default() && m_default_exists)
-    {
-        throw WebservExceptions::ADefaultServerAlreadyExists();
-    }
-    m_default_exists = m_default_exists & server.get_default();
-    m_servers.push_back(server);
+    this->m_servers.push_back(server);
 }
 
 //lol

@@ -3,12 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   tokenizer.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: sbibers <sbibers@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 11:51:22 by sbibers           #+#    #+#             */
-/*   Updated: 2025/08/11 14:16:13 by sbibers          ###   ########.fr       */
+/*   Updated: 2025/08/24 19:18:41 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#ifndef TOKENIZER_HPP
+#define TOKENIZER_HPP
 
 #include <vector>
 #include <iostream>
@@ -20,7 +23,6 @@
 enum Type
 {
     WORD,
-    STRING,
     SYMBOL,
     NUMBER,
     SEMICOLON,
@@ -28,10 +30,12 @@ enum Type
     BRACE_CLOSE
 };
 
-typedef struct s_tokenizer
+typedef struct s_token
 {
     std::string word;
     Type        type;
-}  t_tokenizer;
+}  t_token;
 
-std::vector<t_tokenizer> tokenize_string(const std::string &buffer);
+std::vector<t_token> tokenize_string(const std::string &buffer);
+
+#endif

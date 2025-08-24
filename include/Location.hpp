@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:28:59 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/14 12:44:09 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/23 18:50:32 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ class Location : public BaseBlock
     private:
         std::set<std::string> allowed_methods;
         std::string upload_path;
-        std::map<std::string, std::string> cgi_handlers;
+        std::string cgi_handlers;
 
     public:
         Location();
@@ -33,7 +33,7 @@ class Location : public BaseBlock
         Location(const BaseBlock& baseBlock,
                 const std::set<std::string>& methods,
                 const std::string& uploadPath,
-                const std::map<std::string, std::string>& cgiHandlers);
+                const std::string& cgiHandlers);
         Location& operator=(const Location& other);
         ~Location();
 
@@ -41,13 +41,11 @@ class Location : public BaseBlock
         const std::set<std::string>& get_allowed_methods() const;
         void set_upload_path(const std::string& path);
         const std::string& get_upload_path() const;
-        void set_cgi_handlers(const std::map<std::string, std::string>& handlers);
-        const std::map<std::string, std::string>& get_cgi_handlers() const;
+        void set_cgi_handlers(const std::string& handlers);
+        const std::string& get_cgi_handlers() const;
 
         void add_allowed_method(const std::string& method);
         void remove_allowed_method(const std::string& method);
-        void add_cgi_handler(const std::string& extension, const std::string& handler);
-        void remove_cgi_handler(const std::string& extension);
 };
 
 #endif // LOCATION_HPP
