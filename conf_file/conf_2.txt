@@ -1,1 +1,25 @@
-http{root /;client_max_body_size 10G;error_page 404 /404.html;autoindex on;index /lazy_hello.html;server{root /skill_issue;error_page 404 /crazy.html;autoindex off;server_name test;listen 80 default_server;location / {root /lazy;limit GET;cgi /php_shit.php}}server {server_name bald;listen 0.0.0.0::80;redirect 301 /location.html;}}
+http
+{
+    root /;
+    client_max_body_size 10G;
+    error_page 404 /404.html;
+    autoindex on;
+    index /lazy_hello.html;
+    server{
+        root /skill_issue;
+        error_page 404 /crazy.html;
+        autoindex off;
+        server_name test;
+        location / {
+            root /lazy;
+            limit GET;
+            cgi /php_shit.php;
+        }
+    }
+    
+    server {
+        server_name bald;
+        listen 0.0.0.0:80;
+        redirect 301 /location.html;
+    }
+}

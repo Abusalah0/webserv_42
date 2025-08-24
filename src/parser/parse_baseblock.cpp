@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:55:32 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/23 19:16:50 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/24 17:16:19 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos)
         if (is_brace_close(tokens[pos]))
         {
             ++pos; // consume '}'
-            std::cout << "finished location skiping" << std::endl;
+            // std::cout << "finished location skiping" << std::endl;
             break;
         }
         // should be a directive word
@@ -81,7 +81,7 @@ void skip_server_block(const std::vector<t_token> &tokens, std::size_t &pos)
         if (is_brace_close(tokens[pos]))
         {
             ++pos; // consume '}'
-            std::cout << "finished server parsing" << std::endl;
+            // std::cout << "finished server parsing" << std::endl;
             break;
         }
         
@@ -256,7 +256,7 @@ void parse_baseblock(const std::vector<t_token> &tokens, BaseBlock &baseBlock, s
             // now pos should point to '{'
             skip_server_block(tokens, pos);
             // continue scanning for other http directives
-            std::cout << "EXACT directive after server skip -- >" << tokens[pos].word << std::endl;
+            // std::cout << "EXACT directive after server skip -- >" << tokens[pos].word << std::endl;
             continue;
         }
 

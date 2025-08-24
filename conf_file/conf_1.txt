@@ -3,9 +3,9 @@ http
     server
     {
         location / {
-            root /lazy;
-            limit GET;
-            cgi /php_shit.php;
+            root /;
+            cgi blabla;
+            limit get;
         }
     }
 }

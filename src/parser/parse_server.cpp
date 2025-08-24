@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:20:29 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/23 19:21:23 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/24 18:01:53 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,21 +26,18 @@ void    store_location_directive(const std::vector<t_token> &tokens, std::size_t
         if (!is_word(tokens[pos]))
             throw_parse_error("Expected root path after 'root'");
         loc.set_root(tokens[pos].word);
-        
     }
     else if (directive == "limit")
     {
         std::set<std::string> methods;
+        
         while (is_word(tokens[pos]))
         {
             methods.insert(tokens[pos].word);
             ++pos;
             expect_token(tokens, pos);
         }
-        if (!is_semicolon(tokens[pos]))
-        {
-            throw_parse_error("Expected semicolon at the end of limit directive");   
-        }
+        --pos;
     }
     else if (directive == "cgi")
     {
@@ -48,24 +45,22 @@ void    store_location_directive(const std::vector<t_token> &tokens, std::size_t
         {
             loc.set_cgi_handlers(tokens[pos].word);
         }
-        ++pos;
-        expect_token(tokens, pos);
-        if (!is_semicolon(tokens[pos]))
-        {
-            throw_parse_error("Expected semicolon at the end of cgi directive");   
-        }
     }
     else
     {
+        std::cout << "current directive ->" << tokens[pos].word << std::endl;
         throw_parse_error("Unknown directive inside location block");
     }
     
+    std::cout << "token after parsing location directive : " << tokens[pos].word << std::endl;
+    ++pos;
+    expect_token(tokens, pos);
+    if (!is_semicolon(tokens[pos]))
+    {
+        throw_parse_error("Expected semicolon at the end of the directive");
+    }
+    std::cout << "Found ; after location directive" << std::endl;
     // ++pos;
-    // expect_token(tokens, pos);
-    // if (!is_semicolon(tokens[pos]))
-    // {
-        // throw_parse_error("Expected semicolon at the end of the directive");
-    // }
 }
 
 static Location parse_location_block(const std::vector<t_token> &tokens, std::size_t &pos)
@@ -117,16 +112,20 @@ static void store_server_directive(const std::vector<t_token> &tokens, Server &s
     if (directive == "listen")
     {
         std::pair< std::string, int> listen;
-        if (!is_number(tokens[pos]))
-            throw_parse_error("Expected a port number after the listen directive");
-        listen.second = std::strtol(tokens[pos].word.c_str(), NULL, 10);
         
-        ++pos;
-        expect_token(tokens, pos);
-        if (!is_word(tokens[pos]))
-            throw_parse_error("Expect host name after listening port");
-
-        listen.first = tokens[pos].word;
+        size_t colon = tokens[pos].word.find_first_of(':');
+        if (colon == std::string::npos)
+            throw_parse_error("Expected host:port format after listen directive");
+        
+        std::string address = tokens[pos].word.substr(0, colon);
+        if (address.empty())
+            throw_parse_error("Expected valid address before ':' in listen directive");
+        listen.first = address;
+        std::string port_str = tokens[pos].word.substr(colon + 1);
+        if (port_str.empty())
+            throw_parse_error("Expected valid port number after ':' in listen directive");
+        
+        listen.second = std::strtol(port_str.c_str(), NULL, 10);
         srv.add_listen(listen);
     }
     else if (directive == "root")
@@ -158,6 +157,7 @@ static void store_server_directive(const std::vector<t_token> &tokens, Server &s
             std::cout << "server name ->>" << tokens[pos].word << '\n';
         }
         srv.set_server_names(names);
+        --pos; // to counter the extra ++pos at the end of the function
     }
     else if (directive == "error_page")
     {
@@ -182,10 +182,13 @@ static void store_server_directive(const std::vector<t_token> &tokens, Server &s
     }
     else
     {
+        std::cout << "current directive ->" << tokens[pos].word << std::endl;   
         throw_parse_error("Uknown directive inside server block");
     }
-    // ++pos;
-    expect_token(tokens, pos);
+    ++pos;
+    std::cout << "token after parsing directive" << tokens[pos].word << std::endl;   
+    
+    // expect_token(tokens, pos);
     if (!is_semicolon(tokens[pos]))
     {
         std::cout << "why not ;?" << tokens[pos].word << std::endl;   
@@ -213,6 +216,7 @@ static Server process_server_block(const std::vector<t_token> &tokens, BaseBlock
             throw_parse_error("Expected directive inside server block");
         }
         // process the directive
+        std::cout << "server-->current token: " << tokens[pos].word << std::endl;
         store_server_directive(tokens, srv, pos);
     }
     return (srv);
@@ -239,14 +243,13 @@ void parse_servers(const std::vector<t_token> &tokens, ServerContainer &server_c
             break;
         }
         // check for server directive
-        std::cout << "http-->server-->current token" << tokens[pos].word << std::endl;
+        // std::cout << "http-->server-->current token: " << tokens[pos].word << std::endl;
         if (!is_word(tokens[pos]))
             throw_parse_error("Expected directive at http level");
         
             
         if (tokens[pos].word == "server")
         {
-            std::cout << "hi from server" << std::endl;
             ++pos;
             expect_token(tokens, pos);
             
