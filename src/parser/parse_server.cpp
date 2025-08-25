@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:20:29 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 12:06:23 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/25 13:03:44 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,10 +43,7 @@ static void store_server_directive(const std::vector<t_token> &tokens, Server &s
     }
     else if (directive == "root")
     {
-        if (!is_word(tokens[pos]))
-            throw_parse_error("Expected root path after 'root'");
-        srv.set_root(tokens[pos].word);
-        
+       parse_root_directive(tokens, srv, pos);
     }
     else if (directive == "autoindex" || directive == "auto_index")
     {
@@ -96,25 +93,7 @@ static void store_server_directive(const std::vector<t_token> &tokens, Server &s
     }
     else if (directive == "redirect")
     {
-        // similar to error_page (codes + path)
-        std::set<std::string> codes;
-        
-        while (is_number(tokens[pos]))
-        {
-            codes.insert(tokens[pos].word.c_str());
-            ++pos;
-            expect_token(tokens, pos);
-        }
-        
-        if (codes.empty())
-            throw_parse_error("Expected at least one redirect code");
-
-        if (!is_word(tokens[pos]))
-            throw_parse_error("Expected redirect path after code(s)");
-
-        std::string path = tokens[pos].word;
-        for (std::size_t i = 0; i < codes.size(); ++i)
-            srv.insert_redirect_page(codes, path);
+        store_redirect_directive(tokens, srv, pos);
     }
     else
     {

@@ -195,6 +195,36 @@ std::size_t BaseBlock::get_client_max_body_size() const
 }
 
 /**
+ * Getter for index pages
+ * @return vector of index pages
+ */
+std::vector<std::string> BaseBlock::get_index_pages() const
+{
+	std::vector<std::string> index_pages;
+	for (size_t i = 0; i < this->m_indexes.size(); i++)
+	{
+		index_pages.push_back(*this->m_indexes[i]);
+	}
+	return index_pages;
+}
+
+/**
+ * Getter for redirect pages
+ * @return map of redirect pages with their codes
+ */
+std::map<ushort, std::string> BaseBlock::get_redirect_pages() const
+{
+	std::map<ushort, std::string> redirect_pages;
+	for (std::map<ushort, const std::string*>::const_iterator it = this->m_redirect_page.begin();
+		it != this->m_redirect_page.end();
+		++it)
+	{
+		redirect_pages[it->first] = *(it->second);
+	}
+	return redirect_pages;
+}
+
+/**
  * Initiate index search and gets the first index available
  * @param[in] route
  * @return index_page absolute path

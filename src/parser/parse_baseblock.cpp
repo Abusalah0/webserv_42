@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:55:32 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 10:59:14 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/25 13:28:38 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ void skip_directive(const std::vector<t_token> &tokens, std::size_t &pos)
             return ;
         }
         // If we find a brace here, treat it as an error for simple directives
-        // std::cout << "location current directive -- >" << tokens[pos].word << std::endl;
         if (is_brace_open(tokens[pos]))
             throw_parse_error("Unexpected brace inside simple directive");
         if (is_brace_close(tokens[pos]))
@@ -40,8 +39,9 @@ void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos)
 {
     // pos expected to be at the location path token when called by skip_server_block
     expect_token(tokens, pos);
-    // if (!is_word(tokens[pos]))
-        // throw_parse_error("Expected location path after 'location'");
+    
+    if (!is_word(tokens[pos]))
+        throw_parse_error("Expected location path after 'location'");
     ++pos; // skip the location path
 
     expect_token(tokens, pos);
@@ -56,12 +56,11 @@ void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos)
         if (is_brace_close(tokens[pos]))
         {
             ++pos; // consume '}'
-            // std::cout << "finished location skiping" << std::endl;
             break;
         }
         // should be a directive word
-        // if (!is_word(tokens[pos]))
-        //     throw_parse_error("Expected directive inside location");
+        if (!is_word(tokens[pos]))
+            throw_parse_error("Expected directive inside location");
         skip_directive(tokens, pos);
     }
 }
@@ -102,16 +101,10 @@ void skip_server_block(const std::vector<t_token> &tokens, std::size_t &pos)
 
 void store_directive(BaseBlock &baseBlock, const std::string &directive, const std::vector<t_token> &tokens, std::size_t &pos)
 {
-    // store_directive expects pos at the directive token (e.g. "root")
     expect_token(tokens, pos);
+    
     if (!is_word(tokens[pos]))
         throw_parse_error("Expected directive word");
-    // sanity check
-    // if (tokens[pos].word != directive)
-    // {
-        // not fatal, but indicates mismatch — adjust pos to directive
-        // we will still proceed, but this shouldn't normally happen
-    // }
 
     ++pos; // skip directive word
     expect_token(tokens, pos);
@@ -121,11 +114,6 @@ void store_directive(BaseBlock &baseBlock, const std::string &directive, const s
         if (!(is_word(tokens[pos]) || is_number(tokens[pos])))
             throw_parse_error("Expected size after client_max_body_size");
         baseBlock.set_client_max_body_size(tokens[pos].word);
-        ++pos;
-        expect_token(tokens, pos);
-        if (!is_semicolon(tokens[pos]))
-            throw_parse_error("Expected ';' after client_max_body_size");
-        ++pos; // consume ;
     }
     else if (directive == "error_page")
     {
@@ -145,82 +133,41 @@ void store_directive(BaseBlock &baseBlock, const std::string &directive, const s
             throw_parse_error("Expected page path after error_page code(s)");
 
         std::string page_path = tokens[pos].word;
-        ++pos;
-        expect_token(tokens, pos);
-        if (!is_semicolon(tokens[pos]))
-            throw_parse_error("Expected ';' after error_page");
-        ++pos; // consume ';'
 
         for (std::size_t i = 0; i < codes.size(); ++i)
             baseBlock.insert_error_page(codes, page_path);
     }
     else if (directive == "redirect")
     {
-        // similar to error_page (codes + path)
-        std::set<std::string> codes;
-        while (is_number(tokens[pos]))
-        {
-            codes.insert(tokens[pos].word.c_str());
-            ++pos;
-            expect_token(tokens, pos);
-        }
-        
-        if (codes.empty())
-            throw_parse_error("Expected at least one redirect code");
-
-        if (!is_word(tokens[pos]))
-            throw_parse_error("Expected redirect path after code(s)");
-
-        std::string path = tokens[pos].word;
-        ++pos;
-        expect_token(tokens, pos);
-        
-        if (!is_semicolon(tokens[pos]))
-            throw_parse_error("Expected ';' after redirect");
-        ++pos;
-        for (std::size_t i = 0; i < codes.size(); ++i)
-            baseBlock.insert_redirect_page(codes, path);
+        store_redirect_directive(tokens, baseBlock, pos);
     }
     else if (directive == "root")
     {
-        if (!is_word(tokens[pos]))
-            throw_parse_error("Expected root path after 'root'");
-        baseBlock.set_root(tokens[pos].word);
-        ++pos;
-        expect_token(tokens, pos);
-        if (!is_semicolon(tokens[pos]))
-            throw_parse_error("Expected ';' after root");
-        ++pos;
+        parse_root_directive(tokens, baseBlock, pos);
     }
     else if (directive == "auto_index" || directive == "autoindex")
     {
         if (!is_word(tokens[pos]))
             throw_parse_error("Expected 'on' or 'off' after 'auto_index'");
+
         baseBlock.set_auto_index(tokens[pos].word);
-        ++pos;
-        expect_token(tokens, pos);
-        if (!is_semicolon(tokens[pos]))
-            throw_parse_error("Expected ';' after auto_index");
-        ++pos;
     }
     else if (directive == "index")
     {
         std::vector<std::string> index_pages;
         // collect until semicolon
-        while (true)
+        while (is_word(tokens[pos]))
         {
             expect_token(tokens, pos);
-            if (is_semicolon(tokens[pos]))
-            {
-                ++pos;
-                break;
-            }
-            if (!is_word(tokens[pos]))
-                throw_parse_error("Expected index filename or ';'");
+            
             index_pages.push_back(tokens[pos].word);
             ++pos;
         }
 
+        if (!is_semicolon(tokens[pos]))
+            throw_parse_error("Expected ';' after index directive");
+        --pos;
+        
         if (index_pages.empty())
             throw_parse_error("index: expected at least one filename");
 
@@ -230,6 +177,8 @@ void store_directive(BaseBlock &baseBlock, const std::string &directive, const s
     {
         throw_parse_error("Unknown directive: " + directive);
     }
+    ++pos; // move past the last directive argument
+    skip_over_semicolon(tokens, pos);
 }
 
 void parse_baseblock(const std::vector<t_token> &tokens, BaseBlock &baseBlock, std::size_t pos)

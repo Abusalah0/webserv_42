@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:06:03 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 12:07:00 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/25 12:40:40 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,7 @@ void    store_location_directive(const std::vector<t_token> &tokens, std::size_t
     
     if (directive == "root")
     {
-        if (!is_word(tokens[pos]))
-            throw_parse_error("Expected root path after 'root'");
-        loc.set_root(tokens[pos].word);
+        parse_root_directive(tokens, loc, pos);
     }
     else if (directive == "limit")
     {

@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 13:11:56 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 11:04:08 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/25 13:08:59 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,18 +40,12 @@ bool is_brace_close(const t_token &t)
     return (t.type == BRACE_CLOSE);
 }
 
-/**
- * @brief Ensure the token at the given position exists.
- * Throws an exception if the position is out of bounds.
- * @param tokens The vector of tokens to check.
- * @param pos The position to check.
- * @throws std::runtime_error if pos is out of bounds.
- */
 void expect_token(const std::vector<t_token> &tokens, std::size_t pos)
 {
     if (pos >= tokens.size())
         throw std::runtime_error("Unexpected end of tokens");
 }
+
 
 bool is_http_directive(const t_token &t)
 {
@@ -89,6 +83,38 @@ void print_server_container(const ServerContainer &serverContainer)
         std::cout << "Root: " << srv.get_root() << "\n";
         std::cout << "Auto Index: " << (srv.get_auto_index() ? "on" : "off") << "\n";
         std::cout << "Client Max Body Size: " << srv.get_client_max_body_size() << " bytes\n";
+        
+        // Print index pages
+        std::vector<std::string> index_pages = srv.get_index_pages();
+        std::cout << "Index Pages (" << index_pages.size() << "):\n";
+        if (index_pages.empty())
+        {
+            std::cout << "  (No index pages configured)\n";
+        }
+        else
+        {
+            for (std::size_t idx = 0; idx < index_pages.size(); ++idx)
+            {
+                std::cout << "  " << (idx + 1) << ". " << index_pages[idx] << "\n";
+            }
+        }
+        
+        // Print redirect pages
+        std::map<ushort, std::string> redirect_pages = srv.get_redirect_pages();
+        std::cout << "Redirect Pages (" << redirect_pages.size() << "):\n";
+        if (redirect_pages.empty())
+        {
+            std::cout << "  (No redirect pages configured)\n";
+        }
+        else
+        {
+            for (std::map<ushort, std::string>::const_iterator it = redirect_pages.begin();
+                 it != redirect_pages.end(); ++it)
+            {
+                std::cout << "  " << it->first << " -> " << it->second << "\n";
+            }
+        }
+        
         
         // Print server-specific properties
         std::cout << "\n--- SERVER PROPERTIES ---\n";
@@ -144,6 +170,37 @@ void print_server_container(const ServerContainer &serverContainer)
                 std::cout << "    Root: " << loc.get_root() << "\n";
                 std::cout << "    Auto Index: " << (loc.get_auto_index() ? "on" : "off") << "\n";
                 std::cout << "    Client Max Body Size: " << loc.get_client_max_body_size() << " bytes\n";
+                
+                // Location index pages
+                std::vector<std::string> loc_index_pages = loc.get_index_pages();
+                std::cout << "    Index Pages (" << loc_index_pages.size() << "):\n";
+                if (loc_index_pages.empty())
+                {
+                    std::cout << "      (No index pages configured)\n";
+                }
+                else
+                {
+                    for (std::size_t idx = 0; idx < loc_index_pages.size(); ++idx)
+                    {
+                        std::cout << "      " << (idx + 1) << ". " << loc_index_pages[idx] << "\n";
+                    }
+                }
+                
+                // Location redirect pages
+                std::map<ushort, std::string> loc_redirect_pages = loc.get_redirect_pages();
+                std::cout << "    Redirect Pages (" << loc_redirect_pages.size() << "):\n";
+                if (loc_redirect_pages.empty())
+                {
+                    std::cout << "      (No redirect pages configured)\n";
+                }
+                else
+                {
+                    for (std::map<ushort, std::string>::const_iterator it = loc_redirect_pages.begin();
+                         it != loc_redirect_pages.end(); ++it)
+                    {
+                        std::cout << "      " << it->first << " -> " << it->second << "\n";
+                    }
+                }
                 
                 // Location-specific properties
                 std::cout << "    Upload Path: " << loc.get_upload_path() << "\n";

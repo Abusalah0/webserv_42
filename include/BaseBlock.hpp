@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:09:36 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/08/14 17:23:54 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/25 13:08:59 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,8 @@ class BaseBlock
 		bool get_auto_index() const;
 		const std::string& get_root() const;
 		std::size_t get_client_max_body_size() const;
+		std::vector<std::string> get_index_pages() const;
+		std::map<ushort, std::string> get_redirect_pages() const;
 		std::string get_index_page(const std::string& route) const;
 		std::string get_error_page(ushort code) const;
 		std::string get_redirect_page(ushort code) const;
