@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:55:32 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/24 17:16:19 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/25 10:59:14 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,7 +245,7 @@ void parse_baseblock(const std::vector<t_token> &tokens, BaseBlock &baseBlock, s
         // if we hit the closing brace of http block, we're done
         if (is_brace_close(tokens[pos]))
         {
-            std::cout << "finished http parsing" << std::endl;
+            // std::cout << "finished http parsing" << std::endl;
             return ;
         }
 
@@ -269,13 +269,13 @@ void parse_baseblock(const std::vector<t_token> &tokens, BaseBlock &baseBlock, s
             continue;
         }
 
-        std::cout << "error http current directive -- >" << tokens[pos].word << std::endl;
+        // std::cout << "error http current directive -- >" << tokens[pos].word << std::endl;
         // any other token at http level is an error
         throw_parse_error("Unexpected token at http level: " + tokens[pos].word);
     }
     if (is_brace_close(tokens[pos]))
     {
-        std::cout << "finished http parsing" << std::endl;
+        // std::cout << "finished http parsing" << std::endl;
         return ;
     }
     // if we exit loop without hitting a '}', the config is malformed

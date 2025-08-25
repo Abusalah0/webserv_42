@@ -6,98 +6,11 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:20:29 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/24 18:01:53 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/25 12:06:23 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "parser.hpp"
-
-void    store_location_directive(const std::vector<t_token> &tokens, std::size_t &pos, Location &loc)
-{
-    if (!is_word(tokens[pos]))
-            throw_parse_error("Expected directive inside location block"); 
-    std::string directive = tokens[pos].word;
-
-    ++pos;
-    expect_token(tokens, pos);
-    
-    if (directive == "root")
-    {
-        if (!is_word(tokens[pos]))
-            throw_parse_error("Expected root path after 'root'");
-        loc.set_root(tokens[pos].word);
-    }
-    else if (directive == "limit")
-    {
-        std::set<std::string> methods;
-        
-        while (is_word(tokens[pos]))
-        {
-            methods.insert(tokens[pos].word);
-            ++pos;
-            expect_token(tokens, pos);
-        }
-        --pos;
-    }
-    else if (directive == "cgi")
-    {
-        if(is_word(tokens[pos]))
-        {
-            loc.set_cgi_handlers(tokens[pos].word);
-        }
-    }
-    else
-    {
-        std::cout << "current directive ->" << tokens[pos].word << std::endl;
-        throw_parse_error("Unknown directive inside location block");
-    }
-    
-    std::cout << "token after parsing location directive : " << tokens[pos].word << std::endl;
-    ++pos;
-    expect_token(tokens, pos);
-    if (!is_semicolon(tokens[pos]))
-    {
-        throw_parse_error("Expected semicolon at the end of the directive");
-    }
-    std::cout << "Found ; after location directive" << std::endl;
-    // ++pos;
-}
-
-static Location parse_location_block(const std::vector<t_token> &tokens, std::size_t &pos)
-{
-    expect_token(tokens, pos);
-    // next token must be a WORD (the location path)
-    if (!is_word(tokens[pos]))
-        throw_parse_error("Expected location path after 'location'");
-
-    std::string location_path = tokens[pos].word;
-    ++pos;
-
-    // now expect opening brace
-    expect_token(tokens, pos);
-    if (!is_brace_open(tokens[pos]))
-        throw_parse_error("Expected '{' after location path");
-    ++pos; // skip {
-
-    Location loc;
-
-    // parse directives until }
-    while (true)
-    {
-        expect_token(tokens, pos);
-        if (is_brace_close(tokens[pos]))
-        {
-            ++pos; // skip }           
-            break;
-        }
-        
-        // process the directive
-        
-        store_location_directive(tokens, pos, loc);
-        ++pos;
-    }
-    return (loc);
-}
 
 static void store_server_directive(const std::vector<t_token> &tokens, Server &srv, std::size_t &pos)
 {
@@ -154,7 +67,6 @@ static void store_server_directive(const std::vector<t_token> &tokens, Server &s
             names.insert(tokens[pos].word);
             ++pos;
             expect_token(tokens, pos);
-            std::cout << "server name ->>" << tokens[pos].word << '\n';
         }
         srv.set_server_names(names);
         --pos; // to counter the extra ++pos at the end of the function
@@ -177,8 +89,32 @@ static void store_server_directive(const std::vector<t_token> &tokens, Server &s
     }
     else if (directive == "location")
     {
-        parse_location_block(tokens, pos);
+        Location loc;
+        loc = parse_location_block(tokens, pos);
+        srv.add_location(loc);
         return ;        
+    }
+    else if (directive == "redirect")
+    {
+        // similar to error_page (codes + path)
+        std::set<std::string> codes;
+        
+        while (is_number(tokens[pos]))
+        {
+            codes.insert(tokens[pos].word.c_str());
+            ++pos;
+            expect_token(tokens, pos);
+        }
+        
+        if (codes.empty())
+            throw_parse_error("Expected at least one redirect code");
+
+        if (!is_word(tokens[pos]))
+            throw_parse_error("Expected redirect path after code(s)");
+
+        std::string path = tokens[pos].word;
+        for (std::size_t i = 0; i < codes.size(); ++i)
+            srv.insert_redirect_page(codes, path);
     }
     else
     {
@@ -186,7 +122,7 @@ static void store_server_directive(const std::vector<t_token> &tokens, Server &s
         throw_parse_error("Uknown directive inside server block");
     }
     ++pos;
-    std::cout << "token after parsing directive" << tokens[pos].word << std::endl;   
+    // std::cout << "token after parsing directive" << tokens[pos].word << std::endl;   
     
     // expect_token(tokens, pos);
     if (!is_semicolon(tokens[pos]))
@@ -216,7 +152,7 @@ static Server process_server_block(const std::vector<t_token> &tokens, BaseBlock
             throw_parse_error("Expected directive inside server block");
         }
         // process the directive
-        std::cout << "server-->current token: " << tokens[pos].word << std::endl;
+        // std::cout << "server-->current token: " << tokens[pos].word << std::endl;
         store_server_directive(tokens, srv, pos);
     }
     return (srv);

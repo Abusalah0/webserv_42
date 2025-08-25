@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:11:46 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/23 18:51:05 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/25 11:29:08 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ Location::~Location()
 
 void Location::set_allowed_methods(const std::set<std::string>& methods)
 {
-    this->allowed_methods = methods;
+    this->allowed_methods.insert(methods.begin(), methods.end());
 }
 
 const std::set<std::string>& Location::get_allowed_methods() const

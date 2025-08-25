@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 22:00:55 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/23 11:27:31 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/25 11:04:13 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,13 +38,6 @@ void parser(const std::vector<t_token> &tokens, ServerContainer &serverContainer
     // parse server blocks
     parse_servers(tokens, serverContainer, baseBlock, pos); // not implemented yet
 
-    //print baseBlock for debugging
-    std::cout << "BaseBlock contents:\n";
-    std::cout << "Root: " << baseBlock.get_root() << "\n";
-    std::cout << "Auto Index: " << (baseBlock.get_auto_index() ?
-        "on" : "off") << "\n";
-    std::cout << "Client Max Body Size: " << baseBlock.get_client_max_body_size() << "\n";
-    std::cout << "Indexes: ";
-    std::cout << baseBlock.get_index_page("/") << "\n";
-    std::cout << "Error Pages: ";
+    //print servercontainer for debugging
+    print_server_container(serverContainer);
 }

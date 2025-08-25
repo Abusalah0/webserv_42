@@ -18,6 +18,7 @@ SRC = main.cpp \
 		parser/parser.cpp \
 		parser/parser_utils.cpp \
 		parser/parse_server.cpp \
+		parser/parse_location.cpp \
 
 
 OBJ_DIR = obj
