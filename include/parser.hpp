@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 13:11:23 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 13:23:40 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/25 17:22:56 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,12 +182,104 @@ void    parse_root_directive(const std::vector<t_token> &tokens, BaseBlock &base
 void    skip_over_semicolon(const std::vector<t_token> &tokens, std::size_t &pos);
 
 /**
+ * @brief Skip over an entire server block in the token stream.
+ * Advances the position to the token after the closing brace of the server block.
+ * @param tokens The vector of tokens.
+ * @param pos The current position in the token vector (will be updated).
+ * @throws std::runtime_error on parse errors.
+ */
+void skip_server_block(const std::vector<t_token> &tokens, std::size_t &pos);
+
+/**
+ * @brief skip over a general directive in the token stream.
+ * Advances the position to the token after the semicolon ending the directive.
+ * @param tokens The vector of tokens.
+ * @param pos The current position in the token vector (will be updated).
+ * @throws std::runtime_error on parse errors.
+ */
+void skip_directive(const std::vector<t_token> &tokens, std::size_t &pos);
+
+/**
+ * @brief Skip over an entire location block in the token stream.
+ * Advances the position to the token after the closing brace of the location block.
+ * @param tokens The vector of tokens.
+ * @param pos The current position in the token vector (will be updated).
+ * @throws std::runtime_error on parse errors.
+ */
+void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos);
+/**
  * @brief store a redirect directive into the given BaseBlock object.
  * @param tokens The vector of tokens to parse.
  * @param baseblock The BaseBlock object to populate with the redirect directive.
  * @param pos The current position in the token vector (will be updated).
  * @throws std::runtime_error on parse errors.
  */
-void store_redirect_directive(std::vector<t_token> const &tokens, BaseBlock &baseblock, std::size_t &pos);
+void    parse_redirect_directive(std::vector<t_token> const &tokens, BaseBlock &baseblock, std::size_t &pos);
+
+
+/**
+ * @brief parse an error_page directive and store it in the given BaseBlock object.
+ * @param tokens The vector of tokens to parse.
+ * @param baseBlock The BaseBlock object to populate with the error_page directive.
+ * @param pos The current position in the token vector (will be updated).
+ * @throws std::runtime_error on parse errors.
+ */
+void    parse_error_page_directive(const std::vector<t_token> &tokens, BaseBlock &baseBlock, std::size_t &pos);
+
+
+/**
+ * @brief parse an index directive and store it in the given BaseBlock object.
+ * @param tokens The vector of tokens to parse.
+ * @param baseBlock The BaseBlock object to populate with the index directive.
+ * @param pos The current position in the token vector (will be updated).
+ * @throws std::runtime_error on parse errors.
+ */
+void    parse_index_direcitive(const std::vector<t_token> &tokens, BaseBlock &baseBlock, std::size_t &pos);
+
+/**
+ * @brief parse an auto_index directive and store it in the given BaseBlock object.
+ * @param tokens The vector of tokens to parse.
+ * @param baseBlock The BaseBlock object to populate with the auto_index directive.
+ * @param pos The current position in the token vector.
+ * @throws std::runtime_error on parse errors.
+ */
+void    parse_auto_index_directive(const std::vector<t_token> &tokens, BaseBlock &baseBlock, std::size_t &pos);
+
+
+/**
+ * @brief parse a client_max_body_size directive and store it in the given BaseBlock object.
+ * @param tokens The vector of tokens to parse.
+ * @param baseBlock The BaseBlock object to populate with the client_max_body_size directive.
+ * @param pos The current position in the token vector (will be updated).
+ * @throws std::runtime_error on parse errors.
+ */
+void parse_client_max_body_size_directive(const std::vector<t_token> &tokens, BaseBlock &baseBlock, std::size_t &pos);
+
+/**
+ * @brief store a listen directive into the given Server object.
+ * @param tokens The vector of tokens to parse.
+ * @param srv The Server object to populate with the listen directive.
+ * @param pos The current position in the token vector (will be updated).
+ * @throws std::runtime_error on parse errors.
+ */
+void    parse_listen_directive(const std::vector<t_token> &tokens, Server &srv, std::size_t &pos);
+
+/**
+ * @brief store a server_name directive into the given Server object.
+ * @param tokens The vector of tokens to parse.
+ * @param srv The Server object to populate with the server_name directive.
+ * @param pos The current position in the token vector (will be updated).
+ * @throws std::runtime_error on parse errors.
+ */
+void parse_server_name_directive(const std::vector<t_token> &tokens, Server &srv, std::size_t &pos);
+
+/**
+ * @brief store a limit directive into the given Location object.
+ * @param tokens The vector of tokens to parse.
+ * @param loc The Location object to populate with the limit directive.
+ * @param pos The current position in the token vector (will be updated).
+ * @throws std::runtime_error on parse errors.
+ */
+void parse_limit_directive(const std::vector<t_token> &tokens, Location &loc, std::size_t &pos);
 
 #endif

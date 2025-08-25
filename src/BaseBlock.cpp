@@ -225,6 +225,22 @@ std::map<ushort, std::string> BaseBlock::get_redirect_pages() const
 }
 
 /**
+ * Getter for error pages
+ * @return map of error pages with their codes
+ */
+std::map<ushort, std::string> BaseBlock::get_error_pages() const
+{
+	std::map<ushort, std::string> error_pages;
+	for (std::map<ushort, const std::string*>::const_iterator it = this->m_error_page.begin();
+		it != this->m_error_page.end();
+		++it)
+	{
+		error_pages[it->first] = *(it->second);
+	}
+	return error_pages;
+}
+
+/**
  * Initiate index search and gets the first index available
  * @param[in] route
  * @return index_page absolute path

@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 13:11:56 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 13:08:59 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/25 16:19:52 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,18 +23,22 @@ bool is_word(const t_token &t)
 {
     return (t.type == WORD);
 }
+
 bool is_number(const t_token &t)
 {
     return (t.type == NUMBER);
 }
+
 bool is_semicolon(const t_token &t)
 {
     return (t.type == SEMICOLON);
 }
+
 bool is_brace_open(const t_token &t)
 {
     return (t.type == BRACE_OPEN);
 }
+
 bool is_brace_close(const t_token &t)
 {
     return (t.type == BRACE_CLOSE);
@@ -45,7 +49,6 @@ void expect_token(const std::vector<t_token> &tokens, std::size_t pos)
     if (pos >= tokens.size())
         throw std::runtime_error("Unexpected end of tokens");
 }
-
 
 bool is_http_directive(const t_token &t)
 {
@@ -110,6 +113,22 @@ void print_server_container(const ServerContainer &serverContainer)
         {
             for (std::map<ushort, std::string>::const_iterator it = redirect_pages.begin();
                  it != redirect_pages.end(); ++it)
+            {
+                std::cout << "  " << it->first << " -> " << it->second << "\n";
+            }
+        }
+        
+        // Print error pages
+        std::map<ushort, std::string> error_pages = srv.get_error_pages();
+        std::cout << "Error Pages (" << error_pages.size() << "):\n";
+        if (error_pages.empty())
+        {
+            std::cout << "  (No error pages configured)\n";
+        }
+        else
+        {
+            for (std::map<ushort, std::string>::const_iterator it = error_pages.begin();
+                 it != error_pages.end(); ++it)
             {
                 std::cout << "  " << it->first << " -> " << it->second << "\n";
             }
@@ -197,6 +216,22 @@ void print_server_container(const ServerContainer &serverContainer)
                 {
                     for (std::map<ushort, std::string>::const_iterator it = loc_redirect_pages.begin();
                          it != loc_redirect_pages.end(); ++it)
+                    {
+                        std::cout << "      " << it->first << " -> " << it->second << "\n";
+                    }
+                }
+                
+                // Location error pages
+                std::map<ushort, std::string> loc_error_pages = loc.get_error_pages();
+                std::cout << "    Error Pages (" << loc_error_pages.size() << "):\n";
+                if (loc_error_pages.empty())
+                {
+                    std::cout << "      (No error pages configured)\n";
+                }
+                else
+                {
+                    for (std::map<ushort, std::string>::const_iterator it = loc_error_pages.begin();
+                         it != loc_error_pages.end(); ++it)
                     {
                         std::cout << "      " << it->first << " -> " << it->second << "\n";
                     }
