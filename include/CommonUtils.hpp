@@ -26,6 +26,8 @@ extern int g_signum;
 
 #define WEBSERV_INTERNAL_REDIRECT_LIMIT 10
 
+#define CHUNK_SIZE KILOBYTE * 8
+
 const char& str_back(const std::string& str);
 ushort parse_http_code(const std::string& str);
 

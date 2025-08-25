@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/24 19:09:04 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/25 04:14:27 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -195,6 +195,7 @@ void ServerContainer::loop()
 					accept_client(i);
 				else if (this->m_clients_map.find(poll_data.fd) != this->m_clients_map.end())
 				{
+                    Client& client = this->m_clients_map[poll_data.fd];
 					if (poll_data.revents & POLLHUP)
 					{
 						remove_client(i);
@@ -202,15 +203,7 @@ void ServerContainer::loop()
 					}
 					if (poll_data.revents & POLLIN)
 					{
-						char buff[10000];
-						ssize_t bytes_read = recv(poll_data.fd, buff, 10000, 0);
-						if (bytes_read == 0 || bytes_read == -1)
-						{
-							remove_client(i);
-							continue;
-						}
-						buff[bytes_read] = 0;
-						std::cout << buff << std::endl;
+                        int res = client.handle_read();
 					}
 				}
 			}

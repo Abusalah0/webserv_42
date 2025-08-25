@@ -1,20 +1,19 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   RequestBuffer.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 02:12:16 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/08/23 04:18:01 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/25 05:03:59 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../include/RequestBuffer.hpp"
 
 RequestBuffer::RequestBuffer():
-	m_chunks(),
-	m_cursor(0)
+	m_chunks()
 {}
 
 RequestBuffer::~RequestBuffer()
@@ -63,8 +62,7 @@ void RequestBuffer::remove_chunk()
 
 bool RequestBuffer::is_header_finished()
 {
-	if (this->m_chunks[0].find("\r\n\r\n", this->m_cursor) != std::string::npos)
+	if (this->m_chunks[0].find("\r\n\r\n") != std::string::npos)
 		return true;
-	this->m_cursor = this->m_chunks[0].size() - 1;
 	return false;
 }
