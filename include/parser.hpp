@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 13:11:23 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/23 18:57:20 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/25 12:09:21 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,9 +38,12 @@ bool    is_brace_close(const t_token &t);
 bool    is_http_directive(const t_token &t);
 
 void    parser(const std::vector<t_token> &tokens, ServerContainer &serverContainer);
+void    print_server_container(const ServerContainer &serverContainer);
 void    skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos);
 void    skip_directive(const std::vector<t_token> &tokens, std::size_t &pos);
 void    parse_baseblock(const std::vector<t_token> &tokens, BaseBlock &baseBlock, std::size_t pos);
 void    parse_servers( const std::vector<t_token> &tokens, ServerContainer &serverContainer, BaseBlock &baseBlock, size_t pos);
+Location parse_location_block(const std::vector<t_token> &tokens, std::size_t &pos);
+void    store_location_directive(const std::vector<t_token> &tokens, std::size_t &pos, Location &loc);
 
 #endif
