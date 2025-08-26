@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:11:46 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 11:29:08 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/26 13:33:38 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,13 @@
 
 Location::Location() : 
     BaseBlock(),
+    allowed_methods(),
+    upload_path(),
+    cgi_handlers()
+{}
+
+Location::Location(const BaseBlock& baseBlock) : 
+    BaseBlock(baseBlock),
     allowed_methods(),
     upload_path(),
     cgi_handlers()

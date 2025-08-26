@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:28:59 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/23 18:50:32 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/26 13:33:25 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ class Location : public BaseBlock
     public:
         Location();
         Location(const Location& other);
+        Location(const BaseBlock& baseBlock);
         Location(const BaseBlock& baseBlock,
                 const std::set<std::string>& methods,
                 const std::string& uploadPath,
