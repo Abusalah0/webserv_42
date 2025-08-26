@@ -1,19 +1,20 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   RequestBuffer.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 02:12:16 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/08/25 05:03:59 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/26 10:45:33 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../include/RequestBuffer.hpp"
 
 RequestBuffer::RequestBuffer():
-	m_chunks()
+	m_chunks(),
+	header_end_cursor(0)
 {}
 
 RequestBuffer::~RequestBuffer()
@@ -62,7 +63,22 @@ void RequestBuffer::remove_chunk()
 
 bool RequestBuffer::is_header_finished()
 {
-	if (this->m_chunks[0].find("\r\n\r\n") != std::string::npos)
+	size_t pos = this->m_chunks[0].find("\r\n\r\n");
+	if (pos != std::string::npos)
+	{
+		this->header_end_cursor = pos + 4;
 		return true;
+	}
 	return false;
+}
+
+void RequestBuffer::isolate_header()
+{
+	if (this->header_end_cursor >= this->m_chunks[0].size())
+		return;
+	std::string part = this->m_chunks[0].substr(this->header_end_cursor, std::string::npos);
+	this->m_chunks[0].erase(this->header_end_cursor);
+	if (this->m_chunks.size() < 2)
+		add_chunk();
+	this->m_chunks[1].append(part);
 }
