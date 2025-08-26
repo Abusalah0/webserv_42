@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:06:03 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 17:27:24 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/26 14:28:48 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,14 +70,14 @@ void    store_location_directive(const std::vector<t_token> &tokens, std::size_t
         throw_parse_error("Expected semicolon at the end of the directive");
 }
 
-Location parse_location_block(const std::vector<t_token> &tokens, std::size_t &pos)
+Location parse_location_block(const std::vector<t_token> &tokens, std::size_t &pos, Server &srv)
 {
     expect_token(tokens, pos);
     // next token must be a WORD (the location path)
     if (!is_word(tokens[pos]))
         throw_parse_error("Expected location path after 'location'");
 
-    Location loc;
+    Location loc(srv);
 
     std::string location_path = tokens[pos].word;
     ++pos;

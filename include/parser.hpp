@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 13:11:23 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 17:22:56 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/26 14:23:48 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,7 +153,7 @@ void    parse_servers( const std::vector<t_token> &tokens, ServerContainer &serv
  * @param pos The current position in the token vector (will be updated).
  * @throws std::runtime_error on parse errors.
  */
-Location    parse_location_block(const std::vector<t_token> &tokens, std::size_t &pos);
+Location    parse_location_block(const std::vector<t_token> &tokens, std::size_t &pos, Server &srv);
 
 /**
  * @brief parse the tokens stream and Store directives into the given Location object.

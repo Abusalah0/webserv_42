@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:20:29 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 17:13:10 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/26 14:33:45 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,10 +64,7 @@ static void store_server_directive(const std::vector<t_token> &tokens, Server &s
         parse_error_page_directive(tokens, srv, pos);
     else if (directive == "location")
     {
-        Location loc;
-        
-        loc = parse_location_block(tokens, pos);
-        srv.add_location(loc);
+        skip_location_block(tokens, pos);
         return ;        
     }
     else if (directive == "redirect")
@@ -86,21 +83,35 @@ static Server process_server_block(const std::vector<t_token> &tokens, BaseBlock
     Server srv(baseBlock);
     
     ++pos; // skip {
-    while (true)
+    std::size_t start_pos = pos;// first token inside server block
+    while (true)// store the directives inside the server block, but skip location blocks for now
     {
         expect_token(tokens, pos);
         if (is_brace_close(tokens[pos]))
         {
-            ++pos; // skip }
-            break ;
+            ++pos; break ; // skip '}' and exit
         }
         if (!is_word(tokens[pos]))
-        {
-            std::cout << tokens[pos].word << std::endl;
             throw_parse_error("Expected directive inside server block");
-        }
         // process the directive
         store_server_directive(tokens, srv, pos);
+    }
+    // now we store location inside the server block, with 
+    while (start_pos < pos)
+    {
+        expect_token(tokens, start_pos);
+        
+        if (is_brace_close(tokens[start_pos]))
+            break ;
+        if (tokens[start_pos].word == "location")// found a location block
+        {
+            ++start_pos; // skip the 'location' token
+            Location loc = parse_location_block(tokens, start_pos, srv);
+            srv.add_location(loc);
+            continue ;
+        }
+        // otherwise skip a general directive (name + args + ;)
+        skip_directive(tokens, start_pos);
     }
     return (srv);
 }
@@ -111,7 +122,6 @@ void parse_servers(const std::vector<t_token> &tokens, ServerContainer &server_c
 
     if (tokens.empty())
         throw std::runtime_error("Empty token list");
-
     // parse http block directives
     while (true)
     {
@@ -119,13 +129,12 @@ void parse_servers(const std::vector<t_token> &tokens, ServerContainer &server_c
         // check end of http block
         if (is_brace_close(tokens[pos]))
         {
-            ++pos;
+            ++pos; // consume '}'
             return ;
         }
         // check for server directive
         if (!is_word(tokens[pos]))
             throw_parse_error("Expected directive at http level");
-        
         if (tokens[pos].word == "server")
         {
             ++pos;
