@@ -8,17 +8,32 @@
 #include <arpa/inet.h>
 #include <ctime>
 
-enum ClientHandlingStatus
+enum ClientStatus
 {
-	CLIENT_SUCCESS,
+	CLIENT_ALIVE,
 	CLIENT_ERROR,
 	CLIENT_DISCONNECTED
 };
+
+enum ClientReadStates
+{
+	RECV_HEADER,
+	RECV_BODY,
+	RECV_DONE
+};
+
+// enum ClientSendStates
+// {
+// 	SEND_,
+// };
 
 class Client
 {
 	private:
 		int m_fd;
+		int m_client_status;
+		int m_read_state;
+		int m_write_state;
 		Server& m_server;
 		in_addr_t m_ip_addr;
 		in_port_t m_port;
@@ -27,7 +42,8 @@ class Client
 	public:
 		Client(int fd, Server& server, sockaddr_in& client_addr);
 		~Client();
-		int handle_read();
+		void handle_read();
+		int get_client_status();
 };
 
 #endif
