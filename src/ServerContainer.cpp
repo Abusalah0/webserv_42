@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 04:14:27 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/26 13:12:04 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,7 +203,7 @@ void ServerContainer::loop()
 					}
 					if (poll_data.revents & POLLIN)
 					{
-                        int res = client.handle_read();
+                        client.handle_read();
 					}
 				}
 			}

@@ -41,10 +41,15 @@ void Client::handle_read()
 	switch (this->m_read_state)
 	{
 		case RECV_HEADER:
-
+			m_request_buffer.push(buffer, bytes_read);
+			if (m_request_buffer.is_header_finished())
+			{
+				//PARSE_REQUEST
+			}
+			if (m_request_buffer.size() > 1)
+			{
+				//SEND_ERROR
+			}
 		case RECV_BODY:
-		case RECV_DONE:
 	}
-	m_request_buffer.push(buffer, bytes_read);
-	m_request_buffer.is_header_finished();
 }

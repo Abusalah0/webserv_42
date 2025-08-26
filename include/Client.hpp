@@ -18,8 +18,7 @@ enum ClientStatus
 enum ClientReadStates
 {
 	RECV_HEADER,
-	RECV_BODY,
-	RECV_DONE
+	RECV_BODY
 };
 
 // enum ClientSendStates
