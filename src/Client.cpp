@@ -45,6 +45,7 @@ void Client::handle_read()
 			if (m_request_buffer.is_header_finished())
 			{
 				//PARSE_REQUEST
+				this->m_read_state = RECV_BODY;
 			}
 			if (m_request_buffer.size() > 1)
 			{

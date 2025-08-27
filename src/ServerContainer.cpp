@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   ServerContainer.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/26 13:12:04 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/27 18:29:01 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "ServerContainer.hpp"
 #include <iostream>
@@ -212,11 +212,6 @@ void ServerContainer::loop()
 			break;
 		loop_cleanup();
     }
-}
-
-Server* ServerContainer::get_sock_server(int sockfd)
-{
-    return this->m_servers_map[sockfd];
 }
 
 void ServerContainer::add_server(const Server& server)

@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 02:12:16 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/08/26 10:45:33 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/27 17:42:33 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -80,5 +80,5 @@ void RequestBuffer::isolate_header()
 	this->m_chunks[0].erase(this->header_end_cursor);
 	if (this->m_chunks.size() < 2)
 		add_chunk();
-	this->m_chunks[1].append(part);
+	this->m_chunks[1].insert(0, part);
 }
