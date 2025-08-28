@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:06:03 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/26 14:28:48 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/29 00:48:10 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,12 @@ void    store_location_directive(const std::vector<t_token> &tokens, std::size_t
         if(is_word(tokens[pos]))
             loc.set_cgi_handlers(tokens[pos].word);
     }
+    else if (directive == "redirect")
+        parse_redirect_directive(tokens, loc, pos);
+    else if (directive == "error_page")
+        parse_error_page_directive(tokens, loc, pos);
+    else if (directive == "autoindex")
+        parse_auto_index_directive(tokens, loc, pos);
     else
         throw_parse_error("Unknown directive inside location block");
     
