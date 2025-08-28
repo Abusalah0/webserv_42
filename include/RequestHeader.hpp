@@ -2,11 +2,18 @@
 #include <map>
 #include <deque>
 
+typedef enum ERequestMethods
+{
+	GET_METHOD,
+	POST_METHOD,
+	DELETE_METHOD
+} RequestMethods;
+
 class RequestHeader
 {
 	private:
-		int m_method;
-		std::string m_route;
+		RequestMethods m_method;
+		std::string m_target;
 		std::string m_query_parameters;
 		std::string m_virtual_host;
     	std::string m_cookies;
