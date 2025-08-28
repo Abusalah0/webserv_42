@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:36:13 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/28 17:02:06 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/28 17:31:45 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,7 +158,7 @@ void parse_client_max_body_size_directive(const std::vector<t_token> &tokens, Ba
     baseBlock.set_client_max_body_size(tokens[pos].word);// set size in baseblock
 }
 
-static int check_port_number(std::string &port)
+__attribute__((unused)) static int check_port_number(std::string &port)
 {
     // check port length
     if (port.empty() || port.length() > 5)
@@ -179,7 +179,7 @@ static int check_port_number(std::string &port)
     return (pnum);
 }
 
-static std::string& check_listen_address(std::string &address)
+__attribute__((unused)) static std::string& check_listen_address(std::string &address)
 {
     for (size_t i = 0; i < address.length(); i++)
     {
@@ -222,7 +222,7 @@ void    parse_listen_directive(const std::vector<t_token> &tokens, Server &srv, 
     {
         throw_parse_error("Expected valid address before ':' in listen directive");
     }
-    check_listen_address(address);// validate address part
+    // check_listen_address(address);// validate address part
     listen.first = address;// store address part
     
     std::string port_str = tokens[pos].word.substr(colon + 1);// 
@@ -230,7 +230,7 @@ void    parse_listen_directive(const std::vector<t_token> &tokens, Server &srv, 
     {
         throw_parse_error("Expected valid port number after ':' in listen directive");
     }
-    check_port_number(port_str);// validate port part
+    // check_port_number(port_str);// validate port part
     listen.second = std::strtol(port_str.c_str(), NULL, 10);// store port part
     
     srv.add_listen(listen);// add to server object
