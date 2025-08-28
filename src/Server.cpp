@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/23 19:10:49 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/28 13:45:13 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,6 +87,7 @@ void Server::set_listen(std::vector<std::pair<std::string, int> >& listen)
 {
     this->listen = listen;
 }
+
 void Server::add_listen(std::pair<std::string, int>& listen)
 {
     this->listen.push_back(listen);

@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:36:13 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 17:27:51 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/28 17:02:06 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,6 +158,54 @@ void parse_client_max_body_size_directive(const std::vector<t_token> &tokens, Ba
     baseBlock.set_client_max_body_size(tokens[pos].word);// set size in baseblock
 }
 
+static int check_port_number(std::string &port)
+{
+    // check port length
+    if (port.empty() || port.length() > 5)
+    {
+        throw_parse_error("Invalid port number, port too large ;)");
+    }
+    // make sure there is only digits
+    for (size_t i = 0; i < port.length(); i++)
+    {
+        if (!isdigit(port[i]))
+            throw_parse_error("Expected digits for the port number");
+    }
+    
+    int pnum = strtol(port.c_str(), NULL, 10);
+    if (pnum > 65535)// check range
+        throw_parse_error("Invalid port number, max port number is 65535");
+    
+    return (pnum);
+}
+
+static std::string& check_listen_address(std::string &address)
+{
+    for (size_t i = 0; i < address.length(); i++)
+    {
+        if (!(isdigit(address[i]) || address[i] == '.'))
+            throw_parse_error("Invalid character in listen address");
+    }
+    //check each octet from the address
+    size_t start = 0;
+    size_t end = address.find('.');
+    while (end != std::string::npos)
+    {
+        // extract octet
+        std::string octet = address.substr(start, end - start);
+        if (octet.empty() || octet.length() > 3)
+            throw_parse_error("Invalid IP address in listen directive");
+        // check range
+        int octet_num = strtol(octet.c_str(), NULL, 10);
+        if (octet_num < 0 || octet_num > 255)
+            throw_parse_error("IP address octet out of range (0-255)");
+        // move to next octet
+        start = end + 1;
+        end = address.find('.', start);
+    }
+    return (address);
+}
+
 void    parse_listen_directive(const std::vector<t_token> &tokens, Server &srv, std::size_t &pos)
 {
     std::pair< std::string, int> listen;
@@ -174,6 +222,7 @@ void    parse_listen_directive(const std::vector<t_token> &tokens, Server &srv, 
     {
         throw_parse_error("Expected valid address before ':' in listen directive");
     }
+    check_listen_address(address);// validate address part
     listen.first = address;// store address part
     
     std::string port_str = tokens[pos].word.substr(colon + 1);// 
@@ -181,6 +230,7 @@ void    parse_listen_directive(const std::vector<t_token> &tokens, Server &srv, 
     {
         throw_parse_error("Expected valid port number after ':' in listen directive");
     }
+    check_port_number(port_str);// validate port part
     listen.second = std::strtol(port_str.c_str(), NULL, 10);// store port part
     
     srv.add_listen(listen);// add to server object
