@@ -35,7 +35,7 @@ RequestMethods request_parse_method(std::string& line, size_t& offset)
 		offset = 7;
 		return DELETE_METHOD;
 	}
-	throw WebservExceptions::BadRequest();
+	throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 }
 
 bool validate_http_version(std::string& line, size_t s_offset)
@@ -72,7 +72,7 @@ void RequestHeader::parse_request_line(std::string& line)
 		e_offset++;
 	}
 	if (e_offset == s_offset)
-		throw WebservExceptions::BadRequest();
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	this->m_target = line.substr(s_offset, e_offset - s_offset);
 	size_t query_parameters_offset = this->m_target.find('?');
 	if (query_parameters_offset != std::string::npos)
@@ -84,7 +84,7 @@ void RequestHeader::parse_request_line(std::string& line)
 	e_offset++;
 	s_offset = e_offset;
 	if (!validate_http_version(line, s_offset))
-		throw WebservExceptions::BadRequest();
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 }
 
 RequestHeaderField split_request_header(std::string& line)
@@ -100,7 +100,7 @@ RequestHeaderField split_request_header(std::string& line)
 		e_offset++;
 	}
 	if (!e_offset || e_offset == line.size())
-		throw WebservExceptions::BadRequest();
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	field.name = line.substr(s_offset, e_offset);
 	s_offset = e_offset + 1;
 	if (s_offset == line.size())
@@ -135,9 +135,9 @@ void RequestHeader::parse_header_line(std::string& line)
 {
 	RequestHeaderField field = split_request_header(line);
 	if (!check_str_chrs(field.name, is_token_chr))
-		throw WebservExceptions::BadRequest();
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	if (!check_str_chrs(field.value, is_field_value_chr))
-		throw WebservExceptions::BadRequest();
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	std::transform(field.name.begin(), field.name.end(), field.name.begin(), c_tolower);
 	if (this->m_fields.find(field.name) != this->m_fields.end())
 	{
@@ -156,21 +156,21 @@ void RequestHeader::parse_content_len()
 	char *endptr;
 	std::string& value = this->m_fields["content-length"];
 	if (value.empty() || !std::isdigit(value[0]))
-		throw WebservExceptions::BadRequest();
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	errno = 0;
 	this->m_content_len = strtoul(value.c_str(), &endptr, 10);
 	if (errno == ERANGE || endptr != value.c_str() + value.size())
-		throw WebservExceptions::BadRequest();
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 }
 
 void RequestHeader::parse_transfer_encoding()
 {
 	if (this->m_fields.find("content-length") != this->m_fields.end())
-		throw WebservExceptions::BadRequest();
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	std::string temp_value = this->m_fields["transfer-encoding"];
 	std::transform(temp_value.begin(), temp_value.end(), temp_value.begin(), c_tolower);
 	if (temp_value != "chunked")
-		throw WebservExceptions::NotImplemented();
+		throw WebservExceptions::HTTPException(HTTP_NOT_IMPLEMENTED);
 	this->m_is_chunked = true;
 }
 
@@ -199,7 +199,7 @@ void RequestHeader::parse(std::string& input)
 		line_start = clrf_pos + 2;
 	}
 	if (this->m_fields.find("host") == this->m_fields.end())
-		throw WebservExceptions::BadRequest();
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	if (this->m_fields.find("content-length") != this->m_fields.end())
 		parse_content_len();
 	if (this->m_fields.find("transfer-encoding") != this->m_fields.end())
@@ -208,47 +208,47 @@ void RequestHeader::parse(std::string& input)
 		parse_connection();
 }
 
-bool RequestHeader::IsQueryParameters()
+bool RequestHeader::is_query_parameters()
 {
 	return this->m_is_query_paramaters;
 }
 
-bool RequestHeader::isChunked()
+bool RequestHeader::is_chunked()
 {
 	return this->m_is_chunked;
 }
 
-ConnectionTypes RequestHeader::getConnectionType()
+ConnectionTypes RequestHeader::get_connection_type()
 {
 	return this->m_connection;
 }
 
-RequestMethods RequestHeader::getRequestMethod()
+RequestMethods RequestHeader::get_request_method()
 {
 	return this->m_method;
 }
 
-size_t RequestHeader::getContentLength()
+size_t RequestHeader::get_content_length()
 {
 	return this->m_content_len;
 }
 
-std::string& RequestHeader::getTarget()
+std::string& RequestHeader::get_target()
 {
 	return this->m_target;
 }
 
-std::string& RequestHeader::getQueryParameters()
+std::string& RequestHeader::get_query_parameters()
 {
 	return this->m_query_parameters;
 }
 
-std::string& RequestHeader::getVirtualHost()
+std::string& RequestHeader::get_virtual_host()
 {
 	return this->m_virtual_host;
 }
 
-std::map<std::string, std::string> RequestHeader::getFields()
+std::map<std::string, std::string> RequestHeader::get_fields()
 {
 	return this->m_fields;
 }

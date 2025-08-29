@@ -5,6 +5,8 @@ CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iinclude
 
 SRC_DIR = src
+PARSER_DIR = parser
+HTTPBUFFERS_DIR = HTTPBuffers
 
 SRC = \
 	main.cpp \
@@ -16,16 +18,17 @@ SRC = \
 	ServerContainer.cpp \
 	Location.cpp \
 	Client.cpp \
-	RequestBuffer.cpp \
 	parser/parse_baseblock.cpp \
 	parser/parser.cpp \
 	parser/parser_utils.cpp \
 	parser/parse_server.cpp \
-	RequestHeader.cpp
+	HTTPBuffers/HTTPBuffer.cpp \
+	HTTPBuffers/RequestBuffer.cpp \
+	HTTPBuffers/ResponseBuffer.cpp \
 
 OBJ_DIR = obj
 SRCS = $(addprefix $(SRC_DIR)/, $(SRC)) 
-OBJ = $(SRCS:%.cpp=%.o)
+OBJ = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 all: $(NAME)
 
@@ -36,9 +39,16 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	mkdir -p $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+$(OBJ_DIR)/$(PARSER_DIR)/%.o: $(SRC_DIR)/$(PARSER_DIR)/%.cpp
+	mkdir -p $(OBJ_DIR)/$(PARSER_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/$(HTTPBUFFERS_DIR)/%.o: $(SRC_DIR)/$(HTTPBUFFERS_DIR)/%.cpp
+	mkdir -p $(OBJ_DIR)/$(HTTPBUFFERS_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
 clean:
-	rm -rf $(OBJ_DIR) 
-	rm -f $(OBJ)
+	rm -rf $(OBJ_DIR)
 
 fclean: clean
 	rm -f $(NAME)

@@ -9,7 +9,7 @@
 int main()
 {
     const char* request =
-    "GET /cgi-bin/test.sh HTTP/1.1\r\n"
+    "DELETE /cgi-bin/test.sh HTTP/1.1\r\n"
     "User-Agent: LOL1AAFEFEEFEFEF:EFEF \r\n"
 	"Host: www.example.com:9000\r\n"
     "Connection:\tkeep-alive clOse lol\t\r\n"

@@ -54,46 +54,46 @@ class RequestHeader
 		* @throws std::bad_alloc on allocation failure
 		* @return If query parameters set
 		*/
-		bool IsQueryParameters();
+		bool is_query_parameters();
 		/**
  		* Getter for if request body is chunked
 		* @return If request body is chunked
 		*/
-		bool isChunked();
+		bool is_chunked();
 		/**
  		* Getter for connection type
 		* @return connection type
 		*/
-		ConnectionTypes getConnectionType();
+		ConnectionTypes get_connection_type();
 		/**
  		* Getter for request method
 		* @return request method
 		*/
-		RequestMethods getRequestMethod();
+		RequestMethods get_request_method();
 		/**
  		* Getter for content length
 		* @return content length
 		*/
-		size_t getContentLength();
+		size_t get_content_length();
 		/**
  		* Getter for request target
 		* @return request target
 		*/
-		std::string& getTarget();
+		std::string& get_target();
 		/**
  		* Getter for query parameters
 		* @return query parameters
 		*/
-		std::string& getQueryParameters();
+		std::string& get_query_parameters();
 		/**
  		* Getter for virtual host
 		* @return virtual host
 		*/
-		std::string& getVirtualHost();
+		std::string& get_virtual_host();
 		/**
  		* Getter for header fields
 		* @return header fields
 		*/
-		std::map<std::string, std::string> getFields();
+		std::map<std::string, std::string> get_fields();
 		void debug();
 };

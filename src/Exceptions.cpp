@@ -1,5 +1,50 @@
 #include "../include/Exceptions.hpp"
 
+static const char* statusTableLookup(ushort code)
+{
+    for (int i = 0; statusTable[i].code != 0; ++i)
+	{
+        if (statusTable[i].code == code)
+            return statusTable[i].msg;
+    }
+    return "Unknown Error";
+}
+
+WebservExceptions::HTTPException::HTTPException(ushort code):
+	m_code(code)
+{
+	const char* msg = statusTableLookup(code);
+	int i = 0;
+	char digits[3];
+	while (code)
+	{
+		digits[i] = code % 10 + 0x30;
+		code /= 10;
+		++i;
+	}
+	--i;
+	while (i > -1)
+	{
+		this->m_msg.push_back(digits[i]);
+		--i;
+	}
+	this->m_msg.push_back(' ');
+	this->m_msg.append(msg);
+}
+
+WebservExceptions::HTTPException::~HTTPException() throw()
+{}
+
+ushort WebservExceptions::HTTPException::getErrorCode()
+{
+	return this->m_code;
+}
+
+const char* WebservExceptions::HTTPException::what() const throw()
+{
+	return this->m_msg.c_str();
+}
+
 const char* WebservExceptions::FileOpenFailure::what() const throw()
 {
     return "Opening file failed.";
@@ -73,14 +118,4 @@ const char* WebservExceptions::ListenFailed::what() const throw()
 const char* WebservExceptions::PollFailed::what() const throw()
 {
     return "Poll failed!";
-}
-
-const char* WebservExceptions::BadRequest::what() const throw()
-{
-    return "Bad request!";
-}
-
-const char* WebservExceptions::NotImplemented::what() const throw()
-{
-    return "Not implemented!";
 }

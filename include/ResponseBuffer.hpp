@@ -1,29 +1,29 @@
 /******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   RequestBuffer.hpp                                  :+:      :+:    :+:   */
+/*   ResponseBuffer.hpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/08/23 01:25:41 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/08/30 01:20:27 by amsaleh          ###   ########.fr       */
+/*   Created: 2025/08/30 01:16:02 by amsaleh           #+#    #+#             */
+/*   Updated: 2025/08/30 01:22:29 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
-#ifndef REQUESTBUFFER_HPP
-#define REQUESTBUFFER_HPP
+#ifndef RESPONSEBUFFER_HPP
+#define RESPONSEBUFFER_HPP
 
 #include "HTTPBuffer.hpp"
 
-class RequestBuffer: public HTTPBuffer
+class ResponseBuffer: public HTTPBuffer
 {
 	private:
-		size_t m_header_end_cursor;
+		size_t m_is_finished;
 	public:
-		RequestBuffer();
-		~RequestBuffer();
-		bool is_header_finished();
-		void isolate_header();
+		ResponseBuffer();
+		~ResponseBuffer();
+		void set_finished();
+		bool is_finished();
 };
 
 #endif
