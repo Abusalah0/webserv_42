@@ -44,20 +44,4 @@ fclean: clean
 
 re: fclean all
 
-# Test targets
-test: $(NAME)
-	@echo "Building and running parser tests..."
-	@cd tests && make test
-
-test-build:
-	@echo "Building test suite..."
-	@cd tests && make
-
-test-clean:
-	@echo "Cleaning test build files..."
-	@cd tests && make clean
-
-test-summary:
-	@./tests/test_summary.sh
-
-.PHONY: all clean fclean re test test-build test-clean test-summary
+.PHONY: all clean fclean re
