@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/28 13:45:13 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/29 11:54:11 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ Server::~Server()
 
 void Server::set_locations(std::vector<Location>& locations)
 {
-    this->locations = locations;
+    this->locations.insert(this->locations.end(), locations.begin(), locations.end());
 }
 void Server::add_location(Location& location)
 {
