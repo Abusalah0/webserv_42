@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 22:00:55 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 11:04:13 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/29 11:50:28 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,5 +39,5 @@ void parser(const std::vector<t_token> &tokens, ServerContainer &serverContainer
     parse_servers(tokens, serverContainer, baseBlock, pos); // not implemented yet
 
     //print servercontainer for debugging
-    print_server_container(serverContainer);
+    // print_server_container(serverContainer);
 }
