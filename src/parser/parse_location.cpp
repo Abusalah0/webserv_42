@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:06:03 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/29 00:48:10 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/29 18:17:24 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ Location parse_location_block(const std::vector<t_token> &tokens, std::size_t &p
 
     std::string location_path = tokens[pos].word;
     ++pos;
-    loc.set_upload_path(location_path); // using upload_path to store location path temporarily
+    loc.set_root(location_path); // using set_root to store location path temporarily
     // now expect opening brace
     expect_token(tokens, pos);
     if (!is_brace_open(tokens[pos]))

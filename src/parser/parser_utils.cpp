@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 13:11:56 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 16:19:52 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/29 18:17:33 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -238,7 +238,7 @@ void print_server_container(const ServerContainer &serverContainer)
                 }
                 
                 // Location-specific properties
-                std::cout << "    Upload Path: " << loc.get_upload_path() << "\n";
+                std::cout << "    Upload Path: " << loc.get_root() << "\n";
                 std::cout << "    CGI Handlers: " << loc.get_cgi_handlers() << "\n";
                 
                 std::set<std::string> methods = loc.get_allowed_methods();

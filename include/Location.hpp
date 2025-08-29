@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:28:59 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/26 13:33:25 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/29 18:17:02 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ class Location : public BaseBlock
 {
     private:
         std::set<std::string> allowed_methods;
-        std::string upload_path;
+        // std::string upload_path;
         std::string cgi_handlers;
 
     public:
@@ -33,15 +33,17 @@ class Location : public BaseBlock
         Location(const BaseBlock& baseBlock);
         Location(const BaseBlock& baseBlock,
                 const std::set<std::string>& methods,
-                const std::string& uploadPath,
+                // const std::string& uploadPath,
                 const std::string& cgiHandlers);
+
+
         Location& operator=(const Location& other);
         ~Location();
 
         void set_allowed_methods(const std::set<std::string>& methods);
         const std::set<std::string>& get_allowed_methods() const;
-        void set_upload_path(const std::string& path);
-        const std::string& get_upload_path() const;
+        // void set_upload_path(const std::string& path);
+        // const std::string& get_upload_path() const;
         void set_cgi_handlers(const std::string& handlers);
         const std::string& get_cgi_handlers() const;
 
