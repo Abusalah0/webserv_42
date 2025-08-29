@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/23 11:09:37 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/29 17:20:07 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,9 +32,9 @@ int main(int argc, char **argv)
         std::cerr << "Error, Use ./webserv ./conf_file/file_name\n";
         return (1);
     }
+    ServerContainer serverContainer;
 	try
 	{
-        ServerContainer serverContainer;
 		const std::string buffer = read_file(argv[1]);
     	std::vector<t_token> tokens = tokenize_string(buffer);
     	parser(tokens, serverContainer);
@@ -44,5 +44,12 @@ int main(int argc, char **argv)
 		std::cerr << e.what() << std::endl;
 		return (EXIT_FAILURE);
 	}
+
+    // Server s = serverContainer.get_servers()[0];
+    // 
+    // Location loc = s.get_location_by_path("/lol", "a");
+    // std::cout << "Upload Path: " << loc.get_upload_path() << std::endl;
+    // std::cout << "CGI Handlers: " << loc.get_cgi_handlers() << std::endl;
+    
     return (0);
 }

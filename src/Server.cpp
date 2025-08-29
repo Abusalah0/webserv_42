@@ -6,11 +6,12 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/29 11:54:11 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/29 17:15:10 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include <stdexcept>
 
 Server::Server() : BaseBlock(), 
                    locations(),
@@ -102,6 +103,38 @@ const std::vector<Location> Server::get_locations() const
 {
     return (this->locations);
 }
+
+void Server::match_virtual_host(const std::string &virtual_host) const
+{
+    if (this->server_names.find(virtual_host) == this->server_names.end())
+        throw std::runtime_error("Virtual host not matched");
+}
+
+std::string Server::normalize_path(const std::string& path) const
+{
+    (void)path; // Placeholder for future implementation
+    return (path);
+}
+
+Location &Server::get_location_by_path(const std::string& path, const std::string &virtual_host) const
+{
+    // For now, return the first location or throw an exception if none exist
+    if (this->locations.empty())
+        throw std::runtime_error("No locations available");
+
+    match_virtual_host(virtual_host);
+    std::string normalized = normalize_path(path);
+
+    
+    // lets match the normalized path with the locations
+    for (std::vector<Location>::const_iterator it = this->locations.begin(); it != this->locations.end(); ++it)
+    {
+        if (it->get_root() == normalized)
+            return (const_cast<Location&>(*it));
+    }
+    throw std::runtime_error("No matching location found");
+}
+
 
 const std::vector<std::pair<std::string, int> > Server::get_listen() const
 {

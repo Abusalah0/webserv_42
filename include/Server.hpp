@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:26:51 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/23 19:11:06 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/29 16:44:09 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@ class Server : public BaseBlock
         std::vector<Location> locations;
         std::vector<std::pair<std::string, int> > listen;
         std::set<std::string> server_names;
+        void match_virtual_host(const std::string &virtual_host) const;
+        std::string normalize_path(const std::string& path) const;
     public:
         // construtors
         Server();
@@ -44,6 +46,7 @@ class Server : public BaseBlock
         void set_locations(std::vector<Location>& locations);
         void add_location(Location& location);
         void remove_location(Location& location);
+        Location& get_location_by_path(const std::string& path, const std::string &virtual_host) const;
         
         // server name methods
         void set_server_names(std::set<std::string>& names);

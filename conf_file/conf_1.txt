@@ -15,8 +15,7 @@ http
         autoindex on;
         server_name a b c d;
         error_page 404 401 402 403 504 505 /crazy2.html;
-        location  /test{
-            root /lol;
+        location  /{
             cgi blabla;
             limit get;
         }location /b {
