@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/27 18:29:01 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/29 16:16:10 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -155,7 +155,7 @@ void ServerContainer::accept_client(size_t poll_index)
 		return;
 	}
 	this->m_clients_map.insert(
-		std::pair<int, Client>(client_fd, Client(client_fd, *this->m_servers_map[poll_data.fd], client_addr))
+		std::pair<int, Client>(client_fd, Client(client_fd, this->m_servers_map[poll_data.fd], client_addr))
 	);
 	pollfd entry;
 	entry.fd = client_fd;

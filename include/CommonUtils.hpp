@@ -10,6 +10,12 @@
 
 extern int g_signum;
 
+typedef enum EConnectionTypes
+{
+	CONNECTION_KEEP_ALIVE,
+	CONNECTION_CLOSE
+} ConnectionTypes;
+
 // Used when path of root is not absoulte or relative
 #define ROOT_PREFIX "/var/lib/webserv/"
 // default root path

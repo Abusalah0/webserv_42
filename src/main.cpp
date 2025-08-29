@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/24 19:23:43 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/29 20:50:48 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../include/tokenizer.hpp"
 #include "../include/Exceptions.hpp"
@@ -18,6 +18,7 @@
 #include "../include/CommonUtils.hpp"
 #include "../include/RequestBuffer.hpp"
 #include "../include/parser.hpp"
+#include "../include/RequestHeader.hpp"
 
 int g_signum = 0;
 

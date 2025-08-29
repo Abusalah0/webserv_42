@@ -20,7 +20,8 @@ SRC = \
 	parser/parse_baseblock.cpp \
 	parser/parser.cpp \
 	parser/parser_utils.cpp \
-	parser/parse_server.cpp
+	parser/parse_server.cpp \
+	RequestHeader.cpp
 
 OBJ_DIR = obj
 SRCS = $(addprefix $(SRC_DIR)/, $(SRC)) 

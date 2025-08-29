@@ -1,4 +1,6 @@
 # References
+https://en.wikipedia.org/wiki/Augmented_Backus%E2%80%93Naur_form
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers
 https://httpwg.org/specs/rfc9110.html
 https://httpwg.org/specs/rfc9112.html
 
@@ -52,4 +54,29 @@ request-target = origin-form
                  / absolute-form
                  / authority-form
                  / asterisk-form
+```
+
+# Standard Request Header Fields
+## Content-Length
+```
+Content-Length    = "Content-Length" ":" 1*DIGIT
+```
+## Connection
+```
+Connection = "Connection" ":" 1#(connection-token)
+connection-token  = token
+```
+## Host
+```
+Host = "Host" ":" host [ ":" port ]
+```
+## Transfer-Encoding
+```
+Transfer-Encoding       = "Transfer-Encoding" ":" 1#transfer-coding
+```
+## Cookie
+```
+Cookie: <cookie-list>
+Cookie: name=value
+Cookie: name=value; name2=value2; name3=value3
 ```

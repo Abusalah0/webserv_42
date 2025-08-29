@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Exceptions.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 12:01:53 by sbibers           #+#    #+#             */
-/*   Updated: 2025/08/14 17:16:18 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/29 20:19:04 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef EXCEPTIONS_HPP
 #define EXCEPTIONS_HPP
@@ -74,6 +74,14 @@ namespace WebservExceptions
         const char* what() const throw();
     };
 	class PollFailed: public std::exception
+    {
+        const char* what() const throw();
+    };
+	class BadRequest: public std::exception
+    {
+        const char* what() const throw();
+    };
+	class NotImplemented: public std::exception
     {
         const char* what() const throw();
     };

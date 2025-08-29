@@ -74,3 +74,13 @@ const char* WebservExceptions::PollFailed::what() const throw()
 {
     return "Poll failed!";
 }
+
+const char* WebservExceptions::BadRequest::what() const throw()
+{
+    return "Bad request!";
+}
+
+const char* WebservExceptions::NotImplemented::what() const throw()
+{
+    return "Not implemented!";
+}
