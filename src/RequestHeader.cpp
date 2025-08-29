@@ -18,59 +18,6 @@ RequestHeader::RequestHeader():
 RequestHeader::~RequestHeader()
 {}
 
-bool is_token_chr(u_char c)
-{
-	if (c != '!' && c != '#' && c != '$'
-		&& c != '%' && c != '&' && c != '\''
-		&& c != '*' && c != '+' && c != '-'
-		&& c != '.' && c != '^' && c != '_'
-		&& c != '`' && c != '|' && c != '~'
-		&& !std::isalnum(c))
-		return false;
-	return true;
-}
-
-bool is_ws_chr(u_char c)
-{
-	if (c == ' ' || c == '\t')
-		return true;
-	return false;
-}
-
-bool is_vchar(u_char c)
-{
-	if (c >= 0x21 && c <= 0x7E)
-		return true;
-	return false;
-}
-
-bool is_obs_chr(u_char c)
-{
-	if (c >= 0x80)
-		return true;
-	return false;
-}
-
-bool is_field_value_chr(u_char c)
-{
-	if (!is_ws_chr(c) && !is_vchar(c) && !is_obs_chr(c))
-		return false;
-	return true;
-}
-
-
-bool check_str_chrs(std::string& str, bool (*func)(u_char c))
-{
-	size_t i = 0;
-	while (i < str.size())
-	{
-		if (!func(str[i]))
-			return false;
-		i++;
-	}
-	return true;
-}
-
 RequestMethods request_parse_method(std::string& line, size_t& offset)
 {
 	if (!line.compare(0, 4, "GET "))
@@ -259,6 +206,51 @@ void RequestHeader::parse(std::string& input)
 		parse_transfer_encoding();
 	if (this->m_fields.find("connection") != this->m_fields.end())
 		parse_connection();
+}
+
+bool RequestHeader::IsQueryParameters()
+{
+	return this->m_is_query_paramaters;
+}
+
+bool RequestHeader::isChunked()
+{
+	return this->m_is_chunked;
+}
+
+ConnectionTypes RequestHeader::getConnectionType()
+{
+	return this->m_connection;
+}
+
+RequestMethods RequestHeader::getRequestMethod()
+{
+	return this->m_method;
+}
+
+size_t RequestHeader::getContentLength()
+{
+	return this->m_content_len;
+}
+
+std::string& RequestHeader::getTarget()
+{
+	return this->m_target;
+}
+
+std::string& RequestHeader::getQueryParameters()
+{
+	return this->m_query_parameters;
+}
+
+std::string& RequestHeader::getVirtualHost()
+{
+	return this->m_virtual_host;
+}
+
+std::map<std::string, std::string> RequestHeader::getFields()
+{
+	return this->m_fields;
 }
 
 void RequestHeader::debug()

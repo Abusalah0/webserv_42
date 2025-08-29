@@ -36,5 +36,44 @@ typedef enum EConnectionTypes
 
 const char& str_back(const std::string& str);
 ushort parse_http_code(const std::string& str);
+/**
+* Checks if character is valid in token
+* @param c character
+* @return If character is valid in token or not
+*/
+bool is_token_chr(u_char c);
+/**
+* Checks if character is valid whitespace
+* @param c character
+* @return If character is valid whitespace or not
+*/
+bool is_ws_chr(u_char c);
+/**
+* Checks if character is vchar (Visible Character)
+* @param c character
+* @return If character is vchar or not
+*/
+bool is_vchar(u_char c);
+/**
+* Checks if character is obs-text (Obsolete character for backward compability)
+* @param c character
+* @return If character is obs-text or not
+*/
+bool is_obs_chr(u_char c);
+/**
+* Checks if character is valid field-value
+* @param c character
+* @return If character is valid field-value
+*/
+bool is_field_value_chr(u_char c);
+/**
+* Function to run on string to check if
+* each character in the string followes the rules of provided function
+* @param str String
+* @param func Function to check each character
+* @return If all characters followes the function rule or not
+*/
+bool check_str_chrs(std::string& str, bool (*func)(u_char c));
+
 
 #endif

@@ -33,17 +33,67 @@ class RequestHeader
 		void parse_transfer_encoding();
 		void parse_connection();
 	public:
+		/**
+ 		* RequestHeader Constructor
+ 		* @return RequestHeader
+		*/
 		RequestHeader();
+		/**
+ 		* RequestHeader Destructor
+		*/
 		~RequestHeader();
+		/**
+ 		* Parses Request Header
+		* @param input Request Header
+		*/
 		void parse(std::string& input);
+		/**
+ 		* Getter for if query parameters set
+		* @throws WebservExceptions::BadRequest on invalid input
+		* @throws WebservExceptions::NotImplemented on unsupported input
+		* @throws std::bad_alloc on allocation failure
+		* @return If query parameters set
+		*/
 		bool IsQueryParameters();
+		/**
+ 		* Getter for if request body is chunked
+		* @return If request body is chunked
+		*/
 		bool isChunked();
+		/**
+ 		* Getter for connection type
+		* @return connection type
+		*/
 		ConnectionTypes getConnectionType();
+		/**
+ 		* Getter for request method
+		* @return request method
+		*/
 		RequestMethods getRequestMethod();
+		/**
+ 		* Getter for content length
+		* @return content length
+		*/
 		size_t getContentLength();
+		/**
+ 		* Getter for request target
+		* @return request target
+		*/
 		std::string& getTarget();
+		/**
+ 		* Getter for query parameters
+		* @return query parameters
+		*/
 		std::string& getQueryParameters();
+		/**
+ 		* Getter for virtual host
+		* @return virtual host
+		*/
 		std::string& getVirtualHost();
+		/**
+ 		* Getter for header fields
+		* @return header fields
+		*/
 		std::map<std::string, std::string> getFields();
 		void debug();
 };

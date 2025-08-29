@@ -33,3 +33,55 @@ ushort parse_http_code(const std::string& str)
 		throw WebservExceptions::HttpCodeOutOfRange();
 	return code;
 }
+
+bool is_token_chr(u_char c)
+{
+	if (c != '!' && c != '#' && c != '$'
+		&& c != '%' && c != '&' && c != '\''
+		&& c != '*' && c != '+' && c != '-'
+		&& c != '.' && c != '^' && c != '_'
+		&& c != '`' && c != '|' && c != '~'
+		&& !std::isalnum(c))
+		return false;
+	return true;
+}
+
+bool is_ws_chr(u_char c)
+{
+	if (c == ' ' || c == '\t')
+		return true;
+	return false;
+}
+
+bool is_vchar(u_char c)
+{
+	if (c >= 0x21 && c <= 0x7E)
+		return true;
+	return false;
+}
+
+bool is_obs_chr(u_char c)
+{
+	if (c >= 0x80)
+		return true;
+	return false;
+}
+
+bool is_field_value_chr(u_char c)
+{
+	if (!is_ws_chr(c) && !is_vchar(c) && !is_obs_chr(c))
+		return false;
+	return true;
+}
+
+bool check_str_chrs(std::string& str, bool (*func)(u_char c))
+{
+	size_t i = 0;
+	while (i < str.size())
+	{
+		if (!func(str[i]))
+			return false;
+		i++;
+	}
+	return true;
+}
