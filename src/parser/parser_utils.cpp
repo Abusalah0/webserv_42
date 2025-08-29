@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 13:11:56 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/29 18:17:33 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/30 00:11:55 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,7 +139,7 @@ void print_server_container(const ServerContainer &serverContainer)
         std::cout << "\n--- SERVER PROPERTIES ---\n";
         
         // Print listen addresses and ports
-        std::vector<std::pair<std::string, int> > listen_list = srv.get_listen();
+        std::vector<std::pair<std::string, std::string> > listen_list = srv.get_listen();
         std::cout << "Listen Addresses (" << listen_list.size() << "):\n";
         if (listen_list.empty())
         {

@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:36:13 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/28 17:31:45 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/30 00:11:27 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ __attribute__((unused)) static std::string& check_listen_address(std::string &ad
 
 void    parse_listen_directive(const std::vector<t_token> &tokens, Server &srv, std::size_t &pos)
 {
-    std::pair< std::string, int> listen;
+    std::pair< std::string, std::string> listen;
         
     // look for colon in host:port format
     size_t colon = tokens[pos].word.find_first_of(':');
@@ -231,7 +231,7 @@ void    parse_listen_directive(const std::vector<t_token> &tokens, Server &srv, 
         throw_parse_error("Expected valid port number after ':' in listen directive");
     }
     // check_port_number(port_str);// validate port part
-    listen.second = std::strtol(port_str.c_str(), NULL, 10);// store port part
+    listen.second = port_str;// store port part
     
     srv.add_listen(listen);// add to server object
 }

@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/29 17:15:10 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/30 00:08:27 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ Server::Server(BaseBlock& baseBlock) :
 
 Server::Server(const BaseBlock& baseBlock,
                const std::vector<Location>& locations,
-               const std::vector<std::pair<std::string, int> >& listen,
+               const std::vector<std::pair<std::string, std::string> >& listen,
                const std::set<std::string>& serverNames) :
     BaseBlock(baseBlock),
       locations(locations),
@@ -84,17 +84,17 @@ void Server::remove_server_name(std::string& name)
     this->server_names.erase(name);
 }
 
-void Server::set_listen(std::vector<std::pair<std::string, int> >& listen)
+void Server::set_listen(std::vector<std::pair<std::string, std::string> >& listen)
 {
     this->listen = listen;
 }
 
-void Server::add_listen(std::pair<std::string, int>& listen)
+void Server::add_listen(std::pair<std::string, std::string>& listen)
 {
     this->listen.push_back(listen);
 }
 
-void Server::remove_listen(std::pair<std::string, int>& listen)
+void Server::remove_listen(std::pair<std::string, std::string>& listen)
 {
     (void)listen; // Placeholder for future implementation
 }
@@ -136,7 +136,7 @@ Location &Server::get_location_by_path(const std::string& path, const std::strin
 }
 
 
-const std::vector<std::pair<std::string, int> > Server::get_listen() const
+const std::vector<std::pair<std::string, std::string> > Server::get_listen() const
 {
     return (this->listen);
 }
