@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/29 16:16:10 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/30 05:15:34 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -196,21 +196,21 @@ void ServerContainer::loop()
 				else if (this->m_clients_map.find(poll_data.fd) != this->m_clients_map.end())
 				{
                     Client& client = this->m_clients_map[poll_data.fd];
-					if (poll_data.revents & POLLHUP)
+					if (poll_data.revents & POLLHUP || client.get_client_status() > CLIENT_DONE)
 					{
 						remove_client(i);
 						continue;
 					}
 					if (poll_data.revents & POLLIN)
-					{
                         client.handle_read();
-					}
+					if (poll_data.revents & POLLOUT)
+						client.handle_send();
 				}
 			}
 		}
+		loop_cleanup();
 		if (g_signum == SIGINT)
 			break;
-		loop_cleanup();
     }
 }
 

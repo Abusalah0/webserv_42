@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 01:09:42 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/08/30 01:14:29 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/30 06:07:31 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -21,6 +21,7 @@ class HTTPBuffer
 {
 	protected:
 		std::deque<std::string> m_chunks;
+		size_t m_header_end_cursor;
 	public:
 		HTTPBuffer();
 		virtual ~HTTPBuffer();
@@ -30,6 +31,8 @@ class HTTPBuffer
 		void remove_chunk();
 		void clear();
 		void add_chunk();
+		bool is_header_finished();
+		void isolate_header();
 };
 
 #endif

@@ -2,7 +2,8 @@
 #define CLIENT_HPP
 
 #include "../include/Server.hpp"
-#include "../include/RequestBuffer.hpp"
+#include <HTTPBuffer.hpp>
+#include <RequestHeader.hpp>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
@@ -11,14 +12,16 @@
 enum ClientStatus
 {
 	CLIENT_ALIVE,
+	CLIENT_DONE,
 	CLIENT_ERROR,
 	CLIENT_DISCONNECTED
 };
 
-enum ClientReadStates
+enum ClientProcessState
 {
-	RECV_HEADER,
-	RECV_BODY
+	PROCESS_HEADER,
+	PROCESS_BODY,
+	PROCESS_REQUEST
 };
 
 // enum ClientSendStates
@@ -31,18 +34,24 @@ class Client
 	private:
 		int m_fd;
 		int m_client_status;
-		int m_read_state;
-		int m_write_state;
-		Server* m_server;
+		int m_process_state;
+		Server* m_base_server;
+		Server* m_target_server;
+		Location* m_target_location;
 		in_addr_t m_ip_addr;
 		in_port_t m_port;
 		time_t m_last_activity;
-		RequestBuffer m_request_buffer;
+		HTTPBuffer m_request_buffer;
+		HTTPBuffer m_response_buffer;
+		RequestHeader m_header;
 	public:
 		Client();
 		Client(int fd, Server* server, sockaddr_in& client_addr);
 		~Client();
 		void handle_read();
+		void handle_send();
+		void process();
+		void generate_error(const WebservExceptions::HTTPException& e);
 		int get_client_status();
 };
 

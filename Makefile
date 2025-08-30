@@ -18,13 +18,11 @@ SRC = \
 	ServerContainer.cpp \
 	Location.cpp \
 	Client.cpp \
+	HTTPBuffer.cpp \
 	parser/parse_baseblock.cpp \
 	parser/parser.cpp \
 	parser/parser_utils.cpp \
 	parser/parse_server.cpp \
-	HTTPBuffers/HTTPBuffer.cpp \
-	HTTPBuffers/RequestBuffer.cpp \
-	HTTPBuffers/ResponseBuffer.cpp \
 
 OBJ_DIR = obj
 SRCS = $(addprefix $(SRC_DIR)/, $(SRC)) 

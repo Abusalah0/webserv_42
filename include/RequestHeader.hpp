@@ -95,5 +95,6 @@ class RequestHeader
 		* @return header fields
 		*/
 		std::map<std::string, std::string> get_fields();
+		void clear();
 		void debug();
 };

@@ -141,6 +141,8 @@ void RequestHeader::parse_header_line(std::string& line)
 	std::transform(field.name.begin(), field.name.end(), field.name.begin(), c_tolower);
 	if (this->m_fields.find(field.name) != this->m_fields.end())
 	{
+		if (field.name == "content-length")
+			throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 		if (field.name == "cookie")
 			this->m_fields[field.name].append("; ");
 		else
@@ -251,6 +253,16 @@ std::string& RequestHeader::get_virtual_host()
 std::map<std::string, std::string> RequestHeader::get_fields()
 {
 	return this->m_fields;
+}
+
+void RequestHeader::clear()
+{
+	this->m_is_query_paramaters = false;
+	this->m_is_chunked = false;
+	this->m_connection = CONNECTION_KEEP_ALIVE;
+	this->m_content_len = 0;
+	this->m_query_parameters.clear();
+	this->m_fields.clear();
 }
 
 void RequestHeader::debug()

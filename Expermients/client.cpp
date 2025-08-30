@@ -6,23 +6,35 @@
 #include <stdio.h>
 #include <unistd.h>
 
-int main()
+int main(int ac, char** av)
 {
-    const char* request =
-    "DELETE /cgi-bin/test.sh HTTP/1.1\r\n"
-    "User-Agent: LOL1AAFEFEEFEFEF:EFEF \r\n"
-	"Host: www.example.com:9000\r\n"
-    "Connection:\tkeep-alive clOse lol\t\r\n"
-    "Accept: en-US;;\r\n"
-	"Content-Length: 0\r\n"
-	"Content-Type: lol/lol; charset=UTF-8; lol/lol\r\n"
-	"Date: lol\r\n"
-	"ETag: 214214;wqf qffwq"
-	"Cookie: sessionId,abc123;      theme=dark; foo=bar\r\n"
-	"Cookie: sessionId,abc123;      theme=dark; foo=bar\r\n"
-	"Expires: lol\r\n"
-	"Authorization: iwqhiwdhi;wdjhiqwdjhi\r\n"
-    "\r\n";
+	const char* request;
+	if (ac > 1)
+	{
+		request =
+    	"GET /cgi-bin/test.sh HTTP/1.1\r\n"
+    	"Host: www.lol.com \r\n"
+		"Connection: close\r\n"
+    	"\r\n";
+	}
+	else
+	{
+    	request =
+    	"POST /cgi-bin/test.sh HTTP/1.1\r\n"
+    	"User-Agent: LOL1AAFEFEEFEFEF:EFEF \r\n"
+		"Host: www.example.com:9000\r\n"
+    	"Accept: en-US;;\r\n"
+		"Content-Length: 0\r\n"
+		//"Transfer-Encoding: chunked\r\n"
+		"Content-Type: lol/lol; charset=UTF-8; lol/lol\r\n"
+		"Date: lol\r\n"
+		"ETag: 214214;wqf qffwq"
+		"Cookie: sessionId,abc123;      theme=dark; foo=bar\r\n"
+		"Cookie: sessionId,abc123;      theme=dark; foo=bar\r\n"
+		"Expires: lol\r\n"
+		"Authorization: iwqhiwdhi;wdjhiqwdjhi\r\n"
+    	"\r\n";
+	}
     sockaddr_in server_addr = {};
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     hostent* hostent_ptr = gethostbyname("127.0.0.1");
@@ -35,6 +47,15 @@ int main()
     send(fd, request, strlen(request), 0);
     char buf[10001];
     ssize_t bytes_read = recv(fd, buf, 10000, 0);
+    buf[bytes_read] = 0;
+    printf("%s\n", buf);
+	bytes_read = recv(fd, buf, 10000, 0);
+    buf[bytes_read] = 0;
+    printf("%s\n", buf);
+	bytes_read = recv(fd, buf, 10000, 0);
+    buf[bytes_read] = 0;
+    printf("%s\n", buf);
+	bytes_read = recv(fd, buf, 10000, 0);
     buf[bytes_read] = 0;
     printf("%s\n", buf);
     

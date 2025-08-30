@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 01:19:47 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/08/30 01:19:48 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/30 06:06:32 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -58,4 +58,26 @@ size_t HTTPBuffer::size()
 void HTTPBuffer::remove_chunk()
 {
 	this->m_chunks.pop_front();
+}
+
+bool HTTPBuffer::is_header_finished()
+{
+	size_t pos = this->m_chunks[0].find("\r\n\r\n");
+	if (pos != std::string::npos)
+	{
+		this->m_header_end_cursor = pos + 4;
+		return true;
+	}
+	return false;
+}
+
+void HTTPBuffer::isolate_header()
+{
+	if (this->m_header_end_cursor >= this->m_chunks[0].size())
+		return;
+	std::string part = this->m_chunks[0].substr(this->m_header_end_cursor, std::string::npos);
+	this->m_chunks[0].erase(this->m_header_end_cursor);
+	if (this->m_chunks.size() < 2)
+		add_chunk();
+	this->m_chunks[1].insert(0, part);
 }

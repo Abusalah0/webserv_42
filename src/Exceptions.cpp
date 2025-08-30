@@ -35,7 +35,7 @@ WebservExceptions::HTTPException::HTTPException(ushort code):
 WebservExceptions::HTTPException::~HTTPException() throw()
 {}
 
-ushort WebservExceptions::HTTPException::getErrorCode()
+ushort WebservExceptions::HTTPException::get_error_code()
 {
 	return this->m_code;
 }
