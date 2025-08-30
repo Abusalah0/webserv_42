@@ -1,16 +1,17 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/24 19:23:21 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 00:20:42 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "Server.hpp"
+#include <stdexcept>
 
 Server::Server() : BaseBlock(), 
                    m_locations(),
@@ -59,12 +60,14 @@ Server::~Server()
 
 void Server::set_locations(std::vector<Location>& locations)
 {
-    this->m_locations = locations;
+    this->m_locations.insert(this->m_locations.end(), locations.begin(), locations.end());
 }
+
 void Server::add_location(Location& location)
 {
     this->m_locations.push_back(location);
 }
+
 void Server::remove_location(Location& location)
 {
     (void)location; // Placeholder for future implementation
@@ -74,6 +77,7 @@ void Server::set_server_names(std::set<std::string>& names)
 {
     this->m_server_names.insert(names.begin(), names.end());
 }
+
 void Server::add_server_name(std::string& name)
 {
     this->m_server_names.insert(name);
@@ -89,12 +93,12 @@ void Server::set_listen(std::vector<std::pair<std::string, std::string> >& liste
     this->m_listen = listen;
 }
 
-void Server::add_listen(const std::pair<std::string, std::string>& entry)
+void Server::add_listen(std::pair<std::string, std::string>& listen)
 {
-    this->m_listen.push_back(entry);
+    this->m_listen.push_back(listen);
 }
 
-void Server::remove_listen(std::pair<std::string, int>& listen)
+void Server::remove_listen(std::pair<std::string, std::string>& listen)
 {
     (void)listen; // Placeholder for future implementation
 }
@@ -102,6 +106,30 @@ void Server::remove_listen(std::pair<std::string, int>& listen)
 const std::vector<Location> Server::get_locations() const
 {
     return (this->m_locations);
+}
+
+void Server::match_virtual_host(const std::string &virtual_host) const
+{
+    if (this->m_server_names.find(virtual_host) == this->m_server_names.end())
+        throw std::runtime_error("Virtual host not matched");
+}
+
+Location &Server::get_location_by_path(const std::string& path, const std::string &virtual_host) const
+{
+    // For now, return the first location or throw an exception if none exist
+    if (this->m_locations.empty())
+        throw std::runtime_error("No locations available");
+
+    match_virtual_host(virtual_host);
+    std::string normalized = normalize_path(path);
+
+    // lets match the normalized path with the locations
+    for (std::vector<Location>::const_iterator it = this->m_locations.begin(); it != this->m_locations.end(); ++it)
+    {
+        if (it->get_root() == normalized)
+            return (const_cast<Location&>(*it));
+    }
+    throw std::runtime_error("No matching location found");
 }
 
 const std::vector<std::pair<std::string, std::string> > Server::get_listen() const
@@ -113,3 +141,17 @@ const std::set<std::string> Server::get_server_names() const
 {
     return (this->m_server_names);
 }
+
+void Server::match_location(const std::string &path) const
+{
+    std::string normalized = normalize_path(path);
+    for (size_t i = 0; i < this->m_locations.size(); i++)
+    {
+        if (this->m_locations[i].get_root() == normalized)
+        {
+            
+            return ;
+        }
+    }
+}
+

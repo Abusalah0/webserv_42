@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:26:51 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/24 19:23:30 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 00:16:03 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
@@ -17,6 +17,7 @@
 # include <string>
 # include <utility>
 # include <vector>
+# include "tokenizer.hpp"
 # include "BaseBlock.hpp"
 # include "Location.hpp"
 
@@ -44,6 +45,7 @@ class Server : public BaseBlock
         void set_locations(std::vector<Location>& locations);
         void add_location(Location& location);
         void remove_location(Location& location);
+        Location& get_location_by_path(const std::string& path, const std::string &virtual_host) const;
         
         // server name methods
         void set_server_names(std::set<std::string>& names);
@@ -52,8 +54,8 @@ class Server : public BaseBlock
 
         // listen methods
         void set_listen(std::vector<std::pair<std::string, std::string> >& listen);
-        void add_listen(const std::pair<std::string, std::string>& entry);
-        void remove_listen(std::pair<std::string, int>& listen);
+        void add_listen(std::pair<std::string, std::string>& listen);
+        void remove_listen(std::pair<std::string, std::string>& listen);
 
         // is default methodes
 
@@ -62,6 +64,13 @@ class Server : public BaseBlock
         const std::vector<std::pair<std::string, std::string> > get_listen() const;
         const std::set<std::string> get_server_names() const;
 
+        // utils
+        void match_virtual_host(const std::string &virtual_host) const;
+        void match_location(const std::string &path) const;
+
 };
+
+void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos);
+std::string normalize_path(const std::string& path);
 
 #endif // SERVER_HPP

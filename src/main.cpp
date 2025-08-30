@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/30 20:43:20 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 00:31:14 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -21,16 +21,16 @@
 
 int g_signum = 0;
 
-//static const std::string read_file(const std::string &file_name)
-//{
-//    std::ifstream file(file_name.c_str());
-//    if (!file.is_open())
-//        throw WebservExceptions::FileOpenFailure();
-//    std :: stringstream buffer;
-//    buffer << file.rdbuf();
-//    std::string content = buffer.str();
-//    return (content);
-//}
+static const std::string read_file(const std::string &file_name)
+{
+   std::ifstream file(file_name.c_str());
+   if (!file.is_open())
+       throw WebservExceptions::FileOpenFailure();
+   std :: stringstream buffer;
+   buffer << file.rdbuf();
+   std::string content = buffer.str();
+   return (content);
+}
 
 void signal_handler(int signum)
 {
@@ -46,62 +46,21 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 	signal(SIGINT, signal_handler);
+	ServerContainer server_container;
 	try
 	{
-		ServerContainer server_container;
-		Server server_a;
-		std::pair<std::string, std::string> entry;
-		entry.first = "0.0.0.0";
-		entry.second = "2000";
-		server_a.add_listen(entry);
-		entry.first = "127.0.0.1";
-		entry.second = "9000";
-		server_a.add_listen(entry);
-		server_container.add_server(server_a);
+		const std::string buffer = read_file(argv[1]);
+    	std::vector<t_token> tokens = tokenize_string(buffer);
+    	parser(tokens, server_container);
 		if (g_signum == SIGINT)
 			return EXIT_SUCCESS;
 		server_container.setup_webserv();
 		server_container.loop();
-
-		//const std::string buffer = read_file(argv[1]);
-    	//std::vector<t_tokenizer> tokens = tokenize_string(buffer);
-    	//for (size_t i = 0; i < tokens.size(); ++i) // to test vector after tokenizer.
-    	//{
-    	//    std::cout << "[" << tokens[i].word << "] type: " << tokens[i].type << "\n";
-    	//}
-		
-		// BaseBlock* obj = new BaseBlock();
-		// std::set<std::string> codes;
-		// std::vector<std::string> indexes;
-		// indexes.push_back("...");
-		// indexes.push_back("dir");
-		// indexes.push_back("index.html");
-		// indexes.push_back("/");
-		// codes.insert("300");
-		// obj->set_root("");
-		// obj->set_client_max_body_size("1g");
-		// obj->set_auto_index("on");
-		// obj->insert_error_page(codes, "/error.html");
-		// obj->insert_redirect_page(codes, "www.redirect.com");
-		// obj->insert_index_pages(indexes);
-		// BaseBlock obj2(*obj);
-		// delete obj;
-		// std::cout << "Root: " << obj2.get_root() << std::endl;
-		// std::cout << "Autoindex: " << obj2.get_auto_index() << std::endl;
-		// std::cout << "Max body size: " << obj2.get_client_max_body_size() << std::endl;
-		// std::cout << "Index page: " << obj2.get_index_page("/") << std::endl;
-		// std::cout << "Error page: " << obj2.get_error_page(300) << std::endl;
-		// std::cout << "Redirect page: " << obj2.get_redirect_page(300) << std::endl;
-		
-        // ServerContainer serverContainer;
-		// const std::string buffer = read_file(argv[1]);
-    	// std::vector<t_token> tokens = tokenize_string(buffer);
-    	// parser(tokens, serverContainer);
 	}
 	catch (const std::exception& e)
 	{
 		std::cerr << e.what() << std::endl;
 		return (EXIT_FAILURE);
 	}
-    return (EXIT_SUCCESS);
+	return (EXIT_SUCCESS);
 }

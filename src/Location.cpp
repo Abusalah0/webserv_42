@@ -1,38 +1,45 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:11:46 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/24 19:17:20 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 00:22:00 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "Location.hpp"
 
 Location::Location() : 
     BaseBlock(),
     allowed_methods(),
-    upload_path(),
+    // upload_path(),
+    cgi_handlers()
+{}
+
+Location::Location(const BaseBlock& baseBlock) : 
+    BaseBlock(baseBlock),
+    allowed_methods(),
+    // upload_path(),
     cgi_handlers()
 {}
 
 Location::Location(const Location& other) : 
     BaseBlock(dynamic_cast<const BaseBlock&>(other)),
     allowed_methods(other.allowed_methods),
-    upload_path(other.upload_path),
+    // upload_path(other.upload_path),
     cgi_handlers(other.cgi_handlers)
 {}
 
 Location::Location(const BaseBlock& baseBlock,
         const std::set<std::string>& methods,
-        const std::string& uploadPath,
+        // const std::string& uploadPath,
         const std::string& cgiHandlers) :
     BaseBlock(baseBlock),
     allowed_methods(methods),
-    upload_path(uploadPath),
+    // upload_path(uploadPath),
     cgi_handlers(cgiHandlers)
 {}
 
@@ -42,7 +49,7 @@ Location& Location::operator=(const Location& other)
         return (*this);
     BaseBlock::operator=(dynamic_cast<const BaseBlock&>(other));
     allowed_methods = other.allowed_methods;
-    upload_path = other.upload_path;
+    // upload_path = other.upload_path;
     cgi_handlers = other.cgi_handlers;
     return (*this);
 }
@@ -54,7 +61,7 @@ Location::~Location()
 
 void Location::set_allowed_methods(const std::set<std::string>& methods)
 {
-    this->allowed_methods = methods;
+    this->allowed_methods.insert(methods.begin(), methods.end());
 }
 
 const std::set<std::string>& Location::get_allowed_methods() const
@@ -62,15 +69,15 @@ const std::set<std::string>& Location::get_allowed_methods() const
     return (this->allowed_methods);
 }
 
-void Location::set_upload_path(const std::string& path)
-{
-    this->upload_path = path;
-}
-
-const std::string& Location::get_upload_path() const
-{
-    return (this->upload_path);
-}
+// void Location::set_upload_path(const std::string& path)
+// {
+    // this->upload_path = path;
+// }
+// 
+// const std::string& Location::get_upload_path() const
+// {
+    // return (this->upload_path);
+// }
 
 void Location::set_cgi_handlers(const std::string& handlers)
 {

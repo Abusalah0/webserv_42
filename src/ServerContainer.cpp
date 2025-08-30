@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/30 22:17:44 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 00:25:07 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -254,4 +254,29 @@ void ServerContainer::add_server(const Server& server)
 const std::vector<Server>& ServerContainer::get_servers() const
 {
     return (m_servers);
+}
+
+const Server& ServerContainer::get_best_server(const std::string& ip, const std::string& port, const std::string& virtual_host) const
+{
+    
+    for (size_t i = 0; i < this->m_servers.size(); i++)
+    {
+        std::vector<std::pair<std::string, std::string> > listens = this->m_servers[i].get_listen();
+        for (size_t j = 0; j < listens.size(); j++)
+        {
+            if (listens[j].first == ip && listens[j].second == port)
+            {
+                try
+                {
+                    this->m_servers[i].match_virtual_host(virtual_host);
+                    return (this->m_servers[i]);
+                }
+                catch (const std::exception& e)
+                {
+                    // Continue searching
+                }
+            }
+        }
+    }
+    throw std::runtime_error("No matching server found");
 }

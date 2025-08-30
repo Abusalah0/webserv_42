@@ -20,10 +20,14 @@ SRC = \
 	Client.cpp \
 	HTTPBuffer.cpp \
 	RequestHeader.cpp \
+	normalize_path.cpp \
 	parser/parse_baseblock.cpp \
 	parser/parser.cpp \
 	parser/parser_utils.cpp \
 	parser/parse_server.cpp \
+	parser/parse_location.cpp \
+	parser/parse_directives.cpp \
+	parser/parser_print.cpp \
 
 OBJ_DIR = obj
 SRCS = $(addprefix $(SRC_DIR)/, $(SRC)) 
