@@ -6,9 +6,12 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 11:51:22 by sbibers           #+#    #+#             */
-/*   Updated: 2025/08/19 21:47:40 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/30 23:35:20 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#ifndef TOKENIZER_HPP
+# define TOKENIZER_HPP
 
 #include <vector>
 #include <iostream>
@@ -34,3 +37,5 @@ typedef struct s_token
 }  t_token;
 
 std::vector<t_token> tokenize_string(const std::string &buffer);
+
+#endif // TOKENIZER_HPP
