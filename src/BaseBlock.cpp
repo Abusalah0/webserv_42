@@ -53,6 +53,7 @@ void BaseBlock::set_client_max_body_size(const std::string& str_size)
         sizeCategory = tolower(str_back(str_size));
 		--excpected_endptr;
 	}
+	errno = 0;
     this->m_client_max_body_size = strtoul(str_size.c_str(), &endptr, 10);
     if (endptr != excpected_endptr || errno == ERANGE)
         throw WebservExceptions::InvalidValue();

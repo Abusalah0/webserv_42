@@ -26,6 +26,7 @@ ushort parse_http_code(const std::string& str)
 		throw WebservExceptions::InvalidValue();
 	if (!std::isdigit(str[0]))
 		throw WebservExceptions::InvalidValue();
+	errno = 0;
 	long code = strtol(str.c_str(), &endptr, 10);
 	if (*endptr || errno == ERANGE)
 		throw WebservExceptions::InvalidValue();

@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/30 20:42:34 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/30 22:17:44 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -191,6 +191,7 @@ void ServerContainer::loop()
 {
     while (true)
     {
+		errno = 0;
         if (poll(this->m_poll_fds.data(), this->m_poll_fds.size(), -1) < 0)
 		{
 			if (errno == EINTR)
