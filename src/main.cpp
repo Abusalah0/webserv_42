@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/29 17:20:07 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/30 21:48:54 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,12 +44,11 @@ int main(int argc, char **argv)
 		std::cerr << e.what() << std::endl;
 		return (EXIT_FAILURE);
 	}
+    // print_server_container(serverContainer);
 
-    // Server s = serverContainer.get_servers()[0];
-    // 
-    // Location loc = s.get_location_by_path("/lol", "a");
-    // std::cout << "Upload Path: " << loc.get_upload_path() << std::endl;
-    // std::cout << "CGI Handlers: " << loc.get_cgi_handlers() << std::endl;
+    std::cout << "location root: "<< serverContainer.get_servers()[0].get_locations()[0].get_root() << std::endl;  
+    Server s = serverContainer.get_best_server("0.0.0.0", "80", "bald");
     
+    Location loc = s.get_location_by_path("/lazy", "bald");
     return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 15:42:52 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/14 17:17:47 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/30 20:09:14 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,9 +35,15 @@ class ServerContainer
          * @throws a ADefaultServerAlreadyExists exception when adding multiple deault servers
          * @param a server object
          */
+        typedef typename std::vector<Server>::iterator iterator;
+        typedef typename std::vector<Server>::const_iterator const_iterator;
+        iterator begin() { return servers.begin(); }
+        iterator end() { return servers.end(); }
+
         void add_server(const Server& server);
         void remove_server(int index);
         Server* get_server(int index);
+        const Server& get_best_server(const std::string& ip, const std::string& port, const std::string& virtual_host) const;
         const std::vector<Server>& get_servers() const;
 };
 

@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:06:03 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/29 18:17:24 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/30 21:44:19 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,10 @@ void    store_location_directive(const std::vector<t_token> &tokens, std::size_t
     else if (directive == "autoindex")
         parse_auto_index_directive(tokens, loc, pos);
     else
+    {
+        // std::cout << "Unknown directive inside location block: " << directive << std::endl;   
         throw_parse_error("Unknown directive inside location block");
+    }
     
     ++pos;
     expect_token(tokens, pos);

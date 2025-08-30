@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/30 00:08:27 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/30 23:34:52 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,10 +62,12 @@ void Server::set_locations(std::vector<Location>& locations)
 {
     this->locations.insert(this->locations.end(), locations.begin(), locations.end());
 }
+
 void Server::add_location(Location& location)
 {
     this->locations.push_back(location);
 }
+
 void Server::remove_location(Location& location)
 {
     (void)location; // Placeholder for future implementation
@@ -75,10 +77,12 @@ void Server::set_server_names(std::set<std::string>& names)
 {
     this->server_names.insert(names.begin(), names.end());
 }
+
 void Server::add_server_name(std::string& name)
 {
     this->server_names.insert(name);
 }
+
 void Server::remove_server_name(std::string& name)
 {
     this->server_names.erase(name);
@@ -110,12 +114,6 @@ void Server::match_virtual_host(const std::string &virtual_host) const
         throw std::runtime_error("Virtual host not matched");
 }
 
-std::string Server::normalize_path(const std::string& path) const
-{
-    (void)path; // Placeholder for future implementation
-    return (path);
-}
-
 Location &Server::get_location_by_path(const std::string& path, const std::string &virtual_host) const
 {
     // For now, return the first location or throw an exception if none exist
@@ -125,7 +123,6 @@ Location &Server::get_location_by_path(const std::string& path, const std::strin
     match_virtual_host(virtual_host);
     std::string normalized = normalize_path(path);
 
-    
     // lets match the normalized path with the locations
     for (std::vector<Location>::const_iterator it = this->locations.begin(); it != this->locations.end(); ++it)
     {
@@ -134,7 +131,6 @@ Location &Server::get_location_by_path(const std::string& path, const std::strin
     }
     throw std::runtime_error("No matching location found");
 }
-
 
 const std::vector<std::pair<std::string, std::string> > Server::get_listen() const
 {
@@ -145,3 +141,17 @@ const std::set<std::string> Server::get_server_names() const
 {
     return (this->server_names);
 }
+
+void Server::match_location(const std::string &path) const
+{
+    std::string normalized = normalize_path(path);
+    for (size_t i = 0; i < locations.size(); i++)
+    {
+        if (locations[i].get_root() == normalized)
+        {
+            
+            return ;
+        }
+    }
+}
+

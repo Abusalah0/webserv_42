@@ -20,6 +20,8 @@ SRC = main.cpp \
 		parser/parse_server.cpp \
 		parser/parse_location.cpp \
 		parser/parse_directives.cpp \
+		parser/parser_print.cpp \
+		normalize_path.cpp \
 
 
 OBJ_DIR = obj

@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/23 19:12:16 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/30 21:35:17 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,4 +71,29 @@ void ServerContainer::remove_server(int index)
 const std::vector<Server>& ServerContainer::get_servers() const
 {
     return (servers);
+}
+
+const Server& ServerContainer::get_best_server(const std::string& ip, const std::string& port, const std::string& virtual_host) const
+{
+    
+    for (size_t i = 0; i < this->servers.size(); i++)
+    {
+        std::vector<std::pair<std::string, std::string> > listens = this->servers[i].get_listen();
+        for (size_t j = 0; j < listens.size(); j++)
+        {
+            if (listens[j].first == ip && listens[j].second == port)
+            {
+                try
+                {
+                    this->servers[i].match_virtual_host(virtual_host);
+                    return (this->servers[i]);
+                }
+                catch (const std::exception& e)
+                {
+                    // Continue searching
+                }
+            }
+        }
+    }
+    throw std::runtime_error("No matching server found");
 }

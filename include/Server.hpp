@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:26:51 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/30 00:08:52 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/30 23:34:41 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include <string>
 # include <utility>
 # include <vector>
+# include "tokenizer.hpp"
 # include "BaseBlock.hpp"
 # include "Location.hpp"
 
@@ -26,8 +27,6 @@ class Server : public BaseBlock
         std::vector<Location> locations;
         std::vector<std::pair<std::string, std::string> > listen;
         std::set<std::string> server_names;
-        void match_virtual_host(const std::string &virtual_host) const;
-        std::string normalize_path(const std::string& path) const;
     public:
         // construtors
         Server();
@@ -65,6 +64,13 @@ class Server : public BaseBlock
         const std::vector<std::pair<std::string, std::string> > get_listen() const;
         const std::set<std::string> get_server_names() const;
 
+        // utils
+        void match_virtual_host(const std::string &virtual_host) const;
+        void match_location(const std::string &path) const;
+
 };
+
+void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos);
+std::string normalize_path(const std::string& path);
 
 #endif // SERVER_HPP
