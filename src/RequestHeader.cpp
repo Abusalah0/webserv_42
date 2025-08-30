@@ -18,24 +18,18 @@ RequestHeader::RequestHeader():
 RequestHeader::~RequestHeader()
 {}
 
-RequestMethods request_parse_method(std::string& line, size_t& offset)
+std::string request_parse_method(std::string& line, size_t& offset)
 {
-	if (!line.compare(0, 4, "GET "))
-	{
-		offset = 4;
-		return GET_METHOD;
-	}
-	if (!line.compare(0, 5, "POST "))
-	{
-		offset = 5;
-		return POST_METHOD;
-	}
-	if (!line.compare(0, 7, "DELETE "))
-	{
-		offset = 7;
-		return DELETE_METHOD;
-	}
-	throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+	size_t i = 0;
+	if (line.find(' ') == std::string::npos)
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+	while (line[i] != ' ')
+		++i;
+	if (!i)
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+	std::string method = line.substr(0, i);
+	offset = i + 1;
+	return method;
 }
 
 bool validate_http_version(std::string& line, size_t s_offset)
@@ -55,6 +49,8 @@ bool validate_http_version(std::string& line, size_t s_offset)
 	s_offset++;
 	minor_version = line[s_offset];
 	if (major_version != '1' || !std::isdigit(minor_version))
+		return false;
+	if (s_offset + 1 < line.size())
 		return false;
 	return true;
 }
@@ -225,7 +221,7 @@ ConnectionTypes RequestHeader::get_connection_type()
 	return this->m_connection;
 }
 
-RequestMethods RequestHeader::get_request_method()
+std::string& RequestHeader::get_request_method()
 {
 	return this->m_method;
 }

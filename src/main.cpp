@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/29 21:20:56 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/30 20:43:20 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -16,7 +16,6 @@
 #include "../include/ServerContainer.hpp"
 #include "../include/Server.hpp"
 #include "../include/CommonUtils.hpp"
-#include "../include/RequestBuffer.hpp"
 #include "../include/parser.hpp"
 #include "../include/RequestHeader.hpp"
 
@@ -44,7 +43,7 @@ int main(int argc, char **argv)
     if (argc != 2)
     {
         std::cerr << "Error, Use ./webserv ./conf_file/file_name\n";
-        return (1);
+        return EXIT_FAILURE;
     }
 	signal(SIGINT, signal_handler);
 	try
@@ -60,7 +59,7 @@ int main(int argc, char **argv)
 		server_a.add_listen(entry);
 		server_container.add_server(server_a);
 		if (g_signum == SIGINT)
-			return 0;
+			return EXIT_SUCCESS;
 		server_container.setup_webserv();
 		server_container.loop();
 
@@ -104,5 +103,5 @@ int main(int argc, char **argv)
 		std::cerr << e.what() << std::endl;
 		return (EXIT_FAILURE);
 	}
-    return (0);
+    return (EXIT_SUCCESS);
 }

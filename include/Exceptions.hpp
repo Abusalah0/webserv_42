@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 12:01:53 by sbibers           #+#    #+#             */
-/*   Updated: 2025/08/30 04:36:22 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/30 20:42:29 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -47,7 +47,7 @@ namespace WebservExceptions
 		public:
 			HTTPException(ushort code);
 			virtual ~HTTPException() throw();
-			ushort get_error_code();
+			ushort get_error_code() const;
 			const char* what() const throw();
 	};
     class FileOpenFailure: public std::exception
@@ -107,6 +107,10 @@ namespace WebservExceptions
         const char* what() const throw();
     };
 	class PollFailed: public std::exception
+    {
+        const char* what() const throw();
+    };
+	class SetupFailed: public std::exception
     {
         const char* what() const throw();
     };

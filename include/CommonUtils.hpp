@@ -74,6 +74,7 @@ bool is_field_value_chr(u_char c);
 * @return If all characters followes the function rule or not
 */
 bool check_str_chrs(std::string& str, bool (*func)(u_char c));
+size_t parse_chunk_size(std::string& str);
 
 
 #endif

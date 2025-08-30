@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 01:09:42 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/08/30 06:07:31 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/30 20:34:10 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -17,22 +17,27 @@
 #include <deque>
 #include <string>
 
+static const std::string dclrf = "\r\n\r\n";
+
 class HTTPBuffer
 {
-	protected:
-		std::deque<std::string> m_chunks;
+	private:
+		std::string m_data;
+		std::deque<size_t> m_barriers;
 		size_t m_header_end_cursor;
+		size_t m_encoded_cursor;
 	public:
 		HTTPBuffer();
 		virtual ~HTTPBuffer();
 		void push(const char *buf, size_t len);
-		std::string pop();
+		void create_barrier();
+		void erase(size_t n);
+		std::string pull(size_t n);
 		size_t size();
-		void remove_chunk();
-		void clear();
-		void add_chunk();
 		bool is_header_finished();
-		void isolate_header();
+		bool is_clrf_found();
+		std::string pull_header();
+		std::string pull_encoded();
 };
 
 #endif

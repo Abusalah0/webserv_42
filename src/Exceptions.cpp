@@ -35,7 +35,7 @@ WebservExceptions::HTTPException::HTTPException(ushort code):
 WebservExceptions::HTTPException::~HTTPException() throw()
 {}
 
-ushort WebservExceptions::HTTPException::get_error_code()
+ushort WebservExceptions::HTTPException::get_error_code() const
 {
 	return this->m_code;
 }
@@ -118,4 +118,9 @@ const char* WebservExceptions::ListenFailed::what() const throw()
 const char* WebservExceptions::PollFailed::what() const throw()
 {
     return "Poll failed!";
+}
+
+const char* WebservExceptions::SetupFailed::what() const throw()
+{
+    return "Webserv setup failed!";
 }

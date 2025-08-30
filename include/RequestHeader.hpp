@@ -1,13 +1,20 @@
+/******************************************************************************/
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   RequestHeader.hpp                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/08/30 15:11:11 by amsaleh           #+#    #+#             */
+/*   Updated: 2025/08/30 19:02:43 by amsaleh          ###   ########.fr       */
+/*                                                                            */
+/******************************************************************************/
+
+#ifndef REQUESTHEADER_HPP
+#define REQUESTHEADER_HPP
+
 #include "CommonUtils.hpp"
 #include <map>
-#include <deque>
-
-typedef enum ERequestMethods
-{
-	GET_METHOD,
-	POST_METHOD,
-	DELETE_METHOD
-} RequestMethods;
 
 typedef struct SRequestHeaderField
 {
@@ -21,7 +28,7 @@ class RequestHeader
 		bool m_is_query_paramaters;
 		bool m_is_chunked;
 		ConnectionTypes m_connection;
-		RequestMethods m_method;
+		std::string m_method;
 		size_t m_content_len;
 		std::string m_target;
 		std::string m_query_parameters;
@@ -69,7 +76,7 @@ class RequestHeader
  		* Getter for request method
 		* @return request method
 		*/
-		RequestMethods get_request_method();
+		std::string& get_request_method();
 		/**
  		* Getter for content length
 		* @return content length
@@ -98,3 +105,5 @@ class RequestHeader
 		void clear();
 		void debug();
 };
+
+#endif

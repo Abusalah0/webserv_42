@@ -2,7 +2,7 @@ NAME = webserv
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iinclude
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iinclude -g -MMD
 
 SRC_DIR = src
 PARSER_DIR = parser
@@ -19,6 +19,7 @@ SRC = \
 	Location.cpp \
 	Client.cpp \
 	HTTPBuffer.cpp \
+	RequestHeader.cpp \
 	parser/parse_baseblock.cpp \
 	parser/parser.cpp \
 	parser/parser_utils.cpp \
@@ -27,6 +28,7 @@ SRC = \
 OBJ_DIR = obj
 SRCS = $(addprefix $(SRC_DIR)/, $(SRC)) 
 OBJ = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+DEPS = $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.d)
 
 all: $(NAME)
 
@@ -54,3 +56,5 @@ fclean: clean
 re: fclean all
 
 .PHONY: all clean fclean re
+
+-include $(DEPS)

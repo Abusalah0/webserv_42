@@ -85,3 +85,16 @@ bool check_str_chrs(std::string& str, bool (*func)(u_char c))
 	}
 	return true;
 }
+
+size_t parse_chunk_size(std::string& str)
+{
+	if (str.size() > 14)
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+	for (size_t i = 0; i < str.size(); ++i)
+	{
+		if (!std::isxdigit(str[i]))
+			throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+	}
+	size_t chunk_size = strtoul(str.c_str(), 0, 16);
+	return chunk_size;
+}

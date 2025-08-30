@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/30 05:15:34 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/30 20:42:34 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -61,7 +61,15 @@ int ServerContainer::create_listen_socket(std::pair<std::string, std::string> li
     hints.ai_canonname = 0;
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1)
+	{
         throw WebservExceptions::SocketFailed();
+	}
+	int value = 1;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value)))
+	{
+		close(sockfd);
+		throw WebservExceptions::SocketFailed();
+	}
     if (getaddrinfo(listen_item.first.c_str(), listen_item.second.c_str(), &hints, &pai))
     {
         close(sockfd);
@@ -94,24 +102,24 @@ int ServerContainer::create_listen_socket(std::pair<std::string, std::string> li
 
 void ServerContainer::setup_webserv()
 {
-    for (std::vector<Server>::iterator it = this->m_servers.begin();
-        it != this->m_servers.end();
-        it++)
+	bool success = false;
+	for (size_t i = 0; i < this->m_servers.size(); i++)
     {
-        Server* server = &(*it);
-        std::vector<std::pair<std::string, std::string> > listens = server->get_listen();
+        Server& server = this->m_servers[i];
+        std::vector<std::pair<std::string, std::string> > listens = server.get_listen();
 		sockaddr_in server_addr;
         for (size_t i = 0; i < listens.size(); i++)
         {
             try
             {
                 int sockfd = create_listen_socket(listens[i], server_addr);
-                this->m_servers_map[sockfd] = server;
+                this->m_servers_map[sockfd] = &server;
 				this->m_servers_addr_map[sockfd] = server_addr;
                 pollfd entry;
                 entry.fd = sockfd;
                 entry.events = POLLIN | POLLOUT;
                 this->m_poll_fds.push_back(entry);
+				success = true;
             }
             catch(const std::bad_alloc& e)
             {
@@ -123,6 +131,8 @@ void ServerContainer::setup_webserv()
             }
         }
     }
+	if (!success)
+		throw WebservExceptions::SetupFailed();
 }
 
 static void debugClientConn(sockaddr_in& client_addr, sockaddr_in& server_addr)
@@ -157,11 +167,12 @@ void ServerContainer::accept_client(size_t poll_index)
 	this->m_clients_map.insert(
 		std::pair<int, Client>(client_fd, Client(client_fd, this->m_servers_map[poll_data.fd], client_addr))
 	);
+	debugClientConn(client_addr, this->m_servers_addr_map[poll_data.fd]);
 	pollfd entry;
 	entry.fd = client_fd;
 	entry.events = POLLIN | POLLOUT;
+	entry.revents = 0;
 	this->m_poll_fds.push_back(entry);
-	debugClientConn(client_addr, this->m_servers_addr_map[poll_data.fd]);
 }
 
 void ServerContainer::loop_cleanup()
@@ -205,6 +216,7 @@ void ServerContainer::loop()
                         client.handle_read();
 					if (poll_data.revents & POLLOUT)
 						client.handle_send();
+					client.process();
 				}
 			}
 		}

@@ -21,13 +21,11 @@ enum ClientProcessState
 {
 	PROCESS_HEADER,
 	PROCESS_BODY,
+	PROCESS_BODY_CHUNKED_SIZE,
+	PROCESS_BODY_CHUNKED_DATA,
+	PROCESS_BODY_CHUNKED_END,
 	PROCESS_REQUEST
 };
-
-// enum ClientSendStates
-// {
-// 	SEND_,
-// };
 
 class Client
 {
@@ -44,6 +42,13 @@ class Client
 		HTTPBuffer m_request_buffer;
 		HTTPBuffer m_response_buffer;
 		RequestHeader m_header;
+		std::string m_body;
+		size_t m_chunk_size;
+		void process_header();
+		void process_body();
+		void process_body_chunked_size();
+		void process_body_chunked_data();
+		void process_body_chunked_end();
 	public:
 		Client();
 		Client(int fd, Server* server, sockaddr_in& client_addr);
