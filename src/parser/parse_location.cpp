@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   parse_location.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:06:03 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/30 21:44:19 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/31 03:26:11 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "parser.hpp"
 
@@ -88,9 +88,10 @@ Location parse_location_block(const std::vector<t_token> &tokens, std::size_t &p
 
     Location loc(srv);
 
-    std::string location_path = tokens[pos].word;
+    std::string location_path = normalize_path(tokens[pos].word);
+	
     ++pos;
-    loc.set_root(location_path); // using set_root to store location path temporarily
+    loc.set_upload_path(location_path);
     // now expect opening brace
     expect_token(tokens, pos);
     if (!is_brace_open(tokens[pos]))

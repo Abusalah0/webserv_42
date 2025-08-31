@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 12:01:53 by sbibers           #+#    #+#             */
-/*   Updated: 2025/08/30 20:42:29 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 03:35:21 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -111,6 +111,10 @@ namespace WebservExceptions
         const char* what() const throw();
     };
 	class SetupFailed: public std::exception
+    {
+        const char* what() const throw();
+    };
+	class MultipleDefaultServers: public std::exception
     {
         const char* what() const throw();
     };

@@ -1,17 +1,16 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   normalize_path.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 23:33:28 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 00:05:20 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/31 02:12:26 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
-#include "Server.hpp"
-#include "Location.hpp"
+#include "CommonUtils.hpp"
 #include <stdexcept>
 #include <cctype>
 #include <cstring>
@@ -65,8 +64,7 @@ std::string url_decode(const std::string& encoded)
             char high = encoded[i + 1];
             char low = encoded[i + 2];
 
-            if ((isdigit(high) || (high >= 'A' && high <= 'F') || (high >= 'a' && high <= 'f')) && 
-                (isdigit(low) || (low >= 'A' && low <= 'F') || (low >= 'a' && low <= 'f')))
+            if (std::isxdigit(high) && std::isxdigit(low))
             {
                 int high_val = char_to_hex(high);
                 int low_val = char_to_hex(low);
@@ -130,13 +128,11 @@ std::string normalize_path(const std::string& path)
         return "/";
     
     std::string result = path;
-    // URL decode percent-encoded characters
-    result = url_decode(result);
     // Ensure path starts with '/'
     if (result[0] != '/')
         result = "/" + result;
     // Remove duplicate slashes
-    compress_slashes(result);    
+    compress_slashes(result);
     // Resolve . and .. components
     std::vector<std::string> components;
     

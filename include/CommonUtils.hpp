@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <errno.h>
 #include <csignal>
+#include <vector>
 #include "Exceptions.hpp"
 
 extern int g_signum;
@@ -75,6 +76,8 @@ bool is_field_value_chr(u_char c);
 */
 bool check_str_chrs(std::string& str, bool (*func)(u_char c));
 size_t parse_chunk_size(std::string& str);
+std::string normalize_path(const std::string& path);
+std::string url_decode(const std::string& encoded);
 
 
 #endif

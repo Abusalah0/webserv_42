@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:26:51 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 00:16:03 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 04:22:35 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -24,6 +24,7 @@
 class Server : public BaseBlock
 {
     private:
+		bool m_is_default;
         std::vector<Location> m_locations;
         std::vector<std::pair<std::string, std::string> > m_listen;
         std::set<std::string> m_server_names;
@@ -45,7 +46,7 @@ class Server : public BaseBlock
         void set_locations(std::vector<Location>& locations);
         void add_location(Location& location);
         void remove_location(Location& location);
-        Location& get_location_by_path(const std::string& path, const std::string &virtual_host) const;
+        // Location& get_location_by_path(const std::string& path, const std::string &virtual_host) const;
         
         // server name methods
         void set_server_names(std::set<std::string>& names);
@@ -61,16 +62,19 @@ class Server : public BaseBlock
 
         // getters
         const std::vector<Location> get_locations() const;
-        const std::vector<std::pair<std::string, std::string> > get_listen() const;
+        const std::vector<std::pair<std::string, std::string> >& get_listen() const;
         const std::set<std::string> get_server_names() const;
 
         // utils
-        void match_virtual_host(const std::string &virtual_host) const;
-        void match_location(const std::string &path) const;
+        bool match_virtual_host(const std::string &virtual_host) const;
+        // void match_location(const std::string &path) const;
+
+		// etc
+		void set_default_server();
+		bool is_default_server();
 
 };
 
 void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos);
-std::string normalize_path(const std::string& path);
 
 #endif // SERVER_HPP

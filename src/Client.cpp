@@ -1,20 +1,24 @@
 #include "../include/Client.hpp"
+#include <ServerContainer.hpp>
 #include <unistd.h>
 #include <iostream>
 
-Client::Client(int fd, Server* server, sockaddr_in& client_addr):
+Client::Client(int fd,
+	ServerContainer* server_container,
+	Server* server,
+	const std::pair<std::string, std::string>* listen_entry):
 	m_fd(fd),
 	m_client_status(0),
 	m_process_state(PROCESS_HEADER),
 	m_base_server(server),
 	m_target_server(0),
 	m_target_location(0),
-	m_ip_addr(client_addr.sin_addr.s_addr),
-	m_port(client_addr.sin_port),
+	m_server_container(server_container),
 	m_request_buffer(),
 	m_response_buffer(),
 	m_header(),
-	m_body()
+	m_body(),
+	m_listen_entry(listen_entry)
 {
 	std::time(&m_last_activity);
 }
@@ -158,6 +162,12 @@ void Client::process()
 				process_body_chunked_end();
 				break;
 			case PROCESS_REQUEST:
+				std::cout << this->m_listen_entry->first << ':' << this->m_listen_entry->second << std::endl;
+				std::cout << this->m_header.get_virtual_host() << std::endl;
+				const Server& target_server = this->m_server_container->get_best_server(
+					this->m_listen_entry->first, this->m_listen_entry->second, this->m_header.get_virtual_host()
+				);
+				(void)target_server;
 				this->m_header.debug();
 				std::cout << "---------------BODY---------------" << std::endl;
 				std::cout << this->m_body << std::endl;

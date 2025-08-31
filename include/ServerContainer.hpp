@@ -6,27 +6,30 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 15:42:52 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 00:24:35 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 04:24:03 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
 #ifndef SERVERCONTAINER_HPP
 # define SERVERCONTAINER_HPP
 
-# include "Client.hpp"
+//# include "Client.hpp"
+# include <Server.hpp>
 # include "Exceptions.hpp"
 # include <vector>
 # include <map>
 #include <poll.h>
 
+class Client;
+
 class ServerContainer
 {
     private:
-        bool m_default_exists; // true if a server with the is_default attribute set as true exists in the servers vector
+        Server* m_default_server;
         std::vector<Server> m_servers;
         std::map<int, Server*> m_servers_map;
-		std::map<int, sockaddr_in> m_servers_addr_map;
-		std::map<int, Client> m_clients_map;
+		std::map<int, const std::pair<std::string, std::string>* > m_servers_listen_map;
+		std::map<int, Client*> m_clients_map;
         std::vector<pollfd> m_poll_fds;
     public:
         ServerContainer();
@@ -39,8 +42,9 @@ class ServerContainer
          * @throws a ADefaultServerAlreadyExists exception when adding multiple deault servers
          * @param a server object
          */
-        int create_listen_socket(std::pair<std::string, std::string> listen_item, sockaddr_in& server_addr);
+        int create_listen_socket(const std::pair<std::string, std::string>& listen_item);
         void setup_webserv();
+		void setup_default_server();
         void add_server(const Server& server);
         void loop();
 		void accept_client(size_t poll_index);

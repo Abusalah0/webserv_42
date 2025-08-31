@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Location.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:28:59 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/29 18:17:02 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/08/31 01:51:07 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef LOCATION_HPP
 # define LOCATION_HPP  
@@ -23,9 +23,9 @@
 class Location : public BaseBlock
 {
     private:
-        std::set<std::string> allowed_methods;
-        // std::string upload_path;
-        std::string cgi_handlers;
+        std::set<std::string> m_allowed_methods;
+        std::string m_upload_path;
+        std::string m_cgi_handlers;
 
     public:
         Location();
@@ -33,7 +33,7 @@ class Location : public BaseBlock
         Location(const BaseBlock& baseBlock);
         Location(const BaseBlock& baseBlock,
                 const std::set<std::string>& methods,
-                // const std::string& uploadPath,
+                const std::string& uploadPath,
                 const std::string& cgiHandlers);
 
 
@@ -42,8 +42,8 @@ class Location : public BaseBlock
 
         void set_allowed_methods(const std::set<std::string>& methods);
         const std::set<std::string>& get_allowed_methods() const;
-        // void set_upload_path(const std::string& path);
-        // const std::string& get_upload_path() const;
+        void set_upload_path(const std::string& path);
+        const std::string& get_upload_path() const;
         void set_cgi_handlers(const std::string& handlers);
         const std::string& get_cgi_handlers() const;
 

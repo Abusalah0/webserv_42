@@ -1,6 +1,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+//#include "../include/ServerContainer.hpp"
 #include "../include/Server.hpp"
 #include <HTTPBuffer.hpp>
 #include <RequestHeader.hpp>
@@ -8,6 +9,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <ctime>
+#include <poll.h>
 
 enum ClientStatus
 {
@@ -27,6 +29,8 @@ enum ClientProcessState
 	PROCESS_REQUEST
 };
 
+class ServerContainer;
+
 class Client
 {
 	private:
@@ -36,14 +40,14 @@ class Client
 		Server* m_base_server;
 		Server* m_target_server;
 		Location* m_target_location;
-		in_addr_t m_ip_addr;
-		in_port_t m_port;
+		ServerContainer* m_server_container;
 		time_t m_last_activity;
 		HTTPBuffer m_request_buffer;
 		HTTPBuffer m_response_buffer;
 		RequestHeader m_header;
 		std::string m_body;
 		size_t m_chunk_size;
+		const std::pair<std::string, std::string>* m_listen_entry;
 		void process_header();
 		void process_body();
 		void process_body_chunked_size();
@@ -51,7 +55,10 @@ class Client
 		void process_body_chunked_end();
 	public:
 		Client();
-		Client(int fd, Server* server, sockaddr_in& client_addr);
+		Client(int fd,
+			ServerContainer* server_container,
+			Server* server,
+			const std::pair<std::string, std::string>* listen_entry);
 		~Client();
 		void handle_read();
 		void handle_send();

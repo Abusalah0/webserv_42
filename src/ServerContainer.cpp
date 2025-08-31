@@ -6,11 +6,12 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 00:25:07 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 04:24:31 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
 #include "ServerContainer.hpp"
+#include "Client.hpp"
 #include <iostream>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -18,10 +19,10 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 
-ServerContainer::ServerContainer() : m_default_exists(false), m_servers() {}
+ServerContainer::ServerContainer() : m_default_server(0), m_servers() {}
 
 ServerContainer::ServerContainer(const ServerContainer& other) :
-    m_default_exists(other.m_default_exists), m_servers(other.m_servers)
+    m_default_server(other.m_default_server), m_servers(other.m_servers)
 {}
 
 ServerContainer& ServerContainer::operator=(const ServerContainer& other)
@@ -29,7 +30,7 @@ ServerContainer& ServerContainer::operator=(const ServerContainer& other)
     if (this != &other)
     {
         m_servers = other.m_servers;
-        m_default_exists = other.m_default_exists;
+        m_default_server = other.m_default_server;
     }
     return (*this);
 }
@@ -46,9 +47,14 @@ ServerContainer::~ServerContainer()
 {
 	for (size_t i = 0; i < this->m_poll_fds.size(); i++)
 		close(this->m_poll_fds[i].fd);
+	for (std::map<int, Client*>::iterator it = this->m_clients_map.begin();
+		it != this->m_clients_map.end(); it++)
+	{
+		delete (*it).second;
+	}
 }
 
-int ServerContainer::create_listen_socket(std::pair<std::string, std::string> listen_item, sockaddr_in& server_addr)
+int ServerContainer::create_listen_socket(const std::pair<std::string, std::string>& listen_item)
 {
     addrinfo hints;
     addrinfo* pai;
@@ -82,7 +88,6 @@ int ServerContainer::create_listen_socket(std::pair<std::string, std::string> li
         if (!bind(sockfd, current_pai->ai_addr, current_pai->ai_addrlen))
         {
             socket_binded = true;
-			server_addr = *(sockaddr_in*)current_pai->ai_addr;
             break;
         }
     }
@@ -100,21 +105,34 @@ int ServerContainer::create_listen_socket(std::pair<std::string, std::string> li
     return sockfd;
 }
 
+void ServerContainer::setup_default_server()
+{
+	for (size_t i = 0; i < this->m_servers.size(); i++)
+	{
+		if (this->m_servers[i].is_default_server())
+		{
+			if (this->m_default_server)
+				throw WebservExceptions::MultipleDefaultServers();
+			this->m_default_server = &this->m_servers[i];
+		}
+	}
+}
+
 void ServerContainer::setup_webserv()
 {
+	setup_default_server();
 	bool success = false;
 	for (size_t i = 0; i < this->m_servers.size(); i++)
     {
         Server& server = this->m_servers[i];
-        std::vector<std::pair<std::string, std::string> > listens = server.get_listen();
-		sockaddr_in server_addr;
+        const std::vector<std::pair<std::string, std::string> >& listens = server.get_listen();
         for (size_t i = 0; i < listens.size(); i++)
         {
             try
             {
-                int sockfd = create_listen_socket(listens[i], server_addr);
+                int sockfd = create_listen_socket(listens[i]);
                 this->m_servers_map[sockfd] = &server;
-				this->m_servers_addr_map[sockfd] = server_addr;
+				this->m_servers_listen_map[sockfd] = &listens[i];
                 pollfd entry;
                 entry.fd = sockfd;
                 entry.events = POLLIN | POLLOUT;
@@ -135,20 +153,16 @@ void ServerContainer::setup_webserv()
 		throw WebservExceptions::SetupFailed();
 }
 
-static void debugClientConn(sockaddr_in& client_addr, sockaddr_in& server_addr)
+static void debugClientConn(const std::pair<std::string, std::string>* server_addr)
 {
-	char client_addr_arr[16];
-	char server_addr_arr[16];
-	inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, client_addr_arr, 16);
-	inet_ntop(AF_INET, &server_addr.sin_addr.s_addr, server_addr_arr, 16);
-	std::cout << "Client " << client_addr_arr << ":" << ntohs(client_addr.sin_port)
-		<< " connected to " << server_addr_arr << ":" << ntohs(server_addr.sin_port) << std::endl;
+	std::cout << "Client connected to " << server_addr->first << ":" << server_addr->second << std::endl;
 }
 
 void ServerContainer::remove_client(size_t poll_index)
 {
 	std::cout << "Client disconnected!" << std::endl;
 	close(this->m_poll_fds[poll_index].fd);
+	delete this->m_clients_map[this->m_poll_fds[poll_index].fd];
 	this->m_clients_map.erase(this->m_poll_fds[poll_index].fd);
 	this->m_poll_fds[poll_index].fd = -1;
 }
@@ -165,9 +179,9 @@ void ServerContainer::accept_client(size_t poll_index)
 		return;
 	}
 	this->m_clients_map.insert(
-		std::pair<int, Client>(client_fd, Client(client_fd, this->m_servers_map[poll_data.fd], client_addr))
+		std::pair<int, Client*>(client_fd, new Client(client_fd, this, this->m_servers_map[poll_data.fd], this->m_servers_listen_map[poll_data.fd]))
 	);
-	debugClientConn(client_addr, this->m_servers_addr_map[poll_data.fd]);
+	debugClientConn(this->m_servers_listen_map[poll_data.fd]);
 	pollfd entry;
 	entry.fd = client_fd;
 	entry.events = POLLIN | POLLOUT;
@@ -207,17 +221,17 @@ void ServerContainer::loop()
 					accept_client(i);
 				else if (this->m_clients_map.find(poll_data.fd) != this->m_clients_map.end())
 				{
-                    Client& client = this->m_clients_map[poll_data.fd];
-					if (poll_data.revents & POLLHUP || client.get_client_status() > CLIENT_DONE)
+                    Client* client = this->m_clients_map[poll_data.fd];
+					if (poll_data.revents & POLLHUP || client->get_client_status() > CLIENT_DONE)
 					{
 						remove_client(i);
 						continue;
 					}
 					if (poll_data.revents & POLLIN)
-                        client.handle_read();
+                        client->handle_read();
 					if (poll_data.revents & POLLOUT)
-						client.handle_send();
-					client.process();
+						client->handle_send();
+					client->process();
 				}
 			}
 		}
@@ -266,17 +280,12 @@ const Server& ServerContainer::get_best_server(const std::string& ip, const std:
         {
             if (listens[j].first == ip && listens[j].second == port)
             {
-                try
-                {
-                    this->m_servers[i].match_virtual_host(virtual_host);
-                    return (this->m_servers[i]);
-                }
-                catch (const std::exception& e)
-                {
-                    // Continue searching
-                }
+                if (this->m_servers[i].match_virtual_host(virtual_host))
+                	return (this->m_servers[i]);
             }
         }
     }
-    throw std::runtime_error("No matching server found");
+	if (this->m_default_server)
+		return *this->m_default_server;
+    throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
 }

@@ -124,3 +124,8 @@ const char* WebservExceptions::SetupFailed::what() const throw()
 {
     return "Webserv setup failed!";
 }
+
+const char* WebservExceptions::MultipleDefaultServers::what() const throw()
+{
+    return "Multiple default servers exists!";
+}

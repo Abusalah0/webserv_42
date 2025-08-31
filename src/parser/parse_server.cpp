@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:20:29 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 00:26:25 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 03:39:26 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -71,6 +71,11 @@ static void store_server_directive(const std::vector<t_token> &tokens, Server &s
         parse_redirect_directive(tokens, srv, pos);
     else if (directive == "index")
         parse_index_direcitive(tokens, srv, pos);
+	else if (directive == "default_server")
+	{
+		--pos;
+		srv.set_default_server();
+	}
     else
         throw_parse_error("Uknown directive inside server block");
         
