@@ -20,6 +20,9 @@ Client::Client(int fd,
 	m_body(),
 	m_listen_entry(listen_entry)
 {
+	(void)m_target_location;
+	(void)m_base_server;
+	(void)m_target_server;
 	std::time(&m_last_activity);
 }
 
@@ -51,6 +54,7 @@ void Client::handle_read()
 		return;
 	}
 	this->m_request_buffer.push(buffer, bytes_read);
+	
 }
 
 void Client::handle_send()

@@ -203,6 +203,18 @@ void RequestHeader::parse_connection()
 		this->m_connection = CONNECTION_CLOSE;
 }
 
+std::string parse_virtual_host(std::string& host)
+{
+	size_t pos = host.find(":");
+	if (pos != std::string::npos)
+	{
+		std::string res = host.substr(0, pos);
+		return res;
+	}
+	else
+		return host;
+}
+
 void RequestHeader::parse(std::string& input)
 {
 	size_t line_start = 0;
@@ -222,7 +234,11 @@ void RequestHeader::parse(std::string& input)
 	if (this->m_fields.find("host") == this->m_fields.end())
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	else
-		this->m_virtual_host = this->m_fields["host"];
+	{
+		this->m_virtual_host = parse_virtual_host(this->m_fields["host"]);
+		if (this->m_virtual_host.empty())
+			throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+	}
 	if (this->m_fields.find("content-length") != this->m_fields.end())
 		parse_content_len();
 	if (this->m_fields.find("transfer-encoding") != this->m_fields.end())

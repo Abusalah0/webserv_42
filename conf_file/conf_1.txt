@@ -13,7 +13,8 @@ http
         root /skill_issue2;
         autoindex off;
         autoindex on;
-        server_name a b c d;
+        server_name www.test.com;
+	default_server;
         error_page 404 401 402 403 504 505 /crazy2.html;
         location  /{
             cgi blabla;

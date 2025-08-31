@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   ServerContainer.hpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 15:42:52 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 04:24:03 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 17:33:05 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef SERVERCONTAINER_HPP
 # define SERVERCONTAINER_HPP
@@ -53,10 +53,10 @@ class ServerContainer
         Server* get_sock_server(int sockfd);
         //void remove_server(int index);
         //Server* get_server(int index);
-        typedef typename std::vector<Server>::iterator iterator;
-        typedef typename std::vector<Server>::const_iterator const_iterator;
-        iterator begin() { return m_servers.begin(); }
-        iterator end() { return m_servers.end(); }
+        // typedef typename std::vector<Server>::iterator iterator;
+        // typedef typename std::vector<Server>::const_iterator const_iterator;
+        std::vector<Server>::iterator begin() { return m_servers.begin(); }
+        std::vector<Server>::const_iterator end() { return m_servers.end(); }
         const Server& get_best_server(const std::string& ip, const std::string& port, const std::string& virtual_host) const;
         const std::vector<Server>& get_servers() const;
 };
