@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 12:01:53 by sbibers           #+#    #+#             */
-/*   Updated: 2025/08/31 03:35:21 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 02:04:02 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -20,6 +20,7 @@
 #define HTTP_FORBIDDEN 403
 #define HTTP_NOT_FOUND 404
 #define HTTP_NOT_IMPLEMENTED 501
+#define HTTP_BAD_GATEWAY 502
 #define HTTP_VERSION_ERROR 505
 
 struct HTTPStatus
@@ -34,6 +35,7 @@ static const HTTPStatus statusTable[] = {
 	{HTTP_NOT_FOUND, "Not Found"},
 	{HTTP_NOT_IMPLEMENTED, "Not Implemented"},
 	{HTTP_VERSION_ERROR, "HTTP Version Not Supported"},
+	{HTTP_BAD_GATEWAY, "Bad Gateway"},
 	{0, 0}
 };
 

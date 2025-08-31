@@ -7,9 +7,10 @@ Client::Client(int fd,
 	ServerContainer* server_container,
 	Server* server,
 	const std::pair<std::string, std::string>* listen_entry):
-	m_fd(fd),
-	m_client_status(0),
+	m_listen_fd(fd),
+	m_client_status(CLIENT_ALIVE),
 	m_process_state(PROCESS_HEADER),
+	m_current_scope(SCOPE_BASE_SERVER),
 	m_base_server(server),
 	m_target_server(0),
 	m_target_location(0),
@@ -42,7 +43,7 @@ void Client::handle_read()
 	if (this->m_client_status != CLIENT_ALIVE)
 		return;
 	char buffer[CHUNK_SIZE];
-	ssize_t bytes_read = recv(this->m_fd, buffer, CHUNK_SIZE, 0);
+	ssize_t bytes_read = recv(this->m_listen_fd, buffer, CHUNK_SIZE, 0);
 	if (bytes_read == 0)
 	{
 		this->m_client_status = CLIENT_DISCONNECTED;
@@ -59,10 +60,10 @@ void Client::handle_read()
 
 void Client::handle_send()
 {
-	if (this->m_client_status != CLIENT_ALIVE || !this->m_response_buffer.size())
+	if (this->m_client_status > CLIENT_DONE || !this->m_response_buffer.size())
 		return;
 	std::string buffer = this->m_response_buffer.pull(CHUNK_SIZE);
-	ssize_t bytes_sent = send(this->m_fd, buffer.c_str(), buffer.size(), 0);
+	ssize_t bytes_sent = send(this->m_listen_fd, buffer.c_str(), buffer.size(), 0);
 	if (bytes_sent == -1)
 	{
 		this->m_client_status = CLIENT_ERROR;
@@ -70,18 +71,12 @@ void Client::handle_send()
 	}
 }
 
-void Client::generate_error(const WebservExceptions::HTTPException& e)
-{
-	(void)e;
-}
-
 void Client::process_header()
 {
 	if (this->m_request_buffer.is_header_finished())
 	{
-		this->m_header.clear();
 		std::string input = this->m_request_buffer.pull_header();
-		this->m_header.parse(input);
+		this->m_header.parse_request(input);
 		if (this->m_header.get_content_length())
 			this->m_process_state = PROCESS_BODY;
 		else if (this->m_header.is_chunked())
@@ -138,7 +133,63 @@ void Client::process_body_chunked_end()
 		std::string clrf = this->m_request_buffer.pull(2);
 		if (clrf.compare("\r\n"))
 			throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+		this->m_header.set_content_length(this->m_body.size());
 		this->m_process_state = PROCESS_REQUEST;
+	}
+}
+
+std::string generate_fallback_body(const std::string& msg)
+{
+	std::string body =
+		"<html>\n"
+		"<head><title>{template}</title></head>\n"
+		"<body>\n"
+		"<center><h1>{template}</h1></center>\n"
+		"<hr><center>webserv/1.0</center>\n"
+		"</body>\n"
+		"</html>";
+	std::string str_template = "{template}";
+	size_t pos = body.find(str_template);
+	body.erase(pos, str_template.size());
+	body.insert(pos, msg);
+	pos = body.find(str_template, pos + msg.size());
+	body.erase(pos, str_template.size());
+	body.insert(pos, msg);
+	return body;
+}
+
+void Client::fallback_generate_error(const WebservExceptions::HTTPException& e)
+{
+	std::string body = generate_fallback_body(e.what());
+	this->m_header.clear();
+	this->m_header.set_content_length(body.size());
+	this->m_header.generate_response_fields(this->m_client_status, e.what(), false);
+	std::string response_header = this->m_header.generate_response_header();
+	this->m_response_buffer.push(response_header.c_str(), response_header.size());
+	this->m_response_buffer.push(body.c_str(), body.size());
+	this->m_response_buffer.create_barrier();
+}
+
+void Client::generate_error(const WebservExceptions::HTTPException& e)
+{
+	std::string error_page;
+
+	try
+	{
+		if (this->m_current_scope == SCOPE_BASE_SERVER)
+			error_page = this->m_base_server->get_error_page(e.get_error_code());
+		else if (this->m_current_scope == SCOPE_TARGET_SERVER)
+			error_page = this->m_target_server->get_error_page(e.get_error_code());
+		else
+			error_page = this->m_target_location->get_error_page(e.get_error_code());
+	}
+	catch(const WebservExceptions::HTTPException& inner_e)
+	{
+		fallback_generate_error(inner_e);
+	}
+	catch(const WebservExceptions::NoAvailablePage& inner_e)
+	{
+		fallback_generate_error(e);
 	}
 }
 
@@ -184,6 +235,14 @@ void Client::process()
 		if (e.get_error_code() == HTTP_BAD_REQUEST)
 			this->m_client_status = CLIENT_DONE;
 		generate_error(e);
-		std::cerr << e.what() << std::endl;
+		reset_client_state();
 	}
+}
+
+void Client::reset_client_state()
+{
+	m_process_state = PROCESS_HEADER;
+	m_current_scope = SCOPE_BASE_SERVER;
+	m_header.clear();
+	m_body.clear();
 }

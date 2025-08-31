@@ -1,12 +1,12 @@
 /******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   RequestHeader.hpp                                  :+:      :+:    :+:   */
+/*   HTTPHeader.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 15:11:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/08/30 19:02:43 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 02:18:22 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -14,15 +14,16 @@
 #define REQUESTHEADER_HPP
 
 #include "CommonUtils.hpp"
+#include <deque>
 #include <map>
 
-typedef struct SRequestHeaderField
+typedef struct SHTTPHeaderField
 {
 	std::string name;
 	std::string value;
-} RequestHeaderField;
+} HTTPHeaderField;
 
-class RequestHeader
+class HTTPHeader
 {
 	private:
 		bool m_is_query_paramaters;
@@ -33,9 +34,12 @@ class RequestHeader
 		std::string m_target;
 		std::string m_query_parameters;
 		std::string m_virtual_host;
-    	std::map<std::string, std::string> m_fields;
+		std::string m_response_msg;
+    	std::map<std::string, HTTPHeaderField> m_fields;
+		std::deque<HTTPHeaderField> m_response_fields;
 		void parse_request_line(std::string& line);
-		void parse_header_line(std::string& line);
+		void parse_request_header_line(std::string& line);
+		void parse_response_header_line(std::string& line);
 		void parse_content_len();
 		void parse_transfer_encoding();
 		void parse_connection();
@@ -44,16 +48,17 @@ class RequestHeader
  		* RequestHeader Constructor
  		* @return RequestHeader
 		*/
-		RequestHeader();
+		HTTPHeader();
 		/**
  		* RequestHeader Destructor
 		*/
-		~RequestHeader();
+		~HTTPHeader();
 		/**
  		* Parses Request Header
 		* @param input Request Header
 		*/
-		void parse(std::string& input);
+		void parse_request(std::string& input);
+		void parse_response(std::string& input);
 		/**
  		* Getter for if query parameters set
 		* @throws WebservExceptions::BadRequest on invalid input
@@ -101,7 +106,12 @@ class RequestHeader
  		* Getter for header fields
 		* @return header fields
 		*/
-		std::map<std::string, std::string> get_fields();
+		void set_content_length(size_t len);
+		std::map<std::string, HTTPHeaderField> get_fields();
+		std::deque<HTTPHeaderField> get_response_fields();
+		std::string generate_response_header();
+		void generate_response_fields(int client_status, const std::string& msg, bool is_chunked);
+		void parse_response_content_len();
 		void clear();
 		void debug();
 };

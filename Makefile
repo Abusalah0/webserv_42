@@ -19,7 +19,7 @@ SRC = \
 	Location.cpp \
 	Client.cpp \
 	HTTPBuffer.cpp \
-	RequestHeader.cpp \
+	HTTPHeader.cpp \
 	normalize_path.cpp \
 	parser/parse_baseblock.cpp \
 	parser/parser.cpp \

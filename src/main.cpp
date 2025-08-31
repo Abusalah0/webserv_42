@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 00:31:14 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 00:40:54 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -17,7 +17,6 @@
 #include "../include/Server.hpp"
 #include "../include/CommonUtils.hpp"
 #include "../include/parser.hpp"
-#include "../include/RequestHeader.hpp"
 
 int g_signum = 0;
 

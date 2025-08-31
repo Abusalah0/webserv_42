@@ -99,3 +99,21 @@ size_t parse_chunk_size(std::string& str)
 	size_t chunk_size = strtoul(str.c_str(), 0, 16);
 	return chunk_size;
 }
+
+std::string ul_to_str(size_t value)
+{
+	std::string res;
+
+	if (!value)
+	{
+		res.push_back('0');
+		return res;
+	}
+	while (value)
+	{
+		res.push_back(value % 10 + 0x30);
+		value /= 10;
+	}
+	std::reverse(res.begin(), res.end());
+	return res;
+}

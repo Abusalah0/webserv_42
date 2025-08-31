@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:26:51 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 04:22:35 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 23:24:09 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -25,6 +25,8 @@ class Server : public BaseBlock
 {
     private:
 		bool m_is_default;
+		bool m_root_location_exist;
+		size_t m_root_location_index;
         std::vector<Location> m_locations;
         std::vector<std::pair<std::string, std::string> > m_listen;
         std::set<std::string> m_server_names;
@@ -67,12 +69,12 @@ class Server : public BaseBlock
 
         // utils
         bool match_virtual_host(const std::string &virtual_host) const;
+		Location& match_location(std::string& route);
         // void match_location(const std::string &path) const;
 
 		// etc
 		void set_default_server();
 		bool is_default_server();
-
 };
 
 void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos);

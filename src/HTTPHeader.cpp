@@ -1,9 +1,9 @@
-#include "../include/RequestHeader.hpp"
+#include "../include/HTTPHeader.hpp"
 #include <vector>
 #include <algorithm>
 #include <iostream>
 
-RequestHeader::RequestHeader():
+HTTPHeader::HTTPHeader():
 	m_is_query_paramaters(),
 	m_is_chunked(),
 	m_connection(CONNECTION_KEEP_ALIVE),
@@ -15,7 +15,7 @@ RequestHeader::RequestHeader():
 	m_fields()
 {}
 
-RequestHeader::~RequestHeader()
+HTTPHeader::~HTTPHeader()
 {}
 
 std::string request_parse_method(std::string& line, size_t& offset)
@@ -74,7 +74,7 @@ bool validate_target(std::string& target)
 	return true;
 }
 
-void RequestHeader::parse_request_line(std::string& line)
+void HTTPHeader::parse_request_line(std::string& line)
 {
 	size_t s_offset = 0;
 	size_t e_offset;
@@ -106,9 +106,9 @@ void RequestHeader::parse_request_line(std::string& line)
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 }
 
-RequestHeaderField split_request_header(std::string& line)
+HTTPHeaderField split_request_header(std::string& line)
 {
-	RequestHeaderField field;
+	HTTPHeaderField field;
 	size_t s_offset = 0;
 	size_t e_offset = 0;
 
@@ -150,32 +150,33 @@ char c_tolower(char c)
 	return c;
 }
 
-void RequestHeader::parse_header_line(std::string& line)
+void HTTPHeader::parse_request_header_line(std::string& line)
 {
-	RequestHeaderField field = split_request_header(line);
+	HTTPHeaderField field = split_request_header(line);
 	if (!check_str_chrs(field.name, is_token_chr))
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	if (!check_str_chrs(field.value, is_field_value_chr))
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
-	std::transform(field.name.begin(), field.name.end(), field.name.begin(), c_tolower);
-	if (this->m_fields.find(field.name) != this->m_fields.end())
+	std::string lowercase_name = field.name;
+	std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), c_tolower);
+	if (this->m_fields.find(lowercase_name) != this->m_fields.end())
 	{
-		if (field.name == "content-length")
+		if (lowercase_name == "content-length")
 			throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
-		if (field.name == "cookie")
-			this->m_fields[field.name].append("; ");
+		if (lowercase_name == "cookie")
+			this->m_fields[lowercase_name].value.append("; ");
 		else
-			this->m_fields[field.name].append(", ");
-		this->m_fields[field.name].append(field.value);
+			this->m_fields[lowercase_name].value.append(", ");
+		this->m_fields[lowercase_name].value.append(field.value);
 	}
 	else
-		this->m_fields[field.name] = field.value;
+		this->m_fields[lowercase_name] = field;
 }
 
-void RequestHeader::parse_content_len()
+void HTTPHeader::parse_content_len()
 {
 	char *endptr;
-	std::string& value = this->m_fields["content-length"];
+	std::string& value = this->m_fields["content-length"].value;
 	if (value.empty() || !std::isdigit(value[0]))
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	errno = 0;
@@ -184,26 +185,26 @@ void RequestHeader::parse_content_len()
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 }
 
-void RequestHeader::parse_transfer_encoding()
+void HTTPHeader::parse_transfer_encoding()
 {
 	if (this->m_fields.find("content-length") != this->m_fields.end())
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
-	std::string temp_value = this->m_fields["transfer-encoding"];
+	std::string temp_value = this->m_fields["transfer-encoding"].value;
 	std::transform(temp_value.begin(), temp_value.end(), temp_value.begin(), c_tolower);
 	if (temp_value != "chunked")
 		throw WebservExceptions::HTTPException(HTTP_NOT_IMPLEMENTED);
 	this->m_is_chunked = true;
 }
 
-void RequestHeader::parse_connection()
+void HTTPHeader::parse_connection()
 {
-	std::string temp_value = this->m_fields["connection"];
+	std::string temp_value = this->m_fields["connection"].value;
 	std::transform(temp_value.begin(), temp_value.end(), temp_value.begin(), c_tolower);
 	if (temp_value.find("close") != std::string::npos)
 		this->m_connection = CONNECTION_CLOSE;
 }
 
-void RequestHeader::parse(std::string& input)
+void HTTPHeader::parse_request(std::string& input)
 {
 	size_t line_start = 0;
 	std::string line;
@@ -216,14 +217,14 @@ void RequestHeader::parse(std::string& input)
 		if (!line_start)
 			parse_request_line(line);
 		else
-			parse_header_line(line);
+			parse_request_header_line(line);
 		line_start = clrf_pos + 2;
 	}
 	if (this->m_fields.find("host") == this->m_fields.end())
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	else
 	{
-		this->m_virtual_host = this->m_fields["host"];
+		this->m_virtual_host = this->m_fields["host"].value;
 		if (this->m_virtual_host.empty())
 			throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	}
@@ -235,52 +236,200 @@ void RequestHeader::parse(std::string& input)
 		parse_connection();
 }
 
-bool RequestHeader::is_query_parameters()
+void HTTPHeader::parse_response_content_len()
+{
+	char *endptr;
+	std::string& value = this->m_fields["content-length"].value;
+	if (value.empty() || !std::isdigit(value[0]))
+		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
+	errno = 0;
+	this->m_content_len = strtoul(value.c_str(), &endptr, 10);
+	if (errno == ERANGE || endptr != value.c_str() + value.size())
+		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
+}
+
+void HTTPHeader::parse_response_header_line(std::string& line)
+{
+	HTTPHeaderField field = split_request_header(line);
+	if (!check_str_chrs(field.name, is_token_chr))
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+	if (!check_str_chrs(field.value, is_field_value_chr))
+		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+	std::string lowercase_name = field.name;
+	std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), c_tolower);
+	if (this->m_fields.find(lowercase_name) != this->m_fields.end())
+	{
+		if (lowercase_name == "content-length")
+			throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
+		this->m_fields[lowercase_name] = field;
+	}
+	else if (lowercase_name == "content-length")
+	{
+		this->m_is_chunked = false;
+		this->m_fields[lowercase_name] = field;
+		parse_response_content_len();
+	}
+	else
+		this->m_response_fields.push_back(field);
+}
+
+void HTTPHeader::parse_response(std::string& input)
+{
+	size_t line_start = 0;
+	std::string line;
+	while (true)
+	{
+		size_t clrf_pos = input.find("\r\n", line_start);
+		if (clrf_pos == line_start)
+			break;
+		line = input.substr(line_start, clrf_pos - line_start);
+		parse_response_header_line(line);
+		line_start = clrf_pos + 2;
+	}
+}
+
+std::string generate_http_date()
+{
+	std::string date;
+	std::string days[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+	std::string months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+	time_t raw_time = time(0);
+	tm* datetime = gmtime(&raw_time);
+	date.append(days[datetime->tm_wday]);
+	date.append(", ");
+	date.append(ul_to_str(datetime->tm_mday));
+	date.push_back(' ');
+	date.append(months[datetime->tm_mon]);
+	date.push_back(' ');
+	date.append(ul_to_str(datetime->tm_year + 1900));
+	date.push_back(' ');
+	date.append(ul_to_str(datetime->tm_hour));
+	date.push_back(':');
+	date.append(ul_to_str(datetime->tm_min));
+	date.push_back(':');
+	date.append(ul_to_str(datetime->tm_sec));
+	date.append(" GMT");
+	return date;
+}
+
+void HTTPHeader::generate_response_fields(int client_status, const std::string& msg, bool is_chunked)
+{
+	HTTPHeaderField field;
+	field.name = "Server";
+	field.value = "webserv/1.0";
+	this->m_fields["server"] = field;
+	if (is_chunked)
+	{
+		field.name = "Transfer-Encoding";
+		field.value = "chunked";
+		this->m_fields["transfer-encoding"] = field;
+	}
+	else
+	{
+		field.name = "Content-Length";
+		field.value = ul_to_str(this->m_content_len);
+		this->m_fields["content-length"] = field;
+	}
+	field.name = "Connection";
+	if (client_status)
+		field.value = "keep-alive";
+	else
+		field.value = "close";
+	this->m_fields["connection"] = field;
+	field.name = "Content-Type";
+	field.value = "text/html";
+	this->m_fields["content-type"] = field;
+	field.name = "Date";
+	field.value = generate_http_date();
+	this->m_fields["date"] = field;
+
+	this->m_is_chunked = true;
+	this->m_response_msg = msg;
+}
+
+std::string HTTPHeader::generate_response_header()
+{
+	std::string res;
+	res.append("HTTP/1.1 ");
+	res.append(this->m_response_msg);
+	res.append("\r\n");
+	for (std::map<std::string, HTTPHeaderField>::iterator it = this->m_fields.begin();
+		it != this->m_fields.end(); it++)
+	{
+		HTTPHeaderField& field = (*it).second;
+		res.append(field.name);
+		res.append(": ");
+		res.append(field.value);
+		res.append("\r\n");
+	}
+	for (size_t i = 0; i < this->m_response_fields.size(); i++)
+	{
+		HTTPHeaderField& field = this->m_response_fields[i];
+		res.append(field.name);
+		res.append(": ");
+		res.append(field.value);
+		res.append("\r\n");
+	}
+	res.append("\r\n");
+	return res;
+}
+
+bool HTTPHeader::is_query_parameters()
 {
 	return this->m_is_query_paramaters;
 }
 
-bool RequestHeader::is_chunked()
+bool HTTPHeader::is_chunked()
 {
 	return this->m_is_chunked;
 }
 
-ConnectionTypes RequestHeader::get_connection_type()
+ConnectionTypes HTTPHeader::get_connection_type()
 {
 	return this->m_connection;
 }
 
-std::string& RequestHeader::get_request_method()
+std::string& HTTPHeader::get_request_method()
 {
 	return this->m_method;
 }
 
-size_t RequestHeader::get_content_length()
+size_t HTTPHeader::get_content_length()
 {
 	return this->m_content_len;
 }
 
-std::string& RequestHeader::get_target()
+void HTTPHeader::set_content_length(size_t len)
+{
+	this->m_content_len = len;
+}
+
+std::string& HTTPHeader::get_target()
 {
 	return this->m_target;
 }
 
-std::string& RequestHeader::get_query_parameters()
+std::string& HTTPHeader::get_query_parameters()
 {
 	return this->m_query_parameters;
 }
 
-std::string& RequestHeader::get_virtual_host()
+std::string& HTTPHeader::get_virtual_host()
 {
 	return this->m_virtual_host;
 }
 
-std::map<std::string, std::string> RequestHeader::get_fields()
+std::map<std::string, HTTPHeaderField> HTTPHeader::get_fields()
 {
 	return this->m_fields;
 }
 
-void RequestHeader::clear()
+std::deque<HTTPHeaderField> HTTPHeader::get_response_fields()
+{
+	return this->m_response_fields;
+}
+
+void HTTPHeader::clear()
 {
 	this->m_is_query_paramaters = false;
 	this->m_is_chunked = false;
@@ -288,9 +437,10 @@ void RequestHeader::clear()
 	this->m_content_len = 0;
 	this->m_query_parameters.clear();
 	this->m_fields.clear();
+	this->m_response_fields.clear();
 }
 
-void RequestHeader::debug()
+void HTTPHeader::debug()
 {
 	std::cout << "Method: " << this->m_method << std::endl;
 	std::cout << "Target: " << this->m_target << std::endl;
@@ -300,10 +450,10 @@ void RequestHeader::debug()
 	if (this->m_is_query_paramaters)
 		std::cout << "Query Parameters: " << this->m_query_parameters << std::endl;
 	std::cout << "---------Fields---------" << std::endl;
-	for (std::map<std::string, std::string>::iterator it = this->m_fields.begin();
+	for (std::map<std::string, HTTPHeaderField>::iterator it = this->m_fields.begin();
 		it != this->m_fields.end(); it++)
 	{
-		std::pair<std::string, std::string> entry = *it;
-		std::cout << entry.first << ": " << entry.second << std::endl;
+		HTTPHeaderField entry = (*it).second;
+		std::cout << entry.name << ": " << entry.value << std::endl;
 	}
 }

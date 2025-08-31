@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 04:22:08 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 23:25:32 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -14,7 +14,8 @@
 #include <stdexcept>
 
 Server::Server() : BaseBlock(),
-					m_is_default(),
+					m_is_default(false),
+					m_root_location_exist(false),
                 	m_locations(),
                 	m_listen(),
                 	m_server_names()
@@ -30,7 +31,8 @@ Server::Server(const Server& other) :
 
 Server::Server(BaseBlock& baseBlock) :
         BaseBlock(baseBlock),
-		m_is_default(),
+		m_is_default(false),
+		m_root_location_exist(false),
         m_locations(),
         m_listen(),
         m_server_names()
@@ -70,6 +72,11 @@ void Server::set_locations(std::vector<Location>& locations)
 
 void Server::add_location(Location& location)
 {
+	if (location.get_upload_path() == "/")
+	{
+		this->m_root_location_exist = true;
+		this->m_root_location_index = this->m_locations.size();
+	}
     this->m_locations.push_back(location);
 }
 
@@ -141,6 +148,18 @@ bool Server::match_virtual_host(const std::string &virtual_host) const
 //     }
 //     throw std::runtime_error("No matching location found");
 // }
+
+Location& Server::match_location(std::string& route)
+{
+	for (size_t i = 0; i < this->m_locations.size(); i++)
+	{
+		if (this->m_locations[i].get_upload_path() == route)
+			return this->m_locations[i];
+	}
+	if (this->m_root_location_exist)
+		return this->m_locations[this->m_root_location_index];
+	throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
+}
 
 const std::vector<std::pair<std::string, std::string> >& Server::get_listen() const
 {

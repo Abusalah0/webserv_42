@@ -312,13 +312,13 @@ std::string BaseBlock::get_error_page(ushort code) const
 	file_path.append(str_ref);
 
 	if (stat(file_path.c_str(), &statbuf))
-		throw WebservExceptions::NoAvailablePage();
+		throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
 	if (access(file_path.c_str(), R_OK))
-		throw WebservExceptions::ForbiddenAccess();
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	if (S_ISDIR(statbuf.st_mode))
-		throw WebservExceptions::ForbiddenAccess();
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	if (!S_ISREG(statbuf.st_mode))
-		throw WebservExceptions::NonRegularFile();
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	return (file_path);
 }
 
