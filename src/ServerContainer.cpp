@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 13:54:12 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/08/31 18:20:57 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -272,7 +272,10 @@ const std::vector<Server>& ServerContainer::get_servers() const
 
 const Server& ServerContainer::get_best_server(const std::string& ip, const std::string& port, const std::string& virtual_host) const
 {
-    
+	std::string cleaned_virtual_host = virtual_host;
+	size_t pos = virtual_host.find(":");
+	if (pos != std::string::npos)
+		cleaned_virtual_host = cleaned_virtual_host.substr(0, pos);
     for (size_t i = 0; i < this->m_servers.size(); i++)
     {
         std::vector<std::pair<std::string, std::string> > listens = this->m_servers[i].get_listen();
@@ -280,7 +283,7 @@ const Server& ServerContainer::get_best_server(const std::string& ip, const std:
         {
             if (listens[j].first == ip && listens[j].second == port)
             {
-                if (this->m_servers[i].match_virtual_host(virtual_host))
+                if (this->m_servers[i].match_virtual_host(cleaned_virtual_host))
                 	return (this->m_servers[i]);
             }
         }
