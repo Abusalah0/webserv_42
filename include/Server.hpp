@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:26:51 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 23:24:09 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 14:47:33 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
@@ -69,8 +69,7 @@ class Server : public BaseBlock
 
         // utils
         bool match_virtual_host(const std::string &virtual_host) const;
-		Location& match_location(std::string& route);
-        // void match_location(const std::string &path) const;
+		const Location& match_location(std::string& route) const;
 
 		// etc
 		void set_default_server();

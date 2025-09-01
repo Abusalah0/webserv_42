@@ -13,23 +13,7 @@ static const char* statusTableLookup(ushort code)
 WebservExceptions::HTTPException::HTTPException(ushort code):
 	m_code(code)
 {
-	const char* msg = statusTableLookup(code);
-	int i = 0;
-	char digits[3];
-	while (code)
-	{
-		digits[i] = code % 10 + 0x30;
-		code /= 10;
-		++i;
-	}
-	--i;
-	while (i > -1)
-	{
-		this->m_msg.push_back(digits[i]);
-		--i;
-	}
-	this->m_msg.push_back(' ');
-	this->m_msg.append(msg);
+	this->m_msg = statusTableLookup(code);
 }
 
 WebservExceptions::HTTPException::~HTTPException() throw()
@@ -42,7 +26,7 @@ ushort WebservExceptions::HTTPException::get_error_code() const
 
 const char* WebservExceptions::HTTPException::what() const throw()
 {
-	return this->m_msg.c_str();
+	return this->m_msg;
 }
 
 const char* WebservExceptions::FileOpenFailure::what() const throw()

@@ -8,7 +8,6 @@
 #include <csignal>
 #include <vector>
 #include <algorithm>
-#include "Exceptions.hpp"
 
 extern int g_signum;
 
@@ -17,6 +16,24 @@ typedef enum EConnectionTypes
 	CONNECTION_KEEP_ALIVE,
 	CONNECTION_CLOSE
 } ConnectionTypes;
+
+#define HTTP_OK 200
+#define HTTP_MOVED_PERMANENTLY 301
+#define HTTP_BAD_REQUEST 400
+#define HTTP_FORBIDDEN 403
+#define HTTP_NOT_FOUND 404
+#define HTTP_NOT_IMPLEMENTED 501
+#define HTTP_BAD_GATEWAY 502
+#define HTTP_VERSION_ERROR 505
+
+#define HTTP_OK_MSG "OK"
+#define HTTP_MOVED_PERMANENTLY_MSG "301 Moved Permanetly"
+#define HTTP_BAD_REQUEST_MSG "400 Bad Request"
+#define HTTP_FORBIDDEN_MSG "403 Forbidden"
+#define HTTP_NOT_FOUND_MSG "404 Not Found"
+#define HTTP_NOT_IMPLEMENTED_MSG "501 Not Implemented"
+#define HTTP_BAD_GATEWAY_MSG "502 Bad Gateway"
+#define HTTP_VERSION_ERROR_MSG "505 HTTP Version Not Supported"
 
 // Used when path of root is not absoulte or relative
 #define ROOT_PREFIX "/var/lib/webserv/"
@@ -76,9 +93,29 @@ bool is_field_value_chr(u_char c);
 * @return If all characters followes the function rule or not
 */
 bool check_str_chrs(std::string& str, bool (*func)(u_char c));
+/**
+ * Parses the chunk size from a string.
+ * @param str The string to parse.
+ * @return The parsed chunk size.
+ */
 size_t parse_chunk_size(std::string& str);
+/**
+ * Normalizes a file path by removing redundant components.
+ * @param path The file path to normalize.
+ * @return The normalized file path.
+ */
 std::string normalize_path(const std::string& path);
+/**
+ * Decodes a URL-encoded string.
+ * @param encoded The URL-encoded string to decode.
+ * @return The decoded string.
+ */
 std::string url_decode(const std::string& encoded);
+/**
+ * Converts a size_t value to a string.
+ * @param value The size_t value to convert.
+ * @return The converted string.
+ */
 std::string ul_to_str(size_t value);
 
 #endif

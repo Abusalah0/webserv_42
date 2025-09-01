@@ -2,6 +2,7 @@
 #include <ServerContainer.hpp>
 #include <unistd.h>
 #include <iostream>
+#include <fcntl.h>
 
 Client::Client(int fd,
 	ServerContainer* server_container,
@@ -147,7 +148,7 @@ std::string generate_fallback_body(const std::string& msg)
 		"<center><h1>{template}</h1></center>\n"
 		"<hr><center>webserv/1.0</center>\n"
 		"</body>\n"
-		"</html>";
+		"</html>\n";
 	std::string str_template = "{template}";
 	size_t pos = body.find(str_template);
 	body.erase(pos, str_template.size());
@@ -158,39 +159,72 @@ std::string generate_fallback_body(const std::string& msg)
 	return body;
 }
 
-void Client::fallback_generate_error(const WebservExceptions::HTTPException& e)
+void Client::fallback_generate_error(const std::string& msg, const std::string& location)
 {
-	std::string body = generate_fallback_body(e.what());
+	std::string body = generate_fallback_body(msg);
 	this->m_header.clear();
 	this->m_header.set_content_length(body.size());
-	this->m_header.generate_response_fields(this->m_client_status, e.what(), false);
+	this->m_header.generate_response_fields(this->m_client_status, msg, false);
+	if (!location.empty())
+	{
+		HTTPHeaderField field;
+		field.name = "Location";
+		field.value = location;
+		this->m_header.add_field(field);
+	}
 	std::string response_header = this->m_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_response_buffer.push(body.c_str(), body.size());
 	this->m_response_buffer.create_barrier();
 }
 
-void Client::generate_error(const WebservExceptions::HTTPException& e)
+void Client::generate_error(ushort code, const std::string& msg, const std::string& location)
 {
 	std::string error_page;
 
 	try
 	{
 		if (this->m_current_scope == SCOPE_BASE_SERVER)
-			error_page = this->m_base_server->get_error_page(e.get_error_code());
+			error_page = this->m_base_server->get_error_page(code);
 		else if (this->m_current_scope == SCOPE_TARGET_SERVER)
-			error_page = this->m_target_server->get_error_page(e.get_error_code());
+			error_page = this->m_target_server->get_error_page(code);
 		else
-			error_page = this->m_target_location->get_error_page(e.get_error_code());
+			error_page = this->m_target_location->get_error_page(code);
 	}
-	catch(const WebservExceptions::HTTPException& inner_e)
+	catch(const WebservExceptions::HTTPException& e)
 	{
-		fallback_generate_error(inner_e);
+		fallback_generate_error(e.what(), location);
 	}
-	catch(const WebservExceptions::NoAvailablePage& inner_e)
+	catch(const WebservExceptions::NoAvailablePage& e)
 	{
-		fallback_generate_error(e);
+		fallback_generate_error(msg, location);
 	}
+}
+
+void Client::handle_index()
+{
+	std::string target = "";
+	if (str_back(this->m_header.get_target()) == '/')
+		target = this->m_header.get_target();
+	IndexEntry index_entry = this->m_target_location->get_index_page("");
+	if (index_entry.is_dir)
+	{
+		const std::string& root = this->m_target_location->get_root();
+		std::string location = index_entry.path.substr(root.size());
+		generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
+	}
+	struct stat statbuf;
+	if (stat(index_entry.path.c_str(), &statbuf))
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	this->m_header.set_content_length(statbuf.st_size);
+	this->m_file_fd = open(index_entry.path.c_str(), O_RDONLY);
+	if (this->m_file_fd == -1)
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	this->m_server_container->add_to_poll(this->m_file_fd);
+	this->m_header.generate_response_fields(this->m_client_status, HTTP_OK_MSG, false);
+	std::string response_header = this->m_header.generate_response_header();
+	this->m_response_buffer.push(response_header.c_str(), response_header.size());
+	this->m_process_state = PROCESS_FILE_BODY;
 }
 
 void Client::process()
@@ -217,16 +251,39 @@ void Client::process()
 				process_body_chunked_end();
 				break;
 			case PROCESS_REQUEST:
-				std::cout << this->m_listen_entry->first << ':' << this->m_listen_entry->second << std::endl;
-				std::cout << this->m_header.get_virtual_host() << std::endl;
-				const Server& target_server = this->m_server_container->get_best_server(
+				this->m_target_server = &this->m_server_container->get_best_server(
 					this->m_listen_entry->first, this->m_listen_entry->second, this->m_header.get_virtual_host()
 				);
-				(void)target_server;
-				this->m_header.debug();
-				std::cout << "---------------BODY---------------" << std::endl;
-				std::cout << this->m_body << std::endl;
-				this->m_process_state = PROCESS_HEADER;
+				this->m_current_scope = SCOPE_TARGET_SERVER;
+				this->m_target_location = &this->m_target_server->match_location(this->m_header.get_target());
+				this->m_current_scope = SCOPE_TARGET_LOCATION;
+				try
+				{
+					handle_index();
+				}
+				catch(const WebservExceptions::NoAvailablePage& e)
+				{
+					throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+				}
+				break;
+			case PROCESS_FILE_BODY:
+				char buffer[CHUNK_SIZE];
+				ssize_t bytes_read = read(this->m_file_fd, buffer, CHUNK_SIZE);
+				if (bytes_read == 0)
+				{
+					if (this->m_response_buffer.size())
+						this->m_response_buffer.create_barrier();
+					reset_client_state();
+					break;
+				}
+				if (bytes_read == -1)
+				{
+					this->m_client_status = CLIENT_ERROR;
+					close(this->m_file_fd);
+					this->m_server_container->remove_from_poll(this->m_file_fd);
+					break;
+				}
+				this->m_response_buffer.push(buffer, bytes_read);
 				break;
 		}
 	}
@@ -234,7 +291,7 @@ void Client::process()
 	{
 		if (e.get_error_code() == HTTP_BAD_REQUEST)
 			this->m_client_status = CLIENT_DONE;
-		generate_error(e);
+		generate_error(e.get_error_code(), e.what(), "");
 		reset_client_state();
 	}
 }

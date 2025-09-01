@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 15:42:52 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 17:33:05 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 18:54:30 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,8 @@ class ServerContainer
         std::vector<Server>::const_iterator end() { return m_servers.end(); }
         const Server& get_best_server(const std::string& ip, const std::string& port, const std::string& virtual_host) const;
         const std::vector<Server>& get_servers() const;
+        void add_to_poll(int fd);
+        void remove_from_poll(int fd);
 };
 
 #endif // SERVERCONTAINER_HPP

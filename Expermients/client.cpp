@@ -57,9 +57,6 @@ int main(int ac, char** av)
 	// bytes_read = recv(fd, buf, 10000, 0);
     // buf[bytes_read] = 0;
     // printf("%s\n", buf);
-	// bytes_read = recv(fd, buf, 10000, 0);
-    // buf[bytes_read] = 0;
-    // printf("%s\n", buf);
     
     return 0;
 }

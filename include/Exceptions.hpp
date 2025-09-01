@@ -1,27 +1,20 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Exceptions.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 12:01:53 by sbibers           #+#    #+#             */
-/*   Updated: 2025/09/01 02:04:02 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 16:46:28 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef EXCEPTIONS_HPP
 #define EXCEPTIONS_HPP
 
 #include <exception>
 #include "CommonUtils.hpp"
-
-#define HTTP_BAD_REQUEST 400
-#define HTTP_FORBIDDEN 403
-#define HTTP_NOT_FOUND 404
-#define HTTP_NOT_IMPLEMENTED 501
-#define HTTP_BAD_GATEWAY 502
-#define HTTP_VERSION_ERROR 505
 
 struct HTTPStatus
 {
@@ -30,12 +23,13 @@ struct HTTPStatus
 };
 
 static const HTTPStatus statusTable[] = {
-	{HTTP_BAD_REQUEST, "Bad Request"},
-	{HTTP_FORBIDDEN, "Forbidden"},
-	{HTTP_NOT_FOUND, "Not Found"},
-	{HTTP_NOT_IMPLEMENTED, "Not Implemented"},
-	{HTTP_VERSION_ERROR, "HTTP Version Not Supported"},
-	{HTTP_BAD_GATEWAY, "Bad Gateway"},
+    {HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG},
+	{HTTP_BAD_REQUEST, HTTP_BAD_REQUEST_MSG},
+	{HTTP_FORBIDDEN, HTTP_FORBIDDEN_MSG},
+	{HTTP_NOT_FOUND, HTTP_NOT_FOUND_MSG},
+	{HTTP_NOT_IMPLEMENTED, HTTP_NOT_IMPLEMENTED_MSG},
+	{HTTP_BAD_GATEWAY, HTTP_BAD_GATEWAY_MSG},
+    {HTTP_VERSION_ERROR, HTTP_VERSION_ERROR_MSG},
 	{0, 0}
 };
 
@@ -45,7 +39,7 @@ namespace WebservExceptions
 	{
 		private:
 			ushort m_code;
-			std::string m_msg;
+			const char* m_msg;
 		public:
 			HTTPException(ushort code);
 			virtual ~HTTPException() throw();

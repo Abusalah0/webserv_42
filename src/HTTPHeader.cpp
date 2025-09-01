@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <Exceptions.hpp>
 
 HTTPHeader::HTTPHeader():
 	m_is_query_paramaters(),
@@ -427,6 +428,13 @@ std::map<std::string, HTTPHeaderField> HTTPHeader::get_fields()
 std::deque<HTTPHeaderField> HTTPHeader::get_response_fields()
 {
 	return this->m_response_fields;
+}
+
+void HTTPHeader::add_field(HTTPHeaderField& field)
+{
+	std::string lowercase = field.name;
+	std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), c_tolower);
+	this->m_fields["location"] = field;
 }
 
 void HTTPHeader::clear()

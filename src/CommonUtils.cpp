@@ -1,4 +1,5 @@
 #include "../include/CommonUtils.hpp"
+#include <Exceptions.hpp>
 
 /**
  * Getter for last character reference in string

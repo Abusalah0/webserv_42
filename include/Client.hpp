@@ -1,7 +1,6 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
-//#include "../include/ServerContainer.hpp"
 #include "../include/Server.hpp"
 #include <HTTPBuffer.hpp>
 #include <HTTPHeader.hpp>
@@ -10,6 +9,7 @@
 #include <arpa/inet.h>
 #include <ctime>
 #include <poll.h>
+#include <Exceptions.hpp>
 
 enum ClientStatus
 {
@@ -26,7 +26,8 @@ enum ClientProcessState
 	PROCESS_BODY_CHUNKED_SIZE,
 	PROCESS_BODY_CHUNKED_DATA,
 	PROCESS_BODY_CHUNKED_END,
-	PROCESS_REQUEST
+	PROCESS_REQUEST,
+	PROCESS_FILE_BODY
 };
 
 enum ClientScopes
@@ -42,12 +43,13 @@ class Client
 {
 	private:
 		int m_listen_fd;
+		int m_file_fd;
 		ClientStatus m_client_status;
 		int m_process_state;
 		ClientScopes m_current_scope;
-		Server* m_base_server;
-		Server* m_target_server;
-		Location* m_target_location;
+		const Server* m_base_server;
+		const Server* m_target_server;
+		const Location* m_target_location;
 		ServerContainer* m_server_container;
 		time_t m_last_activity;
 		HTTPBuffer m_request_buffer;
@@ -61,8 +63,8 @@ class Client
 		void process_body_chunked_size();
 		void process_body_chunked_data();
 		void process_body_chunked_end();
-		void generate_error(const WebservExceptions::HTTPException& e);
-		void fallback_generate_error(const WebservExceptions::HTTPException& e);
+		void generate_error(ushort code, const std::string& msg, const std::string& location);
+		void fallback_generate_error(const std::string& msg, const std::string& location);
 		void reset_client_state();
 	public:
 		Client();
@@ -73,8 +75,10 @@ class Client
 		~Client();
 		void handle_read();
 		void handle_send();
+		void handle_index();
 		void process();
 		int get_client_status();
+		void generate_redirection();
 };
 
 #endif

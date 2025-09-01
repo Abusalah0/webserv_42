@@ -1,0 +1,19 @@
+http
+{
+    autoindex on;
+    client_max_body_size 10m;
+    server
+    {
+        listen 0.0.0.0:1090;
+        listen 0.0.0.0:1091;
+        root /home/amsaleh/lol;
+        autoindex off;
+        autoindex on;
+	    default_server;
+        index index.html;
+        location  /{
+            cgi blabla;
+            limit get;
+        }
+    }
+}

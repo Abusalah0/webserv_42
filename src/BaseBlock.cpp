@@ -246,11 +246,13 @@ std::map<ushort, std::string> BaseBlock::get_error_pages() const
  * @param[in] route
  * @return index_page absolute path
  */
-std::string BaseBlock::get_index_page(const std::string& route) const
+IndexEntry BaseBlock::get_index_page(const std::string& route) const
 {
 	if (this->m_indexes.empty())
 		throw WebservExceptions::NoAvailablePage();
 
+	IndexEntry entry;
+	entry.is_dir = false;
 	std::string current_root = this->m_root;
 	current_root.append(route);
 	if (str_back(current_root) != '/')
@@ -258,38 +260,38 @@ std::string BaseBlock::get_index_page(const std::string& route) const
 	struct stat statbuf;
 	for (size_t i = 0; i < this->m_indexes.size(); i++)
 	{
-		std::string file_path;
 		const std::string* str_ptr = this->m_indexes[i];
 		if (this->m_indexes[i]->at(0) == '/')
 		{
-			file_path.append(this->m_root);
-			file_path.append(*str_ptr);
-			return file_path;
+			entry.path.append(this->m_root);
+			entry.path.append(*str_ptr);
+			return entry;
 		}
 		else
 		{
-			file_path.append(current_root);
-			file_path.append(*str_ptr);
+			entry.path.append(current_root);
+			entry.path.append(*str_ptr);
 		}
-		if (stat(file_path.c_str(), &statbuf))
+		if (stat(entry.path.c_str(), &statbuf))
 		{
 			if (errno == ENOTDIR)
-				throw WebservExceptions::NoAvailablePage();
+				throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
 			continue;
 		}
-		if (access(file_path.c_str(), R_OK))
-			throw WebservExceptions::ForbiddenAccess();
+		if (access(entry.path.c_str(), R_OK))
+			throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 		if (S_ISDIR(statbuf.st_mode))
 		{
-			if (str_back(file_path) != '/')
-				file_path.push_back('/');
-			return file_path;
+			entry.is_dir = true;
+			if (str_back(entry.path) != '/')
+				entry.path.push_back('/');
+			return entry;
 		}
 		if (S_ISREG(statbuf.st_mode))
-			return file_path;
-		throw WebservExceptions::NonRegularFile();
+			return entry;
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	}
-	throw WebservExceptions::NoAvailablePage();
+	throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 }
 
 /**
@@ -342,13 +344,13 @@ std::string BaseBlock::get_redirect_page(ushort code) const
 	file_path.append(str_ref);
 
 	if (stat(file_path.c_str(), &statbuf))
-		throw WebservExceptions::NoAvailablePage();
+		throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
 	if (access(file_path.c_str(), R_OK))
-		throw WebservExceptions::ForbiddenAccess();
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	if (S_ISDIR(statbuf.st_mode))
-		throw WebservExceptions::ForbiddenAccess();
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	if (!S_ISREG(statbuf.st_mode))
-		throw WebservExceptions::NonRegularFile();
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	return (file_path);
 }
 

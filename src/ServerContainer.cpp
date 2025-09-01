@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 18:20:57 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 18:55:21 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -239,6 +239,27 @@ void ServerContainer::loop()
 		if (g_signum == SIGINT)
 			break;
     }
+}
+
+void ServerContainer::add_to_poll(int fd)
+{
+	pollfd entry;
+	entry.fd = fd;
+	entry.events = 0;
+	entry.revents = 0;
+	this->m_poll_fds.push_back(entry);
+}
+
+void ServerContainer::remove_from_poll(int fd)
+{
+	for (size_t i = 0; i < this->m_poll_fds.size(); i++)
+	{
+		if (this->m_poll_fds[i].fd == fd)
+		{
+			this->m_poll_fds[i].fd = -1;
+			return;
+		}
+	}
 }
 
 void ServerContainer::add_server(const Server& server)

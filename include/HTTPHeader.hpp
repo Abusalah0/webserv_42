@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   HTTPHeader.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 15:11:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/01 02:18:22 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 16:16:00 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef REQUESTHEADER_HPP
 #define REQUESTHEADER_HPP
@@ -106,12 +106,37 @@ class HTTPHeader
  		* Getter for header fields
 		* @return header fields
 		*/
-		void set_content_length(size_t len);
 		std::map<std::string, HTTPHeaderField> get_fields();
+		/**
+		 * @brief Sets the content length for the header.
+		 * @param len The content length to set.
+		 */
+		void set_content_length(size_t len);
+		/**
+		 * @brief Gets map of response fields.
+		 * @return Deque of response fields.
+		 */
 		std::deque<HTTPHeaderField> get_response_fields();
+		/**
+		 * @brief Generates the response header as a string.
+		 * @return The generated response header string.
+		 */
 		std::string generate_response_header();
+		/**
+		 * @brief Generates the response fields based on the client status and message.
+		 * @param client_status The status code of the client.
+		 * @param msg The message associated with the status.
+		 * @param is_chunked Indicates if the response is chunked.
+		 */
 		void generate_response_fields(int client_status, const std::string& msg, bool is_chunked);
+		/**
+		 * @brief Parses the Content-Length header from the response.
+		 */
 		void parse_response_content_len();
+		/**
+		 * @brief Clears the header fields and resets member variables.
+		 */
+		void add_field(HTTPHeaderField& field);
 		void clear();
 		void debug();
 };

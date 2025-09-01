@@ -1,16 +1,17 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 23:25:32 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 19:10:38 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "Server.hpp"
+#include <Exceptions.hpp>
 #include <stdexcept>
 
 Server::Server() : BaseBlock(),
@@ -149,7 +150,7 @@ bool Server::match_virtual_host(const std::string &virtual_host) const
 //     throw std::runtime_error("No matching location found");
 // }
 
-Location& Server::match_location(std::string& route)
+const Location& Server::match_location(std::string& route) const
 {
 	for (size_t i = 0; i < this->m_locations.size(); i++)
 	{
