@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   ServerContainer.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/01 18:55:21 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 22:56:48 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "ServerContainer.hpp"
 #include "Client.hpp"
@@ -265,26 +265,8 @@ void ServerContainer::remove_from_poll(int fd)
 void ServerContainer::add_server(const Server& server)
 {
     this->m_servers.push_back(server);
+	
 }
-
-//lol
-//void ServerContainer::remove_server(int index)
-//{
-//    if (index < 0 || index >= static_cast<int>(servers.size()))
-//    {
-//        throw std::out_of_range("Index out of range");
-//    }
-//    servers.erase(servers.begin() + index);
-//}
-
-// Server* ServerContainer::get_server(int index)
-// {
-//     if (server_map.find(index) != server_map.end())
-//     {
-//         return server_map[index];
-//     }
-//     return (NULL);
-// }
 
 const std::vector<Server>& ServerContainer::get_servers() const
 {

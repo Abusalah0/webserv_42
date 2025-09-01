@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:26:51 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/01 14:47:33 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 22:40:29 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef SERVER_HPP
 # define SERVER_HPP
@@ -73,7 +73,7 @@ class Server : public BaseBlock
 
 		// etc
 		void set_default_server();
-		bool is_default_server();
+		bool is_default_server() const;
 };
 
 void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos);

@@ -271,8 +271,7 @@ void Client::process()
 				ssize_t bytes_read = read(this->m_file_fd, buffer, CHUNK_SIZE);
 				if (bytes_read == 0)
 				{
-					if (this->m_response_buffer.size())
-						this->m_response_buffer.create_barrier();
+					this->m_response_buffer.create_barrier();
 					reset_client_state();
 					break;
 				}

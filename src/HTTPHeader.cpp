@@ -332,7 +332,7 @@ void HTTPHeader::generate_response_fields(int client_status, const std::string& 
 		this->m_fields["content-length"] = field;
 	}
 	field.name = "Connection";
-	if (client_status)
+	if (!client_status)
 		field.value = "keep-alive";
 	else
 		field.value = "close";

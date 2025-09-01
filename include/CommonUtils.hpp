@@ -26,7 +26,7 @@ typedef enum EConnectionTypes
 #define HTTP_BAD_GATEWAY 502
 #define HTTP_VERSION_ERROR 505
 
-#define HTTP_OK_MSG "OK"
+#define HTTP_OK_MSG "200 OK"
 #define HTTP_MOVED_PERMANENTLY_MSG "301 Moved Permanetly"
 #define HTTP_BAD_REQUEST_MSG "400 Bad Request"
 #define HTTP_FORBIDDEN_MSG "403 Forbidden"

@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   HTTPBuffer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 01:19:47 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/08/31 14:01:22 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 22:25:22 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include <HTTPBuffer.hpp>
 #include <iostream>
@@ -33,7 +33,9 @@ void HTTPBuffer::push(const char *buf, size_t len)
 
 void HTTPBuffer::create_barrier()
 {
-	this->m_barriers.push_back(this->m_data.size());
+	size_t barriers_size = this->m_barriers.size();
+	if (barriers_size && this->m_barriers[barriers_size - 1] != this->m_data.size())
+		this->m_barriers.push_back(this->m_data.size());
 }
 
 void HTTPBuffer::erase(size_t n)

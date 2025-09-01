@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/01 19:10:38 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/01 22:56:36 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "Server.hpp"
 #include <Exceptions.hpp>
@@ -25,6 +25,7 @@ Server::Server() : BaseBlock(),
 Server::Server(const Server& other) : 
         BaseBlock(other),
 		m_is_default(other.m_is_default),
+		m_root_location_exist(other.m_root_location_exist),
         m_locations(other.m_locations),
         m_listen(other.m_listen),
         m_server_names(other.m_server_names)
@@ -96,11 +97,6 @@ void Server::add_server_name(std::string& name)
     this->m_server_names.insert(name);
 }
 
-//void Server::remove_server_name(std::string& name)
-//{
-//    this->m_server_names.erase(name);
-//}
-
 void Server::set_listen(std::vector<std::pair<std::string, std::string> >& listen)
 {
     this->m_listen = listen;
@@ -132,24 +128,6 @@ bool Server::match_virtual_host(const std::string &virtual_host) const
 	return true;
 }
 
-// Location &Server::get_location_by_path(const std::string& path, const std::string &virtual_host) const
-// {
-//     // For now, return the first location or throw an exception if none exist
-//     if (this->m_locations.empty())
-//         throw std::runtime_error("No locations available");
-
-//     match_virtual_host(virtual_host);
-//     std::string normalized = normalize_path(path);
-
-//     // lets match the normalized path with the locations
-//     for (std::vector<Location>::const_iterator it = this->m_locations.begin(); it != this->m_locations.end(); ++it)
-//     {
-//         if (it->get_root() == normalized)
-//             return (const_cast<Location&>(*it));
-//     }
-//     throw std::runtime_error("No matching location found");
-// }
-
 const Location& Server::match_location(std::string& route) const
 {
 	for (size_t i = 0; i < this->m_locations.size(); i++)
@@ -172,25 +150,12 @@ const std::set<std::string> Server::get_server_names() const
     return (this->m_server_names);
 }
 
-// void Server::match_location(const std::string &path) const
-// {
-//     std::string normalized = normalize_path(path);
-//     for (size_t i = 0; i < this->m_locations.size(); i++)
-//     {
-//         if (this->m_locations[i].get_root() == normalized)
-//         {
-            
-//             return ;
-//         }
-//     }
-// }
-
 void Server::set_default_server()
 {
 	this->m_is_default = true;
 }
 
-bool Server::is_default_server()
+bool Server::is_default_server() const
 {
 	return this->m_is_default;
 }
