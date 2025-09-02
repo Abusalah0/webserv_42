@@ -203,10 +203,8 @@ void Client::generate_error(ushort code, const std::string& msg, const std::stri
 
 void Client::handle_index()
 {
-	std::string target = "";
-	if (str_back(this->m_header.get_target()) == '/')
-		target = this->m_header.get_target();
-	IndexEntry index_entry = this->m_target_location->get_index_page("");
+	std::string& target = this->m_header.get_target();
+	IndexEntry index_entry = this->m_target_location->get_index_page(target);
 	if (index_entry.is_dir)
 	{
 		const std::string& root = this->m_target_location->get_root();
