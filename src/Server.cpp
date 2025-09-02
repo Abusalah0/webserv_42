@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/02 16:34:03 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/03 01:12:40 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "Server.hpp"
 #include <Exceptions.hpp>
@@ -138,8 +138,6 @@ const Location& Server::match_location(std::string& route) const
 		if (this->m_locations[i].get_upload_path() == route)
 			return this->m_locations[i];
 	}
-	if (this->m_root_location_exist)
-		return this->m_locations[this->m_root_location_index];
 	throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
 }
 
@@ -161,4 +159,14 @@ void Server::set_default_server()
 bool Server::is_default_server() const
 {
 	return this->m_is_default;
+}
+
+bool Server::root_location_exist() const
+{
+	return this->m_root_location_exist;
+}
+
+const Location& Server::get_root_location() const
+{
+	return this->m_locations[this->m_root_location_index];
 }

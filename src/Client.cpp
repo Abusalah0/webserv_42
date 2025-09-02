@@ -9,6 +9,7 @@ Client::Client(int fd,
 	Server* server,
 	const std::pair<std::string, std::string>* listen_entry):
 	m_listen_fd(fd),
+	m_file_fd(-1),
 	m_client_status(CLIENT_ALIVE),
 	m_process_state(PROCESS_HEADER),
 	m_current_scope(SCOPE_BASE_SERVER),
@@ -154,8 +155,27 @@ void Client::process_request()
 		this->m_listen_entry->first, this->m_listen_entry->second, this->m_header.get_virtual_host()
 	);
 	this->m_current_scope = SCOPE_TARGET_SERVER;
+	std::string& target = this->m_header.get_target();
+	if (is_http_target_file(this->m_target_server->get_root(), target))
+	{
+		std::string path = concat_path(this->m_target_server->get_root(), target);
+		prep_process_file_body(path);
+		return;
+	}
+	if (this->m_target_server->root_location_exist())
+	{
+		this->m_target_location = &this->m_target_server->get_root_location();
+		if (is_http_target_file(this->m_target_location->get_root(), target))
+		{
+			std::string path = concat_path(this->m_target_location->get_root(), target);
+			prep_process_file_body(path);
+			return;
+		}
+	}
 	this->m_target_location = &this->m_target_server->match_location(this->m_header.get_target());
 	this->m_current_scope = SCOPE_TARGET_LOCATION;
+	if (!this->m_target_location->is_method_allowed(this->m_header.get_request_method()))
+		throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
 	try
 	{
 		handle_index();
@@ -270,27 +290,15 @@ void Client::handle_index()
 	std::string& request_method = this->m_header.get_request_method();
 	if (request_method != "GET")
 		throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
-	std::string& target = this->m_header.get_target();
-	std::string path;
-	if (is_http_target_file(this->m_target_location->get_root(), target))
+	IndexEntry index_entry = this->m_target_location->get_index_page(this->m_header.get_target());
+	if (index_entry.is_dir)
 	{
-		path = this->m_target_location->get_root();
-		if (str_back(path) == '/' && !path.empty())
-			path.erase(path.size() - 1);
-		path.append(target);
+		const std::string& root = this->m_target_location->get_root();
+		std::string location = index_entry.path.substr(root.size());
+		generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
 	}
 	else
-	{
-		IndexEntry index_entry = this->m_target_location->get_index_page(target);
-		if (index_entry.is_dir)
-		{
-			const std::string& root = this->m_target_location->get_root();
-			std::string location = index_entry.path.substr(root.size());
-			generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
-		}
-		path = index_entry.path;
-	}
-	prep_process_file_body(path);
+		prep_process_file_body(index_entry.path);
 }
 
 void Client::process()

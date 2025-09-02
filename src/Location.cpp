@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:11:46 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 01:52:12 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/03 00:29:57 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -97,4 +97,13 @@ void Location::add_allowed_method(const std::string& method)
 void Location::remove_allowed_method(const std::string& method)
 {
     this->m_allowed_methods.erase(method);
+}
+
+
+bool Location::is_method_allowed(const std::string& method) const
+{
+	std::set<std::string>::iterator it = this->m_allowed_methods.find(method);
+	if (it == this->m_allowed_methods.end())
+		return true;
+	return false;
 }

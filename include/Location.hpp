@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:28:59 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 01:51:07 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/03 00:25:51 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -49,6 +49,7 @@ class Location : public BaseBlock
 
         void add_allowed_method(const std::string& method);
         void remove_allowed_method(const std::string& method);
+		bool is_method_allowed(const std::string& method) const;
 };
 
 #endif // LOCATION_HPP

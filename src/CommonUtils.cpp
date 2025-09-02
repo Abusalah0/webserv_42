@@ -239,12 +239,18 @@ void handle_http_file_errno()
 	}
 }
 
-bool is_http_target_file(const std::string& root, const std::string& target)
+std::string concat_path(const std::string& root, const std::string& target)
 {
 	std::string path = root;
 	if (str_back(path) == '/' && !path.empty())
 		path.erase(path.size() - 1);
 	path.append(target);
+	return path;
+}
+
+bool is_http_target_file(const std::string& root, const std::string& target)
+{
+	std::string path = concat_path(root, target);
 	struct stat statbuf;
 	if (stat(path.c_str(), &statbuf))
 		return false;

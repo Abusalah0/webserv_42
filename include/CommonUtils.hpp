@@ -124,6 +124,7 @@ std::string url_decode(const std::string& encoded);
 std::string ul_to_str(size_t value);
 const char *get_media_type(const std::string &file_path);
 void handle_http_file_errno();
+std::string concat_path(const std::string& root, const std::string& target);
 bool is_http_target_file(const std::string& root, const std::string& target);
 
 #endif
