@@ -6,11 +6,11 @@ http
     {
         listen 0.0.0.0:1090;
         listen 0.0.0.0:1091;
-        root /home/coderx64/lol;
+        root /home/amsaleh/lol;
         autoindex off;
         autoindex on;
 	    default_server;
-        index index.html;
+        index a index.html;
         location  /{
             cgi blabla;
             limit get;

@@ -261,6 +261,7 @@ IndexEntry BaseBlock::get_index_page(const std::string& route) const
 	for (size_t i = 0; i < this->m_indexes.size(); i++)
 	{
 		const std::string* str_ptr = this->m_indexes[i];
+		entry.path.clear();
 		if (this->m_indexes[i]->at(0) == '/')
 		{
 			entry.path.append(this->m_root);

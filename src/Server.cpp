@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/01 22:56:36 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/02 16:34:03 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "Server.hpp"
 #include <Exceptions.hpp>
@@ -17,6 +17,7 @@
 Server::Server() : BaseBlock(),
 					m_is_default(false),
 					m_root_location_exist(false),
+					m_root_location_index(0),
                 	m_locations(),
                 	m_listen(),
                 	m_server_names()
@@ -26,6 +27,7 @@ Server::Server(const Server& other) :
         BaseBlock(other),
 		m_is_default(other.m_is_default),
 		m_root_location_exist(other.m_root_location_exist),
+		m_root_location_index(other.m_root_location_index),
         m_locations(other.m_locations),
         m_listen(other.m_listen),
         m_server_names(other.m_server_names)
@@ -35,6 +37,7 @@ Server::Server(BaseBlock& baseBlock) :
         BaseBlock(baseBlock),
 		m_is_default(false),
 		m_root_location_exist(false),
+		m_root_location_index(0),
         m_locations(),
         m_listen(),
         m_server_names()
