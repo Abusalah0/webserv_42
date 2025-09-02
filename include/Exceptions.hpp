@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Exceptions.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 12:01:53 by sbibers           #+#    #+#             */
-/*   Updated: 2025/09/01 16:46:28 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/02 22:38:39 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef EXCEPTIONS_HPP
 #define EXCEPTIONS_HPP
@@ -27,6 +27,8 @@ static const HTTPStatus statusTable[] = {
 	{HTTP_BAD_REQUEST, HTTP_BAD_REQUEST_MSG},
 	{HTTP_FORBIDDEN, HTTP_FORBIDDEN_MSG},
 	{HTTP_NOT_FOUND, HTTP_NOT_FOUND_MSG},
+	{HTTP_METHOD_NOT_ALLOWED, HTTP_METHOD_NOT_ALLOWED_MSG},
+	{HTTP_INTERNAL_SERVER_ERROR, HTTP_INTERNAL_SERVER_ERROR_MSG},
 	{HTTP_NOT_IMPLEMENTED, HTTP_NOT_IMPLEMENTED_MSG},
 	{HTTP_BAD_GATEWAY, HTTP_BAD_GATEWAY_MSG},
     {HTTP_VERSION_ERROR, HTTP_VERSION_ERROR_MSG},

@@ -69,6 +69,7 @@ class Client
 		void fallback_generate_error(const std::string& msg, const std::string& location);
 		void reset_client_state();
 		void close_file();
+		void prep_process_file_body(std::string& file_path);
 	public:
 		Client();
 		Client(int fd,

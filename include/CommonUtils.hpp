@@ -8,6 +8,7 @@
 #include <csignal>
 #include <vector>
 #include <algorithm>
+#include <sys/stat.h>
 
 extern int g_signum;
 
@@ -22,6 +23,8 @@ typedef enum EConnectionTypes
 #define HTTP_BAD_REQUEST 400
 #define HTTP_FORBIDDEN 403
 #define HTTP_NOT_FOUND 404
+#define HTTP_METHOD_NOT_ALLOWED 405
+#define HTTP_INTERNAL_SERVER_ERROR 500
 #define HTTP_NOT_IMPLEMENTED 501
 #define HTTP_BAD_GATEWAY 502
 #define HTTP_VERSION_ERROR 505
@@ -31,6 +34,8 @@ typedef enum EConnectionTypes
 #define HTTP_BAD_REQUEST_MSG "400 Bad Request"
 #define HTTP_FORBIDDEN_MSG "403 Forbidden"
 #define HTTP_NOT_FOUND_MSG "404 Not Found"
+#define HTTP_METHOD_NOT_ALLOWED_MSG "405 Method Not Allowed"
+#define HTTP_INTERNAL_SERVER_ERROR_MSG "500 Internal Server Error"
 #define HTTP_NOT_IMPLEMENTED_MSG "501 Not Implemented"
 #define HTTP_BAD_GATEWAY_MSG "502 Bad Gateway"
 #define HTTP_VERSION_ERROR_MSG "505 HTTP Version Not Supported"
@@ -118,5 +123,7 @@ std::string url_decode(const std::string& encoded);
  */
 std::string ul_to_str(size_t value);
 const char *get_media_type(const std::string &file_path);
+void handle_http_file_errno();
+bool is_http_target_file(const std::string& root, const std::string& target);
 
 #endif

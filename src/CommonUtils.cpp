@@ -223,3 +223,32 @@ std::string ul_to_str(size_t value)
 	std::reverse(res.begin(), res.end());
 	return res;
 }
+
+void handle_http_file_errno()
+{
+	switch (errno)
+	{
+		case EISDIR:
+		case EACCES:
+			throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+		case ENOENT:
+		case ENOTDIR:
+			throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
+		default:
+			throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
+	}
+}
+
+bool is_http_target_file(const std::string& root, const std::string& target)
+{
+	std::string path = root;
+	if (str_back(path) == '/' && !path.empty())
+		path.erase(path.size() - 1);
+	path.append(target);
+	struct stat statbuf;
+	if (stat(path.c_str(), &statbuf))
+		return false;
+	if (S_ISREG(statbuf.st_mode))
+		return true;
+	return false;
+}

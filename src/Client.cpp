@@ -247,29 +247,50 @@ void Client::generate_error(ushort code, const std::string& msg, const std::stri
 	}
 }
 
-void Client::handle_index()
+void Client::prep_process_file_body(std::string& file_path)
 {
-	std::string& target = this->m_header.get_target();
-	IndexEntry index_entry = this->m_target_location->get_index_page(target);
-	if (index_entry.is_dir)
-	{
-		const std::string& root = this->m_target_location->get_root();
-		std::string location = index_entry.path.substr(root.size());
-		generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
-	}
+	errno = 0;
 	struct stat statbuf;
-	if (stat(index_entry.path.c_str(), &statbuf))
-		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	if (stat(file_path.c_str(), &statbuf))
+		handle_http_file_errno();
 	this->m_header.set_content_length(statbuf.st_size);
-	this->m_file_fd = open(index_entry.path.c_str(), O_RDONLY);
+	this->m_file_fd = open(file_path.c_str(), O_RDONLY);
 	if (this->m_file_fd == -1)
-		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+		handle_http_file_errno();
 	this->m_server_container->add_to_poll(this->m_file_fd);
-	const char* media_type = get_media_type(index_entry.path);
+	const char* media_type = get_media_type(file_path);
 	this->m_header.generate_response_fields(this->m_client_status, HTTP_OK_MSG, false, media_type);
 	std::string response_header = this->m_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_process_state = PROCESS_FILE_BODY;
+}
+
+void Client::handle_index()
+{
+	std::string& request_method = this->m_header.get_request_method();
+	if (request_method != "GET")
+		throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
+	std::string& target = this->m_header.get_target();
+	std::string path;
+	if (is_http_target_file(this->m_target_location->get_root(), target))
+	{
+		path = this->m_target_location->get_root();
+		if (str_back(path) == '/' && !path.empty())
+			path.erase(path.size() - 1);
+		path.append(target);
+	}
+	else
+	{
+		IndexEntry index_entry = this->m_target_location->get_index_page(target);
+		if (index_entry.is_dir)
+		{
+			const std::string& root = this->m_target_location->get_root();
+			std::string location = index_entry.path.substr(root.size());
+			generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
+		}
+		path = index_entry.path;
+	}
+	prep_process_file_body(path);
 }
 
 void Client::process()
