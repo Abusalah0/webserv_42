@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/02 21:35:38 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/02 22:11:23 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -163,7 +163,7 @@ static void debugClientConn(const std::pair<std::string, std::string>* server_ad
 
 void ServerContainer::remove_client(size_t poll_index)
 {
-	std::cout << "Client disconnected!" << std::endl;
+	std::cout << "Client Removed!" << std::endl;
 	close(this->m_poll_fds[poll_index].fd);
 	delete this->m_clients_map[this->m_poll_fds[poll_index].fd];
 	this->m_clients_map.erase(this->m_poll_fds[poll_index].fd);
@@ -204,6 +204,14 @@ void ServerContainer::loop_cleanup()
 	}
 }
 
+bool is_client_timeout(Client* client)
+{
+	time_t raw_time = std::time(0);
+	if (client->get_last_activity() < raw_time - CLIENT_TIMEOUT_SEC)
+		return true;
+	return false;
+}
+
 void ServerContainer::loop()
 {
     while (true)
@@ -225,11 +233,12 @@ void ServerContainer::loop()
 				else if (this->m_clients_map.find(poll_data.fd) != this->m_clients_map.end())
 				{
                     Client* client = this->m_clients_map[poll_data.fd];
-					if (poll_data.revents & POLLHUP || client->get_client_status() > CLIENT_DONE)
+					if (poll_data.revents & POLLHUP || client->get_client_status() > CLIENT_DONE || is_client_timeout(client))
 					{
 						remove_client(i);
 						continue;
 					}
+					;
 					if (poll_data.revents & POLLIN)
                         client->handle_read();
 					if (poll_data.revents & POLLOUT)

@@ -6,7 +6,7 @@ http
     {
         listen 0.0.0.0:1090;
         listen 0.0.0.0:1091;
-        root /home/amsaleh/lol;
+        root /home/coderx64/lol;
         autoindex off;
         autoindex on;
 	    default_server;

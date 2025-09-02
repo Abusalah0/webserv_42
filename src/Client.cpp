@@ -25,7 +25,7 @@ Client::Client(int fd,
 	(void)m_target_location;
 	(void)m_base_server;
 	(void)m_target_server;
-	std::time(&m_last_activity);
+	this->m_last_activity = std::time(0);
 }
 
 Client::Client()
@@ -58,6 +58,7 @@ void Client::handle_read()
 		return;
 	}
 	this->m_request_buffer.push(buffer, bytes_read);
+	this->m_last_activity = std::time(0);
 	
 }
 
@@ -72,6 +73,12 @@ void Client::handle_send()
 		this->m_client_status = CLIENT_ERROR;
 		return;
 	}
+	if (this->m_client_status == CLIENT_DONE && !this->m_request_buffer.size())
+	{
+		this->m_client_status = CLIENT_DISCONNECTED;
+		return;
+	}
+	this->m_last_activity = std::time(0);
 }
 
 void Client::process_header()
@@ -141,6 +148,43 @@ void Client::process_body_chunked_end()
 	}
 }
 
+void Client::process_request()
+{
+	this->m_target_server = &this->m_server_container->get_best_server(
+		this->m_listen_entry->first, this->m_listen_entry->second, this->m_header.get_virtual_host()
+	);
+	this->m_current_scope = SCOPE_TARGET_SERVER;
+	this->m_target_location = &this->m_target_server->match_location(this->m_header.get_target());
+	this->m_current_scope = SCOPE_TARGET_LOCATION;
+	try
+	{
+		handle_index();
+	}
+	catch(const WebservExceptions::NoAvailablePage& e)
+	{
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	}
+}
+
+void Client::process_file_body()
+{
+	char buffer[CHUNK_SIZE];
+	ssize_t bytes_read = read(this->m_file_fd, buffer, CHUNK_SIZE);
+	if (bytes_read == 0)
+	{
+		this->m_response_buffer.create_barrier();
+		reset_client_state();
+		return;
+	}
+	if (bytes_read == -1)
+	{
+		this->m_client_status = CLIENT_ERROR;
+		close_file();
+		return;
+	}
+	this->m_response_buffer.push(buffer, bytes_read);
+}
+
 std::string generate_fallback_body(const std::string& msg)
 {
 	std::string body =
@@ -166,7 +210,7 @@ void Client::fallback_generate_error(const std::string& msg, const std::string& 
 	std::string body = generate_fallback_body(msg);
 	this->m_header.clear();
 	this->m_header.set_content_length(body.size());
-	this->m_header.generate_response_fields(this->m_client_status, msg, false);
+	this->m_header.generate_response_fields(this->m_client_status, msg, false, "text/html");
 	if (!location.empty())
 	{
 		HTTPHeaderField field;
@@ -221,7 +265,8 @@ void Client::handle_index()
 	if (this->m_file_fd == -1)
 		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	this->m_server_container->add_to_poll(this->m_file_fd);
-	this->m_header.generate_response_fields(this->m_client_status, HTTP_OK_MSG, false);
+	const char* media_type = get_media_type(index_entry.path);
+	this->m_header.generate_response_fields(this->m_client_status, HTTP_OK_MSG, false, media_type);
 	std::string response_header = this->m_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_process_state = PROCESS_FILE_BODY;
@@ -251,37 +296,10 @@ void Client::process()
 				process_body_chunked_end();
 				break;
 			case PROCESS_REQUEST:
-				this->m_target_server = &this->m_server_container->get_best_server(
-					this->m_listen_entry->first, this->m_listen_entry->second, this->m_header.get_virtual_host()
-				);
-				this->m_current_scope = SCOPE_TARGET_SERVER;
-				this->m_target_location = &this->m_target_server->match_location(this->m_header.get_target());
-				this->m_current_scope = SCOPE_TARGET_LOCATION;
-				try
-				{
-					handle_index();
-				}
-				catch(const WebservExceptions::NoAvailablePage& e)
-				{
-					throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
-				}
+				process_request();
 				break;
 			case PROCESS_FILE_BODY:
-				char buffer[CHUNK_SIZE];
-				ssize_t bytes_read = read(this->m_file_fd, buffer, CHUNK_SIZE);
-				if (bytes_read == 0)
-				{
-					this->m_response_buffer.create_barrier();
-					reset_client_state();
-					break;
-				}
-				if (bytes_read == -1)
-				{
-					this->m_client_status = CLIENT_ERROR;
-					close_file();
-					break;
-				}
-				this->m_response_buffer.push(buffer, bytes_read);
+				process_file_body();
 				break;
 		}
 	}
@@ -311,4 +329,9 @@ void Client::close_file()
 		this->m_server_container->remove_from_poll(this->m_file_fd);
 		this->m_file_fd = -1;
 	}
+}
+
+time_t Client::get_last_activity()
+{
+	return this->m_last_activity;
 }

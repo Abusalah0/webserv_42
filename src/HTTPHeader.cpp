@@ -313,7 +313,10 @@ std::string generate_http_date()
 	return date;
 }
 
-void HTTPHeader::generate_response_fields(int client_status, const std::string& msg, bool is_chunked)
+void HTTPHeader::generate_response_fields(int client_status,
+	const std::string& msg,
+	bool is_chunked,
+	const char* media_type)
 {
 	HTTPHeaderField field;
 	field.name = "Server";
@@ -338,7 +341,7 @@ void HTTPHeader::generate_response_fields(int client_status, const std::string& 
 		field.value = "close";
 	this->m_fields["connection"] = field;
 	field.name = "Content-Type";
-	field.value = "text/html";
+	field.value = media_type;
 	this->m_fields["content-type"] = field;
 	field.name = "Date";
 	field.value = generate_http_date();

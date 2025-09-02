@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   HTTPHeader.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 15:11:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/01 16:16:00 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/02 21:44:44 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef REQUESTHEADER_HPP
 #define REQUESTHEADER_HPP
@@ -127,8 +127,12 @@ class HTTPHeader
 		 * @param client_status The status code of the client.
 		 * @param msg The message associated with the status.
 		 * @param is_chunked Indicates if the response is chunked.
+		 * @param media_type provides the MIME.
 		 */
-		void generate_response_fields(int client_status, const std::string& msg, bool is_chunked);
+		void generate_response_fields(int client_status,
+			const std::string& msg,
+			bool is_chunked,
+			const char* media_type);
 		/**
 		 * @brief Parses the Content-Length header from the response.
 		 */

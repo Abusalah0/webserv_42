@@ -117,5 +117,6 @@ std::string url_decode(const std::string& encoded);
  * @return The converted string.
  */
 std::string ul_to_str(size_t value);
+const char *get_media_type(const std::string &file_path);
 
 #endif

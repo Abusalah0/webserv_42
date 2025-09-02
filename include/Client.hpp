@@ -63,6 +63,8 @@ class Client
 		void process_body_chunked_size();
 		void process_body_chunked_data();
 		void process_body_chunked_end();
+		void process_request();
+		void process_file_body();
 		void generate_error(ushort code, const std::string& msg, const std::string& location);
 		void fallback_generate_error(const std::string& msg, const std::string& location);
 		void reset_client_state();
@@ -80,6 +82,7 @@ class Client
 		void process();
 		int get_client_status();
 		void generate_redirection();
+		time_t get_last_activity();
 };
 
 #endif
