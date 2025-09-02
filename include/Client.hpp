@@ -66,6 +66,7 @@ class Client
 		void generate_error(ushort code, const std::string& msg, const std::string& location);
 		void fallback_generate_error(const std::string& msg, const std::string& location);
 		void reset_client_state();
+		void close_file();
 	public:
 		Client();
 		Client(int fd,

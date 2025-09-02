@@ -32,7 +32,9 @@ Client::Client()
 {}
 
 Client::~Client()
-{}
+{
+	close_file();
+}
 
 int Client::get_client_status()
 {
@@ -278,8 +280,7 @@ void Client::process()
 				if (bytes_read == -1)
 				{
 					this->m_client_status = CLIENT_ERROR;
-					close(this->m_file_fd);
-					this->m_server_container->remove_from_poll(this->m_file_fd);
+					close_file();
 					break;
 				}
 				this->m_response_buffer.push(buffer, bytes_read);
@@ -297,8 +298,19 @@ void Client::process()
 
 void Client::reset_client_state()
 {
+	close_file();
 	m_process_state = PROCESS_HEADER;
 	m_current_scope = SCOPE_BASE_SERVER;
 	m_header.clear();
 	m_body.clear();
+}
+
+void Client::close_file()
+{
+	if (this->m_file_fd != -1)
+	{
+		close(this->m_file_fd);
+		this->m_server_container->remove_from_poll(this->m_file_fd);
+		this->m_file_fd = -1;
+	}
 }

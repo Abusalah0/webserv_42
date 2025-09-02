@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/01 22:56:48 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/02 21:35:38 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -46,7 +46,10 @@ ServerContainer::ServerContainer(const std::vector<Server>& servers)
 ServerContainer::~ServerContainer()
 {
 	for (size_t i = 0; i < this->m_poll_fds.size(); i++)
-		close(this->m_poll_fds[i].fd);
+	{
+		if (this->m_poll_fds[i].fd != -1)
+			close(this->m_poll_fds[i].fd);
+	}
 	for (std::map<int, Client*>::iterator it = this->m_clients_map.begin();
 		it != this->m_clients_map.end(); it++)
 	{
