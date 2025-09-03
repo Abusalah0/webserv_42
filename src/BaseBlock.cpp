@@ -249,7 +249,7 @@ std::map<ushort, std::string> BaseBlock::get_error_pages() const
 IndexEntry BaseBlock::get_index_page(const std::string& route) const
 {
 	if (this->m_indexes.empty())
-		throw WebservExceptions::NoAvailablePage();
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 
 	IndexEntry entry;
 	entry.is_dir = false;

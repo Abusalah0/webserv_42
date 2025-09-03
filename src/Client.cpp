@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include <iostream>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <CommonUtils.hpp>
 
 Client::Client(int fd,
 	ServerContainer* server_container,
@@ -10,12 +13,11 @@ Client::Client(int fd,
 	const std::pair<std::string, std::string>* listen_entry):
 	m_listen_fd(fd),
 	m_file_fd(-1),
+	m_body_size(0),
 	m_client_status(CLIENT_ALIVE),
 	m_process_state(PROCESS_HEADER),
-	m_current_scope(SCOPE_BASE_SERVER),
 	m_base_server(server),
-	m_target_server(0),
-	m_target_location(0),
+	m_target_block(0),
 	m_server_container(server_container),
 	m_request_buffer(),
 	m_response_buffer(),
@@ -23,9 +25,6 @@ Client::Client(int fd,
 	m_body(),
 	m_listen_entry(listen_entry)
 {
-	(void)m_target_location;
-	(void)m_base_server;
-	(void)m_target_server;
 	this->m_last_activity = std::time(0);
 }
 
@@ -88,12 +87,7 @@ void Client::process_header()
 	{
 		std::string input = this->m_request_buffer.pull_header();
 		this->m_header.parse_request(input);
-		if (this->m_header.get_content_length())
-			this->m_process_state = PROCESS_BODY;
-		else if (this->m_header.is_chunked())
-			this->m_process_state = PROCESS_BODY_CHUNKED_SIZE;
-		else
-			this->m_process_state = PROCESS_REQUEST;
+		this->m_process_state = SELECT_TARGET;
 	}
 	if (this->m_request_buffer.size() > CHUNK_SIZE)
 	{
@@ -118,7 +112,12 @@ void Client::process_body_chunked_size()
 		this->m_request_buffer.erase(2);
 		this->m_chunk_size = parse_chunk_size(chunk_size_str);
 		if (this->m_chunk_size)
+		{
+			this->m_body_size += this->m_chunk_size;
+			if (this->m_body_size > this->m_target_block->get_client_max_body_size())
+				throw WebservExceptions::HTTPException(HTTP_CONTENT_TOO_LARGE);
 			this->m_process_state = PROCESS_BODY_CHUNKED_DATA;
+		}
 		else
 			this->m_process_state = PROCESS_BODY_CHUNKED_END;
 	}
@@ -149,41 +148,128 @@ void Client::process_body_chunked_end()
 	}
 }
 
-void Client::process_request()
+void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 {
-	this->m_target_server = &this->m_server_container->get_best_server(
-		this->m_listen_entry->first, this->m_listen_entry->second, this->m_header.get_virtual_host()
-	);
-	this->m_current_scope = SCOPE_TARGET_SERVER;
-	std::string& target = this->m_header.get_target();
-	if (is_http_target_file(this->m_target_server->get_root(), target))
+	std::string body = "<html>\n"
+		"<head><title>Index of {template}</title></head>\n"
+		"<body>\n"
+		"<h1>Index of {template}</h1><hr><pre>\n";
+	replace_template_str(body, str_template, this->m_header.get_target());
+	for (size_t i = 0; i < entries.size(); i++)
 	{
-		std::string path = concat_path(this->m_target_server->get_root(), target);
+		const AutoIndexEntry& entry = entries[i];
+		std::string entry_html = "<a href=\"{template}\">{template}</a>";
+		replace_template_str(entry_html, str_template, entry.ent_name);
+		if (!S_ISDIR(entry.statbuf.st_mode))
+		{
+			std::string date = generate_autoindex_date();
+			entry_html.push_back(' ');
+			entry_html.append(date);
+			entry_html.push_back(' ');
+			entry_html.append(ul_to_str(entry.statbuf.st_size));
+		}
+		entry_html.push_back('\n');
+		body.append(entry_html);
+	}
+	body.append(
+		"</pre><hr></body>\n"
+		"</html>\n"
+	);
+	this->m_header.set_content_length(body.size());
+	this->m_header.generate_response_fields(this->m_client_status, HTTP_OK_MSG, false, "text/html");
+	std::string response_header = this->m_header.generate_response_header();
+	this->m_response_buffer.push(response_header.c_str(), response_header.size());
+	this->m_response_buffer.push(body.c_str(), body.size());
+	this->m_response_buffer.create_barrier();
+	reset_client_state();
+}
+
+void Client::handle_index()
+{
+	std::string& request_method = this->m_header.get_request_method();
+	if (request_method != "GET")
+		throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
+	IndexEntry index_entry = this->m_target_block->get_index_page(this->m_header.get_target());
+	if (index_entry.is_dir)
+	{
+		const std::string& root = this->m_target_block->get_root();
+		std::string location = index_entry.path.substr(root.size());
+		generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
+	}
+	else
+		prep_process_file_body(index_entry.path);
+}
+
+void Client::direct_serve(const BaseBlock* location_target)
+{
+	std::string& target = this->m_header.get_target();
+	std::string path = concat_path(location_target->get_root(), target);
+	if (is_http_target_file(path))
+	{
 		prep_process_file_body(path);
 		return;
 	}
-	if (this->m_target_server->root_location_exist())
+	else if (is_http_target_dir(path))
 	{
-		this->m_target_location = &this->m_target_server->get_root_location();
-		if (is_http_target_file(this->m_target_location->get_root(), target))
-		{
-			std::string path = concat_path(this->m_target_location->get_root(), target);
-			prep_process_file_body(path);
-			return;
-		}
+		const std::string& root = location_target->get_root();
+		std::string location = path.substr(root.size());
+		generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
 	}
-	this->m_target_location = &this->m_target_server->match_location(this->m_header.get_target());
-	this->m_current_scope = SCOPE_TARGET_LOCATION;
-	if (!this->m_target_location->is_method_allowed(this->m_header.get_request_method()))
-		throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
+	else
+		throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
+}
+
+void Client::process_request()
+{
+	std::string& target = this->m_header.get_target();
+	std::string path = concat_path(this->m_target_block->get_root(), target);
+	if (str_back(this->m_header.get_target()) != '/')
+		direct_serve(this->m_target_block);
+	else
+	{
+		if (is_http_target_dir(path))
+		{
+			if (this->m_target_block->get_auto_index())
+			{
+				std::deque<AutoIndexEntry> entries = generate_autoindex_entries(
+					this->m_target_block->get_root(), this->m_header.get_target()
+				);
+				serve_autoindex(entries);
+			}
+			else
+				throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+		}
+		else
+			handle_index();
+	}
+}
+
+void Client::select_target()
+{
+	const Server* server = &this->m_server_container->get_best_server(
+		this->m_listen_entry->first, this->m_listen_entry->second, this->m_header.get_virtual_host()
+	);
+	this->m_target_block = server;
 	try
 	{
-		handle_index();
+		const Location* location = &server->match_location(this->m_header.get_target());
+		this->m_target_block = location;
+		if (!location->is_method_allowed(this->m_header.get_request_method()))
+			throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
 	}
-	catch(const WebservExceptions::NoAvailablePage& e)
+	catch (const WebservExceptions::LocationNotFound& e)
 	{
-		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	}
+	if (this->m_header.get_content_length())
+	{
+		if (this->m_header.get_content_length() > this->m_target_block->get_client_max_body_size())
+			throw WebservExceptions::HTTPException(HTTP_CONTENT_TOO_LARGE);
+		this->m_process_state = PROCESS_BODY;
+	}
+	else if (this->m_header.is_chunked())
+		this->m_process_state = PROCESS_BODY_CHUNKED_SIZE;
+	else
+		this->m_process_state = PROCESS_REQUEST;
 }
 
 void Client::process_file_body()
@@ -215,13 +301,7 @@ std::string generate_fallback_body(const std::string& msg)
 		"<hr><center>webserv/1.0</center>\n"
 		"</body>\n"
 		"</html>\n";
-	std::string str_template = "{template}";
-	size_t pos = body.find(str_template);
-	body.erase(pos, str_template.size());
-	body.insert(pos, msg);
-	pos = body.find(str_template, pos + msg.size());
-	body.erase(pos, str_template.size());
-	body.insert(pos, msg);
+	replace_template_str(body, str_template, msg);
 	return body;
 }
 
@@ -242,6 +322,7 @@ void Client::fallback_generate_error(const std::string& msg, const std::string& 
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_response_buffer.push(body.c_str(), body.size());
 	this->m_response_buffer.create_barrier();
+	reset_client_state();
 }
 
 void Client::generate_error(ushort code, const std::string& msg, const std::string& location)
@@ -250,12 +331,11 @@ void Client::generate_error(ushort code, const std::string& msg, const std::stri
 
 	try
 	{
-		if (this->m_current_scope == SCOPE_BASE_SERVER)
-			error_page = this->m_base_server->get_error_page(code);
-		else if (this->m_current_scope == SCOPE_TARGET_SERVER)
-			error_page = this->m_target_server->get_error_page(code);
+		error_page = this->m_target_block->get_error_page(code);
+		if (error_page.size() && error_page[0] != '/')
+			fallback_generate_error(HTTP_FOUND_MSG, error_page);
 		else
-			error_page = this->m_target_location->get_error_page(code);
+			prep_process_file_body(error_page, msg);
 	}
 	catch(const WebservExceptions::HTTPException& e)
 	{
@@ -267,9 +347,8 @@ void Client::generate_error(ushort code, const std::string& msg, const std::stri
 	}
 }
 
-void Client::prep_process_file_body(std::string& file_path)
+void Client::prep_process_file_body(const std::string& file_path, const std::string& msg)
 {
-	errno = 0;
 	struct stat statbuf;
 	if (stat(file_path.c_str(), &statbuf))
 		handle_http_file_errno();
@@ -279,26 +358,10 @@ void Client::prep_process_file_body(std::string& file_path)
 		handle_http_file_errno();
 	this->m_server_container->add_to_poll(this->m_file_fd);
 	const char* media_type = get_media_type(file_path);
-	this->m_header.generate_response_fields(this->m_client_status, HTTP_OK_MSG, false, media_type);
+	this->m_header.generate_response_fields(this->m_client_status, msg, false, media_type);
 	std::string response_header = this->m_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_process_state = PROCESS_FILE_BODY;
-}
-
-void Client::handle_index()
-{
-	std::string& request_method = this->m_header.get_request_method();
-	if (request_method != "GET")
-		throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
-	IndexEntry index_entry = this->m_target_location->get_index_page(this->m_header.get_target());
-	if (index_entry.is_dir)
-	{
-		const std::string& root = this->m_target_location->get_root();
-		std::string location = index_entry.path.substr(root.size());
-		generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
-	}
-	else
-		prep_process_file_body(index_entry.path);
 }
 
 void Client::process()
@@ -311,6 +374,9 @@ void Client::process()
 		{	
 			case PROCESS_HEADER:
 				process_header();
+				break;
+			case SELECT_TARGET:
+				select_target();
 				break;
 			case PROCESS_BODY:
 				process_body();
@@ -337,15 +403,14 @@ void Client::process()
 		if (e.get_error_code() == HTTP_BAD_REQUEST)
 			this->m_client_status = CLIENT_DONE;
 		generate_error(e.get_error_code(), e.what(), "");
-		reset_client_state();
 	}
 }
 
 void Client::reset_client_state()
 {
 	close_file();
-	m_process_state = PROCESS_HEADER;
-	m_current_scope = SCOPE_BASE_SERVER;
+	this->m_process_state = PROCESS_HEADER;
+	this->m_body_size = 0;
 	m_header.clear();
 	m_body.clear();
 }

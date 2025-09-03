@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   parse_baseblock.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:55:32 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 17:29:06 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/03 21:03:42 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "parser.hpp"
 
@@ -22,7 +22,7 @@ static void store_directive(BaseBlock &baseBlock, const std::string &directive, 
     ++pos; // skip directive word
     expect_token(tokens, pos);
 
-    if (directive == "client_max_body_size")
+	if (directive == "client_max_body_size")
         parse_client_max_body_size_directive(tokens, baseBlock, pos);
     else if (directive == "error_page")
         parse_error_page_directive(tokens, baseBlock, pos);
@@ -30,7 +30,7 @@ static void store_directive(BaseBlock &baseBlock, const std::string &directive, 
         parse_redirect_directive(tokens, baseBlock, pos);
     else if (directive == "root")
         parse_root_directive(tokens, baseBlock, pos);
-    else if (directive == "auto_index" || directive == "autoindex")
+    else if (directive == "autoindex")
         parse_auto_index_directive(tokens, baseBlock, pos);
     else if (directive == "index")
         parse_index_direcitive(tokens, baseBlock, pos);

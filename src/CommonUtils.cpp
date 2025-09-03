@@ -1,6 +1,10 @@
 #include "../include/CommonUtils.hpp"
 #include <Exceptions.hpp>
 #include <map>
+#include <sys/types.h>
+#include <dirent.h>
+#include <ctime>
+#include <iostream>
 
 /* 			Media Type Task :) 	     	*/
 
@@ -248,13 +252,107 @@ std::string concat_path(const std::string& root, const std::string& target)
 	return path;
 }
 
-bool is_http_target_file(const std::string& root, const std::string& target)
+bool is_http_target_file(const std::string& path)
 {
-	std::string path = concat_path(root, target);
 	struct stat statbuf;
 	if (stat(path.c_str(), &statbuf))
 		return false;
 	if (S_ISREG(statbuf.st_mode))
 		return true;
 	return false;
+}
+
+bool is_http_target_dir(const std::string& path)
+{
+	struct stat statbuf;
+	if (stat(path.c_str(), &statbuf))
+		return false;
+	if (S_ISDIR(statbuf.st_mode))
+		return true;
+	return false;
+}
+
+std::string generate_http_date()
+{
+	std::string date;
+	time_t raw_time = time(0);
+	tm* datetime = gmtime(&raw_time);
+	date.append(daysArr[datetime->tm_wday]);
+	date.append(", ");
+	date.append(ul_to_str(datetime->tm_mday));
+	date.push_back(' ');
+	date.append(monthsArr[datetime->tm_mon]);
+	date.push_back(' ');
+	date.append(ul_to_str(datetime->tm_year + 1900));
+	date.push_back(' ');
+	date.append(ul_to_str(datetime->tm_hour));
+	date.push_back(':');
+	date.append(ul_to_str(datetime->tm_min));
+	date.push_back(':');
+	date.append(ul_to_str(datetime->tm_sec));
+	date.append(" GMT");
+	return date;
+}
+
+std::string generate_autoindex_date()
+{
+	std::string date;
+	time_t raw_time = time(0);
+	tm* datetime = gmtime(&raw_time);
+	date.append(ul_to_str(datetime->tm_mday));
+	date.push_back('-');
+	date.append(monthsArr[datetime->tm_mon]);
+	date.push_back('-');
+	date.append(ul_to_str(datetime->tm_year + 1900));
+	date.push_back(' ');
+	date.append(ul_to_str(datetime->tm_hour));
+	date.push_back(':');
+	date.append(ul_to_str(datetime->tm_min));
+	return date;
+}
+
+std::deque<AutoIndexEntry> generate_autoindex_entries(const std::string& root, const std::string target)
+{
+	std::string path = concat_path(root, target);
+	DIR* dir_s = opendir(path.c_str());
+	if (!dir_s)
+		handle_http_file_errno();
+	std::deque<AutoIndexEntry> entries;
+	dirent* dir_ent = readdir(dir_s);
+	std::string ent_name;
+	std::string ent_path;
+	while (dir_ent)
+	{
+		ent_name = dir_ent->d_name;
+		if (ent_name.compare("."))
+		{
+			struct stat statbuf;
+			ent_path = path + ent_name;
+			if (!stat(ent_path.c_str(), &statbuf))
+			{
+				if (S_ISDIR(statbuf.st_mode))
+					ent_name.push_back('/');
+				AutoIndexEntry entry;
+				entry.ent_name = ent_name;
+				entry.statbuf = statbuf;
+				entries.push_back(entry);
+			}
+		}
+		dir_ent = readdir(dir_s);
+	}
+	closedir(dir_s);
+	return entries;
+}
+
+void replace_template_str(std::string& body,
+	const std::string& str_template,
+	const std::string& str)
+{
+	size_t pos = body.find(str_template);
+	while (pos != std::string::npos)
+	{
+		body.erase(pos, str_template.size());
+		body.insert(pos, str);
+		pos = body.find(str_template, pos + str.size());
+	}
 }

@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 01:12:40 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/03 20:36:27 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -138,7 +138,7 @@ const Location& Server::match_location(std::string& route) const
 		if (this->m_locations[i].get_upload_path() == route)
 			return this->m_locations[i];
 	}
-	throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
+	throw WebservExceptions::LocationNotFound();
 }
 
 const std::vector<std::pair<std::string, std::string> >& Server::get_listen() const

@@ -113,3 +113,13 @@ const char* WebservExceptions::MultipleDefaultServers::what() const throw()
 {
     return "Multiple default servers exists!";
 }
+
+const char* WebservExceptions::DirectServFailed::what() const throw()
+{
+    return "Direct serv failed!";
+}
+
+const char* WebservExceptions::LocationNotFound::what() const throw()
+{
+    return "Location not found!";
+}

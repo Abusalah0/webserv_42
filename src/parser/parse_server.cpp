@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:20:29 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/01 22:38:52 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/03 21:03:22 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -54,28 +54,30 @@ static void store_server_directive(const std::vector<t_token> &tokens, Server &s
     
     if (directive == "listen")
        parse_listen_directive(tokens, srv, pos);
-    else if (directive == "root")
-       parse_root_directive(tokens, srv, pos);
-    else if (directive == "autoindex" || directive == "auto_index")
-        parse_auto_index_directive(tokens, srv, pos);
     else if (directive == "server_name")
        parse_server_name_directive(tokens, srv, pos);
-    else if (directive == "error_page")
-        parse_error_page_directive(tokens, srv, pos);
     else if (directive == "location")
     {
         skip_location_block(tokens, pos);
         return ;        
     }
-    else if (directive == "redirect")
-        parse_redirect_directive(tokens, srv, pos);
-    else if (directive == "index")
-        parse_index_direcitive(tokens, srv, pos);
 	else if (directive == "default_server")
 	{
 		--pos;
 		srv.set_default_server();
 	}
+	else if (directive == "client_max_body_size")
+        parse_client_max_body_size_directive(tokens, srv, pos);
+    else if (directive == "error_page")
+        parse_error_page_directive(tokens, srv, pos);
+    else if (directive == "redirect")
+        parse_redirect_directive(tokens, srv, pos);
+    else if (directive == "root")
+        parse_root_directive(tokens, srv, pos);
+    else if (directive == "autoindex")
+        parse_auto_index_directive(tokens, srv, pos);
+    else if (directive == "index")
+        parse_index_direcitive(tokens, srv, pos);
     else
         throw_parse_error("Uknown directive inside server block");
         

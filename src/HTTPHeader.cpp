@@ -99,7 +99,10 @@ void HTTPHeader::parse_request_line(std::string& line)
 	}
 	if (!validate_target(this->m_target))
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
-	this->m_target = normalize_path(this->m_target);
+	std::string target = normalize_path(this->m_target);
+	if (str_back(target) != '/' && str_back(this->m_target) == '/')
+		target.push_back('/');
+	this->m_target = target;
 	this->m_target = url_decode(this->m_target);
 	e_offset++;
 	s_offset = e_offset;
@@ -287,30 +290,6 @@ void HTTPHeader::parse_response(std::string& input)
 		parse_response_header_line(line);
 		line_start = clrf_pos + 2;
 	}
-}
-
-std::string generate_http_date()
-{
-	std::string date;
-	std::string days[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-	std::string months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-	time_t raw_time = time(0);
-	tm* datetime = gmtime(&raw_time);
-	date.append(days[datetime->tm_wday]);
-	date.append(", ");
-	date.append(ul_to_str(datetime->tm_mday));
-	date.push_back(' ');
-	date.append(months[datetime->tm_mon]);
-	date.push_back(' ');
-	date.append(ul_to_str(datetime->tm_year + 1900));
-	date.push_back(' ');
-	date.append(ul_to_str(datetime->tm_hour));
-	date.push_back(':');
-	date.append(ul_to_str(datetime->tm_min));
-	date.push_back(':');
-	date.append(ul_to_str(datetime->tm_sec));
-	date.append(" GMT");
-	return date;
 }
 
 void HTTPHeader::generate_response_fields(int client_status,

@@ -26,16 +26,19 @@ enum ClientProcessState
 	PROCESS_BODY_CHUNKED_SIZE,
 	PROCESS_BODY_CHUNKED_DATA,
 	PROCESS_BODY_CHUNKED_END,
+	SELECT_TARGET,
 	PROCESS_REQUEST,
 	PROCESS_FILE_BODY
 };
 
-enum ClientScopes
-{
-	SCOPE_BASE_SERVER,
-	SCOPE_TARGET_SERVER,
-	SCOPE_TARGET_LOCATION
-};
+// enum ClientScopes
+// {
+// 	SCOPE_BASE_SERVER,
+// 	SCOPE_TARGET_SERVER,
+// 	SCOPE_TARGET_LOCATION
+// };
+
+static const std::string str_template = "{template}";
 
 class ServerContainer;
 
@@ -44,12 +47,14 @@ class Client
 	private:
 		int m_listen_fd;
 		int m_file_fd;
+		size_t m_body_size; //
 		ClientStatus m_client_status;
 		int m_process_state;
-		ClientScopes m_current_scope;
+		// ClientScopes m_current_scope;
 		const Server* m_base_server;
-		const Server* m_target_server;
-		const Location* m_target_location;
+		// const Server* m_target_server;
+		// const Location* m_target_location;
+		const BaseBlock* m_target_block; //
 		ServerContainer* m_server_container;
 		time_t m_last_activity;
 		HTTPBuffer m_request_buffer;
@@ -65,11 +70,14 @@ class Client
 		void process_body_chunked_end();
 		void process_request();
 		void process_file_body();
+		void select_target();
 		void generate_error(ushort code, const std::string& msg, const std::string& location);
 		void fallback_generate_error(const std::string& msg, const std::string& location);
 		void reset_client_state();
 		void close_file();
-		void prep_process_file_body(std::string& file_path);
+		void prep_process_file_body(const std::string& file_path, const std::string& msg = HTTP_OK_MSG);
+		void serve_autoindex(const std::deque<AutoIndexEntry>& entries);
+		void direct_serve(const BaseBlock* location_target);
 	public:
 		Client();
 		Client(int fd,

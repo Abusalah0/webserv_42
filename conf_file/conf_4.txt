@@ -7,10 +7,10 @@ http
         listen 0.0.0.0:1090;
         listen 0.0.0.0:1091;
         root /home/coderx64/lol;
-        autoindex off;
         autoindex on;
 	    default_server;
-        index a index.html;
+		error_page 404 http://www.google.com;
+
         location  /{
             cgi blabla;
         }

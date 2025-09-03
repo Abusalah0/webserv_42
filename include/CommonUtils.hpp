@@ -2,6 +2,7 @@
 #define COMMONUTILS_HPP
 
 #include <string>
+#include <deque>
 #include <stdint.h>
 #include <cstdlib>
 #include <errno.h>
@@ -20,10 +21,12 @@ typedef enum EConnectionTypes
 
 #define HTTP_OK 200
 #define HTTP_MOVED_PERMANENTLY 301
+#define HTTP_FOUND 302
 #define HTTP_BAD_REQUEST 400
 #define HTTP_FORBIDDEN 403
 #define HTTP_NOT_FOUND 404
 #define HTTP_METHOD_NOT_ALLOWED 405
+#define HTTP_CONTENT_TOO_LARGE 413
 #define HTTP_INTERNAL_SERVER_ERROR 500
 #define HTTP_NOT_IMPLEMENTED 501
 #define HTTP_BAD_GATEWAY 502
@@ -31,10 +34,12 @@ typedef enum EConnectionTypes
 
 #define HTTP_OK_MSG "200 OK"
 #define HTTP_MOVED_PERMANENTLY_MSG "301 Moved Permanetly"
+#define HTTP_FOUND_MSG "302 Found"
 #define HTTP_BAD_REQUEST_MSG "400 Bad Request"
 #define HTTP_FORBIDDEN_MSG "403 Forbidden"
 #define HTTP_NOT_FOUND_MSG "404 Not Found"
 #define HTTP_METHOD_NOT_ALLOWED_MSG "405 Method Not Allowed"
+#define HTTP_CONTENT_TOO_LARGE_MSG "413 Content Too Large"
 #define HTTP_INTERNAL_SERVER_ERROR_MSG "500 Internal Server Error"
 #define HTTP_NOT_IMPLEMENTED_MSG "501 Not Implemented"
 #define HTTP_BAD_GATEWAY_MSG "502 Bad Gateway"
@@ -57,6 +62,15 @@ typedef enum EConnectionTypes
 #define WEBSERV_INTERNAL_REDIRECT_LIMIT 10
 
 #define CHUNK_SIZE KILOBYTE * 8
+
+struct AutoIndexEntry
+{
+	std::string ent_name;
+	struct stat statbuf;
+};
+
+static const std::string daysArr[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+static const std::string monthsArr[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 const char& str_back(const std::string& str);
 ushort parse_http_code(const std::string& str);
@@ -125,6 +139,13 @@ std::string ul_to_str(size_t value);
 const char *get_media_type(const std::string &file_path);
 void handle_http_file_errno();
 std::string concat_path(const std::string& root, const std::string& target);
-bool is_http_target_file(const std::string& root, const std::string& target);
+bool is_http_target_file(const std::string& path);
+bool is_http_target_dir(const std::string& path);
+std::string generate_http_date();
+std::string generate_autoindex_date();
+std::deque<AutoIndexEntry> generate_autoindex_entries(const std::string& root, const std::string target);
+void replace_template_str(std::string& body,
+	const std::string& str_template,
+	const std::string& str);
 
 #endif

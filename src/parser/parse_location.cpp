@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:06:03 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 03:26:11 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/03 21:03:30 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -51,21 +51,25 @@ void    store_location_directive(const std::vector<t_token> &tokens, std::size_t
     ++pos;// skip directive word
     expect_token(tokens, pos);
     
-    if (directive == "root")
-        parse_root_directive(tokens, loc, pos);
-    else if (directive == "limit")
+    if (directive == "limit")
         parse_limit_directive(tokens, loc, pos);
     else if (directive == "cgi")
     {
         if(is_word(tokens[pos]))
             loc.set_cgi_handlers(tokens[pos].word);
     }
-    else if (directive == "redirect")
-        parse_redirect_directive(tokens, loc, pos);
+	else if (directive == "client_max_body_size")
+        parse_client_max_body_size_directive(tokens, loc, pos);
     else if (directive == "error_page")
         parse_error_page_directive(tokens, loc, pos);
+    else if (directive == "redirect")
+        parse_redirect_directive(tokens, loc, pos);
+    else if (directive == "root")
+        parse_root_directive(tokens, loc, pos);
     else if (directive == "autoindex")
         parse_auto_index_directive(tokens, loc, pos);
+    else if (directive == "index")
+        parse_index_direcitive(tokens, loc, pos);
     else
     {
         // std::cout << "Unknown directive inside location block: " << directive << std::endl;   
