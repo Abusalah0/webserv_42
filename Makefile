@@ -2,7 +2,7 @@ NAME = webserv
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -Iinclude -g -MMD
+CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -g -MMD
 
 SRC_DIR = src
 PARSER_DIR = parser

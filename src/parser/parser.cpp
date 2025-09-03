@@ -6,11 +6,11 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 22:00:55 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/29 11:50:28 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/03 16:36:43 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/parser.hpp"
+#include "../../include/parser.hpp"
 
 void parser(const std::vector<t_token> &tokens, ServerContainer &serverContainer)
 {
@@ -36,7 +36,7 @@ void parser(const std::vector<t_token> &tokens, ServerContainer &serverContainer
     // parse http block directives
     parse_baseblock(tokens, baseBlock, pos);
     // parse server blocks
-    parse_servers(tokens, serverContainer, baseBlock, pos); // not implemented yet
+    parse_servers(tokens, serverContainer, baseBlock, pos);
 
     //print servercontainer for debugging
     // print_server_container(serverContainer);

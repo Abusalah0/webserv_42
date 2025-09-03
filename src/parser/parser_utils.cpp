@@ -6,11 +6,11 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 13:11:56 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/30 20:23:39 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/03 16:25:58 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../include/parser.hpp"
+#include "../../include/parser.hpp"
 
 // i will throw better errors later.
 void throw_parse_error(const std::string &msg)

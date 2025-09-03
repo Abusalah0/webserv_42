@@ -6,12 +6,12 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 20:36:27 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/03 22:51:25 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
-#include "Server.hpp"
-#include <Exceptions.hpp>
+#include "../include/Server.hpp"
+#include "../include/Exceptions.hpp"
 #include <stdexcept>
 
 Server::Server() : BaseBlock(),

@@ -6,11 +6,11 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:06:03 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 21:03:30 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/03 22:51:00 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
-#include "parser.hpp"
+#include "../../include/parser.hpp"
 
 void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos)
 {
@@ -58,8 +58,13 @@ void    store_location_directive(const std::vector<t_token> &tokens, std::size_t
         if(is_word(tokens[pos]))
             loc.set_cgi_handlers(tokens[pos].word);
     }
-	else if (directive == "client_max_body_size")
-        parse_client_max_body_size_directive(tokens, loc, pos);
+    else if (directive == "upload_path")
+    {
+        if(is_word(tokens[pos]))
+            loc.set_upload_path(tokens[pos].word);
+    }
+    else if (directive == "redirect")
+        parse_redirect_directive(tokens, loc, pos);
     else if (directive == "error_page")
         parse_error_page_directive(tokens, loc, pos);
     else if (directive == "redirect")
@@ -71,10 +76,7 @@ void    store_location_directive(const std::vector<t_token> &tokens, std::size_t
     else if (directive == "index")
         parse_index_direcitive(tokens, loc, pos);
     else
-    {
-        // std::cout << "Unknown directive inside location block: " << directive << std::endl;   
         throw_parse_error("Unknown directive inside location block");
-    }
     
     ++pos;
     expect_token(tokens, pos);

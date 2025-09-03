@@ -6,11 +6,11 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:20:29 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 21:03:22 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/03 22:51:14 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
-#include "parser.hpp"
+#include "../../include/parser.hpp"
 
 void skip_server_block(const std::vector<t_token> &tokens, std::size_t &pos)
 {
