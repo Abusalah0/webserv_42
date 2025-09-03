@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Location.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:28:59 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 00:25:51 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/03 23:33:25 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef LOCATION_HPP
 # define LOCATION_HPP  
@@ -25,6 +25,7 @@ class Location : public BaseBlock
     private:
         std::set<std::string> m_allowed_methods;
         std::string m_upload_path;
+        std::string m_upload_store;
         std::string m_cgi_handlers;
 
     public:
@@ -44,6 +45,8 @@ class Location : public BaseBlock
         const std::set<std::string>& get_allowed_methods() const;
         void set_upload_path(const std::string& path);
         const std::string& get_upload_path() const;
+        void set_upload_store(const std::string& store);
+        const std::string& get_upload_store() const;
         void set_cgi_handlers(const std::string& handlers);
         const std::string& get_cgi_handlers() const;
 
