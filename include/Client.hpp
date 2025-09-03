@@ -2,14 +2,14 @@
 #define CLIENT_HPP
 
 #include "../include/Server.hpp"
-#include <HTTPBuffer.hpp>
-#include <HTTPHeader.hpp>
+#include "../include/HTTPBuffer.hpp"
+#include "../include/HTTPHeader.hpp"
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <ctime>
 #include <poll.h>
-#include <Exceptions.hpp>
+#include "../include/Exceptions.hpp"
 
 enum ClientStatus
 {

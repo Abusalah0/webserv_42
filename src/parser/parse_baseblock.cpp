@@ -6,11 +6,11 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:55:32 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/25 17:29:06 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/03 16:21:12 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "parser.hpp"
+#include "../../include/parser.hpp"
 
 static void store_directive(BaseBlock &baseBlock, const std::string &directive, const std::vector<t_token> &tokens, std::size_t &pos)
 {

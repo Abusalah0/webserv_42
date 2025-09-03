@@ -1,16 +1,16 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   parse_directives.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:36:13 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/08/31 03:24:22 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/03 16:21:09 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
-#include "parser.hpp"
+#include "../../include/parser.hpp"
 
 void    parse_root_directive(const std::vector<t_token> &tokens, BaseBlock &baseBlock, std::size_t &pos)
 {
