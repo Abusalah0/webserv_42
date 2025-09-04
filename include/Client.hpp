@@ -78,6 +78,8 @@ class Client
 		void prep_process_file_body(const std::string& file_path, const std::string& msg = HTTP_OK_MSG);
 		void serve_autoindex(const std::deque<AutoIndexEntry>& entries);
 		void direct_serve(const BaseBlock* location_target);
+		void handle_post_request();
+		void handle_file_upload();
 	public:
 		Client();
 		Client(int fd,
