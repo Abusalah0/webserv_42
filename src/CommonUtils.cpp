@@ -228,6 +228,26 @@ std::string ul_to_str(size_t value)
 	return res;
 }
 
+std::string tmvalue_to_str(int value)
+{
+	std::string res;
+
+	if (!value)
+	{
+		res.append("00");
+		return res;
+	}
+	while (value)
+	{
+		res.push_back(value % 10 + 0x30);
+		value /= 10;
+	}
+	std::reverse(res.begin(), res.end());
+	if (res.size() < 2)
+		res.insert(res.begin(), '0');
+	return res;
+}
+
 void handle_http_file_errno()
 {
 	switch (errno)
@@ -279,17 +299,17 @@ std::string generate_http_date()
 	tm* datetime = gmtime(&raw_time);
 	date.append(daysArr[datetime->tm_wday]);
 	date.append(", ");
-	date.append(ul_to_str(datetime->tm_mday));
+	date.append(tmvalue_to_str(datetime->tm_mday));
 	date.push_back(' ');
 	date.append(monthsArr[datetime->tm_mon]);
 	date.push_back(' ');
 	date.append(ul_to_str(datetime->tm_year + 1900));
 	date.push_back(' ');
-	date.append(ul_to_str(datetime->tm_hour));
+	date.append(tmvalue_to_str(datetime->tm_hour));
 	date.push_back(':');
-	date.append(ul_to_str(datetime->tm_min));
+	date.append(tmvalue_to_str(datetime->tm_min));
 	date.push_back(':');
-	date.append(ul_to_str(datetime->tm_sec));
+	date.append(tmvalue_to_str(datetime->tm_sec));
 	date.append(" GMT");
 	return date;
 }
@@ -299,15 +319,15 @@ std::string generate_autoindex_date()
 	std::string date;
 	time_t raw_time = time(0);
 	tm* datetime = gmtime(&raw_time);
-	date.append(ul_to_str(datetime->tm_mday));
+	date.append(tmvalue_to_str(datetime->tm_mday));
 	date.push_back('-');
 	date.append(monthsArr[datetime->tm_mon]);
 	date.push_back('-');
-	date.append(ul_to_str(datetime->tm_year + 1900));
+	date.append(tmvalue_to_str(datetime->tm_year + 1900));
 	date.push_back(' ');
-	date.append(ul_to_str(datetime->tm_hour));
+	date.append(tmvalue_to_str(datetime->tm_hour));
 	date.push_back(':');
-	date.append(ul_to_str(datetime->tm_min));
+	date.append(tmvalue_to_str(datetime->tm_min));
 	return date;
 }
 
