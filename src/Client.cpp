@@ -5,6 +5,8 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <sstream>
 #include "../include/CommonUtils.hpp"
 
 Client::Client(int fd,
@@ -428,4 +430,78 @@ void Client::close_file()
 time_t Client::get_last_activity()
 {
 	return this->m_last_activity;
+}
+
+void Client::handle_post_request()
+{
+	// Check if this location supports file uploads
+	const Location* location = dynamic_cast<const Location*>(this->m_target_block);
+	if (location && !location->get_upload_store().empty())
+	{
+		handle_file_upload();
+	}
+	else
+	{
+		// simple POST requests without upload
+		std::string body = "POST request received successfully\n";
+		this->m_header.clear();
+		this->m_header.set_content_length(body.size());
+		this->m_header.generate_response_fields(HTTP_OK, HTTP_OK_MSG, false, "text/plain");
+		std::string response_header = this->m_header.generate_response_header();
+		this->m_response_buffer.push(response_header.c_str(), response_header.size());
+		this->m_response_buffer.push(body.c_str(), body.size());
+		this->m_response_buffer.create_barrier();
+		reset_client_state();
+	}
+}
+
+void Client::handle_file_upload()
+{
+	const Location* location = dynamic_cast<const Location*>(this->m_target_block);
+	if (!location)
+	{
+		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
+	}
+	
+	std::string upload_dir = location->get_upload_store();
+	if (upload_dir.empty())
+	{
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	}
+	
+	// Create upload directory if it doesn't exist
+	mkdir(upload_dir.c_str(), 0755);
+	
+	// For now, handle simple file upload (content body as file)
+	// In a real implementation, you'd parse multipart/form-data
+	std::ostringstream timestamp;
+	timestamp << std::time(0);
+	std::string filename = "uploaded_file_" + timestamp.str();
+	std::string filepath = upload_dir + "/" + filename;
+	
+	// write the body content to file
+	int upload_fd = open(filepath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
+	if (upload_fd == -1)
+	{
+		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
+	}
+	
+	ssize_t bytes_written = write(upload_fd, this->m_body.c_str(), this->m_body.size());
+	close(upload_fd);
+	
+	if (bytes_written == -1)
+	{
+		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
+	}
+	
+	// success response
+	std::string body = "File uploaded successfully to: " + filepath + "\n";
+	this->m_header.clear();
+	this->m_header.set_content_length(body.size());
+	this->m_header.generate_response_fields(HTTP_CREATED, HTTP_CREATED_MSG, false, "text/plain");
+	std::string response_header = this->m_header.generate_response_header();
+	this->m_response_buffer.push(response_header.c_str(), response_header.size());
+	this->m_response_buffer.push(body.c_str(), body.size());
+	this->m_response_buffer.create_barrier();
+	reset_client_state();
 }
