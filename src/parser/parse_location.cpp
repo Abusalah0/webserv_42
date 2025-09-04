@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   parse_location.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:06:03 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 22:51:00 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/04 12:45:40 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../../include/parser.hpp"
 
@@ -58,10 +58,10 @@ void    store_location_directive(const std::vector<t_token> &tokens, std::size_t
         if(is_word(tokens[pos]))
             loc.set_cgi_handlers(tokens[pos].word);
     }
-    else if (directive == "upload_path")
+    else if (directive == "upload_store")
     {
         if(is_word(tokens[pos]))
-            loc.set_upload_path(tokens[pos].word);
+            loc.set_upload_store(tokens[pos].word);
     }
     else if (directive == "redirect")
         parse_redirect_directive(tokens, loc, pos);

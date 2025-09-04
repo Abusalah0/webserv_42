@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:11:46 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 16:35:03 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/03 23:36:39 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,11 +99,20 @@ void Location::remove_allowed_method(const std::string& method)
     this->m_allowed_methods.erase(method);
 }
 
-
 bool Location::is_method_allowed(const std::string& method) const
 {
 	std::set<std::string>::iterator it = this->m_allowed_methods.find(method);
 	if (it == this->m_allowed_methods.end())
 		return true;
 	return false;
+}
+
+void Location::set_upload_store(const std::string& path)
+{
+    this->m_upload_store = path;
+}
+
+const std::string& Location::get_upload_store() const
+{
+    return (this->m_upload_store);
 }
