@@ -10,8 +10,11 @@ http
     {
         root /skill_issue;
         error_page 404 /crazy.html;
-        autoindex off;
         server_name test;
-        listen 11.11.111.11:80;
+        listen 0.0.0.0:1180;
+        location / 
+        {
+            upload_store /tmp/upload;
+        }
     }
 }

@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:11:46 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 23:36:39 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/04 19:24:01 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ Location::Location(const Location& other) :
     BaseBlock(dynamic_cast<const BaseBlock&>(other)),
     m_allowed_methods(other.m_allowed_methods),
     m_upload_path(other.m_upload_path),
+    m_upload_store(other.m_upload_store),
     m_cgi_handlers(other.m_cgi_handlers)
 {}
 
@@ -50,6 +51,7 @@ Location& Location::operator=(const Location& other)
     BaseBlock::operator=(dynamic_cast<const BaseBlock&>(other));
     m_allowed_methods = other.m_allowed_methods;
     m_upload_path = other.m_upload_path;
+    m_upload_store = other.m_upload_store;
     m_cgi_handlers = other.m_cgi_handlers;
     return (*this);
 }
@@ -101,10 +103,13 @@ void Location::remove_allowed_method(const std::string& method)
 
 bool Location::is_method_allowed(const std::string& method) const
 {
-	std::set<std::string>::iterator it = this->m_allowed_methods.find(method);
-	if (it == this->m_allowed_methods.end())
+	// If no methods are specified, all methods are allowed
+	if (this->m_allowed_methods.empty())
 		return true;
-	return false;
+	
+	std::set<std::string>::const_iterator it = this->m_allowed_methods.find(method);
+	// Return true if method is found in allowed methods
+	return (it != this->m_allowed_methods.end());
 }
 
 void Location::set_upload_store(const std::string& path)

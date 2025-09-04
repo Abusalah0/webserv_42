@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 22:51:25 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/04 19:24:00 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../include/Server.hpp"
 #include "../include/Exceptions.hpp"
@@ -133,11 +133,28 @@ bool Server::match_virtual_host(const std::string &virtual_host) const
 
 const Location& Server::match_location(std::string& route) const
 {
+	const Location* best_match = NULL;
+	size_t best_match_length = 0;
+	
 	for (size_t i = 0; i < this->m_locations.size(); i++)
 	{
-		if (this->m_locations[i].get_upload_path() == route)
-			return this->m_locations[i];
+		const std::string& location_path = this->m_locations[i].get_upload_path();
+		
+		// Check if route starts with location_path (prefix matching)
+		if (route.find(location_path) == 0)
+		{
+			// For exact match or if location_path is longer than current best match
+			if (location_path.length() > best_match_length)
+			{
+				best_match = &this->m_locations[i];
+				best_match_length = location_path.length();
+			}
+		}
 	}
+	
+	if (best_match)
+		return *best_match;
+		
 	throw WebservExceptions::LocationNotFound();
 }
 
