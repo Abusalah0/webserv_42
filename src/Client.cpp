@@ -18,7 +18,7 @@ Client::Client(int fd,
 	m_connection_type(CONNECTION_KEEP_ALIVE),
 	m_process_state(PROCESS_HEADER),
 	m_base_server(server),
-	m_target_block(0),
+	m_target_block(server),
 	m_server_container(server_container),
 	m_request_buffer(),
 	m_response_buffer(),
@@ -74,7 +74,6 @@ void Client::handle_send()
 		this->m_client_status = CLIENT_ERROR;
 		return;
 	}
-	std::cout << this->m_client_status << std::endl;
 	if (this->m_client_status == CLIENT_DONE && !this->m_request_buffer.size())
 	{
 		this->m_client_status = CLIENT_DISCONNECTED;
@@ -422,6 +421,7 @@ void Client::reset_client_state()
 {
 	close_file();
 	this->m_process_state = PROCESS_HEADER;
+	this->m_target_block = this->m_base_server;
 	this->m_body_size = 0;
 	m_header.clear();
 	m_body.clear();

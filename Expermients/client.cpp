@@ -20,7 +20,7 @@ int main(int ac, char** av)
 	else
 	{
     	request =
-    	"GET ///cgi-bin///test%2Esh HTTP/1.1\r\n"
+    	"GET ///cgi-bin///test%2Esh HTTP/1.\r\n"
     	"User-Agent: LOL1AAFEFEEFEFEF:EFEF \r\n"
 		"Host: www.lol.com\r\n"
     	"Accept: en-US;;\r\n"
@@ -33,7 +33,7 @@ int main(int ac, char** av)
 		"Cookie: sessionId,abc123;      theme=dark; foo=bar\r\n"
 		"Expires: lol\r\n"
 		"Authorization: iwqhiwdhi;wdjhiqwdjhi\r\n"
-		"Connection: close\r\n"
+		//"Connection: close\r\n"
 		"\r\n";
     	//"\r\n2\r\n\r\n\r\n0\r\n\r\n";
 	}
