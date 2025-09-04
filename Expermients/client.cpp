@@ -20,7 +20,7 @@ int main(int ac, char** av)
 	else
 	{
     	request =
-    	"GET ///cgi-bin///test%2Esh HTTP/1.\r\n"
+    	"GET ///cgi-bin///test%2Esh HTTP/1.1\r\n"
     	"User-Agent: LOL1AAFEFEEFEFEF:EFEF \r\n"
 		"Host: www.lol.com\r\n"
     	"Accept: en-US;;\r\n"
@@ -48,11 +48,14 @@ int main(int ac, char** av)
         hostent_ptr->h_length);
     connect(fd, (sockaddr*)&server_addr, sizeof(server_addr));
     send(fd, request, strlen(request), 0);
+	send(fd, request, strlen(request), 0);
     char buf[10001];
     ssize_t bytes_read = recv(fd, buf, 10000, 0);
     buf[bytes_read] = 0;
     printf("%s\n", buf);
-	sleep(10);
+	bytes_read = recv(fd, buf, 10000, 0);
+    buf[bytes_read] = 0;
+    printf("%s\n", buf);
 	// bytes_read = recv(fd, buf, 10000, 0);
     // buf[bytes_read] = 0;
     // printf("%s\n", buf);

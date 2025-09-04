@@ -9,7 +9,7 @@ http
         root /home/coderx64/lol;
         autoindex on;
 	    default_server;
-		error_page 404 http://www.google.com;
+		error_page 404 index.html;
 
         location  /{
             cgi blabla;

@@ -339,10 +339,18 @@ void Client::generate_error(ushort code, const std::string& msg, const std::stri
 	try
 	{
 		error_page = this->m_target_block->get_error_page(code);
-		if (error_page.size() && error_page[0] != '/')
-			fallback_generate_error(HTTP_FOUND_MSG, error_page);
-		else
+		if (!error_page.empty() && error_page[0] == '/')
 			prep_process_file_body(error_page, msg);
+		else
+		{
+
+			// std::string target = this->m_header.get_target();
+			// if (str_back(target) != '/')
+			// 	target.push_back('/');
+			// target.append(error_page);
+			// std::cout << target << std::endl;
+			fallback_generate_error(HTTP_FOUND_MSG, error_page);
+		}
 	}
 	catch(const WebservExceptions::HTTPException& e)
 	{
