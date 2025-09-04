@@ -12,7 +12,8 @@ http
 		error_page 404 http://www.google.com;
 
         location  /{
-            cgi blabla;
+            upload_store /tmp/upload;
+            limit POST GET;
         }
     }
 }

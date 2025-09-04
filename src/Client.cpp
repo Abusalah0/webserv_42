@@ -188,8 +188,9 @@ void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 
 void Client::handle_index()
 {
+	
 	std::string& request_method = this->m_header.get_request_method();
-	if (request_method != "GET")
+	if (request_method != "GET" && request_method != "POST")
 		throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
 	IndexEntry index_entry = this->m_target_block->get_index_page(this->m_header.get_target());
 	if (index_entry.is_dir)
@@ -204,10 +205,28 @@ void Client::handle_index()
 
 void Client::direct_serve(const BaseBlock* location_target)
 {
+	std::string& request_method = this->m_header.get_request_method();
 	std::string& target = this->m_header.get_target();
 	std::string path = concat_path(location_target->get_root(), target);
+	
+	// Check if this is a POST request to an upload location
+	if (request_method == "POST")
+	{
+		const Location* location = dynamic_cast<const Location*>(location_target);
+		if (location && !location->get_upload_store().empty())
+		{
+			handle_post_request();
+			return;
+		}
+	}
+	
 	if (is_http_target_file(path))
 	{
+		if (request_method == "POST")
+		{
+			handle_post_request();
+			return;
+		}
 		prep_process_file_body(path);
 		return;
 	}
@@ -218,17 +237,42 @@ void Client::direct_serve(const BaseBlock* location_target)
 		generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
 	}
 	else
+	{
+		// If it's a POST request and the path doesn't exist, but it's an upload location, handle it
+		if (request_method == "POST")
+		{
+			const Location* location = dynamic_cast<const Location*>(location_target);
+			if (location && !location->get_upload_store().empty())
+			{
+				handle_post_request();
+				return;
+			}
+		}
 		throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
+	}
 }
 
 void Client::process_request()
 {
 	std::string& target = this->m_header.get_target();
+	std::string& request_method = this->m_header.get_request_method();
 	std::string path = concat_path(this->m_target_block->get_root(), target);
+	
 	if (str_back(this->m_header.get_target()) != '/')
 		direct_serve(this->m_target_block);
 	else
 	{
+		// Check if this is a POST request to an upload location
+		if (request_method == "POST")
+		{
+			const Location* location = dynamic_cast<const Location*>(this->m_target_block);
+			if (location && !location->get_upload_store().empty())
+			{
+				handle_post_request();
+				return;
+			}
+		}
+		
 		if (is_http_target_dir(path))
 		{
 			if (this->m_target_block->get_auto_index())
