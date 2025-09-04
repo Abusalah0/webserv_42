@@ -15,6 +15,7 @@ Client::Client(int fd,
 	m_file_fd(-1),
 	m_body_size(0),
 	m_client_status(CLIENT_ALIVE),
+	m_connection_type(CONNECTION_KEEP_ALIVE),
 	m_process_state(PROCESS_HEADER),
 	m_base_server(server),
 	m_target_block(0),
@@ -73,6 +74,7 @@ void Client::handle_send()
 		this->m_client_status = CLIENT_ERROR;
 		return;
 	}
+	std::cout << this->m_client_status << std::endl;
 	if (this->m_client_status == CLIENT_DONE && !this->m_request_buffer.size())
 	{
 		this->m_client_status = CLIENT_DISCONNECTED;
@@ -87,7 +89,8 @@ void Client::process_header()
 	{
 		std::string input = this->m_request_buffer.pull_header();
 		this->m_header.parse_request(input);
-		this->m_process_state = SELECT_TARGET;
+		this->m_connection_type = this->m_header.get_connection_type();
+		this->m_process_state = PROCESS_SELECT_TARGET;
 	}
 	if (this->m_request_buffer.size() > CHUNK_SIZE)
 	{
@@ -176,7 +179,7 @@ void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 		"</html>\n"
 	);
 	this->m_header.set_content_length(body.size());
-	this->m_header.generate_response_fields(this->m_client_status, HTTP_OK_MSG, false, "text/html");
+	this->m_header.generate_response_fields(this->m_connection_type, HTTP_OK_MSG, false, "text/html");
 	std::string response_header = this->m_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_response_buffer.push(body.c_str(), body.size());
@@ -221,6 +224,11 @@ void Client::direct_serve(const BaseBlock* location_target)
 
 void Client::process_request()
 {
+	if (this->m_connection_type == CONNECTION_CLOSE)
+	{
+		this->m_request_buffer.erase(this->m_request_buffer.size());
+		this->m_client_status = CLIENT_DONE;
+	}
 	std::string& target = this->m_header.get_target();
 	std::string path = concat_path(this->m_target_block->get_root(), target);
 	if (str_back(this->m_header.get_target()) != '/')
@@ -310,7 +318,7 @@ void Client::fallback_generate_error(const std::string& msg, const std::string& 
 	std::string body = generate_fallback_body(msg);
 	this->m_header.clear();
 	this->m_header.set_content_length(body.size());
-	this->m_header.generate_response_fields(this->m_client_status, msg, false, "text/html");
+	this->m_header.generate_response_fields(this->m_connection_type, msg, false, "text/html");
 	if (!location.empty())
 	{
 		HTTPHeaderField field;
@@ -358,7 +366,7 @@ void Client::prep_process_file_body(const std::string& file_path, const std::str
 		handle_http_file_errno();
 	this->m_server_container->add_to_poll(this->m_file_fd);
 	const char* media_type = get_media_type(file_path);
-	this->m_header.generate_response_fields(this->m_client_status, msg, false, media_type);
+	this->m_header.generate_response_fields(this->m_connection_type, msg, false, media_type);
 	std::string response_header = this->m_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_process_state = PROCESS_FILE_BODY;
@@ -366,7 +374,7 @@ void Client::prep_process_file_body(const std::string& file_path, const std::str
 
 void Client::process()
 {
-	if (this->m_client_status != CLIENT_ALIVE)
+	if (this->m_client_status > CLIENT_DONE)
 		return;
 	try
 	{
@@ -375,7 +383,7 @@ void Client::process()
 			case PROCESS_HEADER:
 				process_header();
 				break;
-			case SELECT_TARGET:
+			case PROCESS_SELECT_TARGET:
 				select_target();
 				break;
 			case PROCESS_BODY:
@@ -401,7 +409,11 @@ void Client::process()
 	catch (const WebservExceptions::HTTPException& e)
 	{
 		if (e.get_error_code() == HTTP_BAD_REQUEST)
+		{
+			this->m_request_buffer.erase(this->m_request_buffer.size());
 			this->m_client_status = CLIENT_DONE;
+			this->m_connection_type = CONNECTION_CLOSE;
+		}
 		generate_error(e.get_error_code(), e.what(), "");
 	}
 }

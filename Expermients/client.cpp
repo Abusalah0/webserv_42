@@ -33,6 +33,7 @@ int main(int ac, char** av)
 		"Cookie: sessionId,abc123;      theme=dark; foo=bar\r\n"
 		"Expires: lol\r\n"
 		"Authorization: iwqhiwdhi;wdjhiqwdjhi\r\n"
+		"Connection: close\r\n"
 		"\r\n";
     	//"\r\n2\r\n\r\n\r\n0\r\n\r\n";
 	}
@@ -51,6 +52,7 @@ int main(int ac, char** av)
     ssize_t bytes_read = recv(fd, buf, 10000, 0);
     buf[bytes_read] = 0;
     printf("%s\n", buf);
+	sleep(10);
 	// bytes_read = recv(fd, buf, 10000, 0);
     // buf[bytes_read] = 0;
     // printf("%s\n", buf);

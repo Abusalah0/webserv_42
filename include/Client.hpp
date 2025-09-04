@@ -26,17 +26,10 @@ enum ClientProcessState
 	PROCESS_BODY_CHUNKED_SIZE,
 	PROCESS_BODY_CHUNKED_DATA,
 	PROCESS_BODY_CHUNKED_END,
-	SELECT_TARGET,
+	PROCESS_SELECT_TARGET,
 	PROCESS_REQUEST,
 	PROCESS_FILE_BODY
 };
-
-// enum ClientScopes
-// {
-// 	SCOPE_BASE_SERVER,
-// 	SCOPE_TARGET_SERVER,
-// 	SCOPE_TARGET_LOCATION
-// };
 
 static const std::string str_template = "{template}";
 
@@ -47,14 +40,12 @@ class Client
 	private:
 		int m_listen_fd;
 		int m_file_fd;
-		size_t m_body_size; //
+		size_t m_body_size;
 		ClientStatus m_client_status;
+		ConnectionTypes m_connection_type;
 		int m_process_state;
-		// ClientScopes m_current_scope;
 		const Server* m_base_server;
-		// const Server* m_target_server;
-		// const Location* m_target_location;
-		const BaseBlock* m_target_block; //
+		const BaseBlock* m_target_block;
 		ServerContainer* m_server_container;
 		time_t m_last_activity;
 		HTTPBuffer m_request_buffer;
