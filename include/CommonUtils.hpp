@@ -20,6 +20,7 @@ typedef enum EConnectionTypes
 } ConnectionTypes;
 
 #define HTTP_OK 200
+#define HTTP_CREATED 201
 #define HTTP_MOVED_PERMANENTLY 301
 #define HTTP_FOUND 302
 #define HTTP_BAD_REQUEST 400
@@ -33,6 +34,7 @@ typedef enum EConnectionTypes
 #define HTTP_VERSION_ERROR 505
 
 #define HTTP_OK_MSG "200 OK"
+#define HTTP_CREATED_MSG "201 Created"
 #define HTTP_MOVED_PERMANENTLY_MSG "301 Moved Permanetly"
 #define HTTP_FOUND_MSG "302 Found"
 #define HTTP_BAD_REQUEST_MSG "400 Bad Request"
