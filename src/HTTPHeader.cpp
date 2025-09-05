@@ -256,9 +256,9 @@ void HTTPHeader::parse_response_header_line(std::string& line)
 {
 	HTTPHeaderField field = split_request_header(line);
 	if (!check_str_chrs(field.name, is_token_chr))
-		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
 	if (!check_str_chrs(field.value, is_field_value_chr))
-		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
 	std::string lowercase_name = field.name;
 	std::transform(lowercase_name.begin(), lowercase_name.end(), lowercase_name.begin(), c_tolower);
 	if (this->m_fields.find(lowercase_name) != this->m_fields.end())
@@ -292,6 +292,20 @@ void HTTPHeader::parse_response(std::string& input)
 	}
 }
 
+void HTTPHeader::merge_cgi_fields(HTTPHeader& cgi_header)
+{
+	std::map<std::string, HTTPHeaderField>& cgi_fields = cgi_header.get_fields();
+	std::map<std::string, HTTPHeaderField>& fields = get_fields();
+
+	for (std::map<std::string, HTTPHeaderField>::iterator it = cgi_fields.begin();
+		it != cgi_fields.end(); it++)
+	{
+		HTTPHeaderField& field = (*it).second;
+		fields[(*it).first] = field;
+	}
+	this->m_response_fields = cgi_header.m_response_fields;
+}
+
 void HTTPHeader::generate_response_fields(int client_status,
 	const std::string& msg,
 	bool is_chunked,
@@ -299,7 +313,7 @@ void HTTPHeader::generate_response_fields(int client_status,
 {
 	HTTPHeaderField field;
 	field.name = "Server";
-	field.value = "webserv/1.0";
+	field.value = SERVER_SOFTWARE;
 	this->m_fields["server"] = field;
 	if (is_chunked)
 	{
@@ -402,12 +416,12 @@ std::string& HTTPHeader::get_virtual_host()
 	return this->m_virtual_host;
 }
 
-std::map<std::string, HTTPHeaderField> HTTPHeader::get_fields()
+std::map<std::string, HTTPHeaderField>& HTTPHeader::get_fields()
 {
 	return this->m_fields;
 }
 
-std::deque<HTTPHeaderField> HTTPHeader::get_response_fields()
+std::deque<HTTPHeaderField>& HTTPHeader::get_response_fields()
 {
 	return this->m_response_fields;
 }
@@ -446,4 +460,9 @@ void HTTPHeader::debug()
 		HTTPHeaderField entry = (*it).second;
 		std::cout << entry.name << ": " << entry.value << std::endl;
 	}
+}
+
+void HTTPHeader::set_chunked()
+{
+	this->m_is_chunked = true;
 }

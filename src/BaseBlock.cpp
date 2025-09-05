@@ -249,8 +249,7 @@ std::map<ushort, std::string> BaseBlock::get_error_pages() const
 IndexEntry BaseBlock::get_index_page(const std::string& route) const
 {
 	if (this->m_indexes.empty())
-		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
-
+		throw WebservExceptions::NoAvailablePage();
 	IndexEntry entry;
 	entry.is_dir = false;
 	std::string current_root = this->m_root;
@@ -292,7 +291,7 @@ IndexEntry BaseBlock::get_index_page(const std::string& route) const
 			return entry;
 		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	}
-	throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	throw WebservExceptions::NoAvailablePage();
 }
 
 /**

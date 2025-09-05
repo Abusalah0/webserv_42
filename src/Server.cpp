@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 22:51:25 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/05 23:06:18 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -133,9 +133,13 @@ bool Server::match_virtual_host(const std::string &virtual_host) const
 
 const Location& Server::match_location(std::string& route) const
 {
+	size_t pos = route.rfind('/');
+	if (pos == std::string::npos)
+		throw WebservExceptions::LocationNotFound();
+	std::string correct_route = route.substr(0, pos + 1);
 	for (size_t i = 0; i < this->m_locations.size(); i++)
 	{
-		if (this->m_locations[i].get_upload_path() == route)
+		if (this->m_locations[i].get_upload_path() == correct_route)
 			return this->m_locations[i];
 	}
 	throw WebservExceptions::LocationNotFound();

@@ -10,6 +10,8 @@
 #include <vector>
 #include <algorithm>
 #include <sys/stat.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 extern int g_signum;
 
@@ -18,6 +20,8 @@ typedef enum EConnectionTypes
 	CONNECTION_KEEP_ALIVE,
 	CONNECTION_CLOSE
 } ConnectionTypes;
+
+#define SERVER_SOFTWARE "webserv/1.0"
 
 #define HTTP_OK 200
 #define HTTP_MOVED_PERMANENTLY 301
@@ -71,6 +75,7 @@ struct AutoIndexEntry
 
 static const std::string daysArr[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 static const std::string monthsArr[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+static const char hex_base[17] = "0123456789abcdef";
 
 const char& str_back(const std::string& str);
 ushort parse_http_code(const std::string& str);
@@ -147,5 +152,9 @@ std::deque<AutoIndexEntry> generate_autoindex_entries(const std::string& root, c
 void replace_template_str(std::string& body,
 	const std::string& str_template,
 	const std::string& str);
+std::pair<std::string, std::string> parse_sockaddr(sockaddr_in& sockaddr);
+bool is_field_cgi_valid(const std::string& name);
+char chr_to_cgi(char c);
+std::string ul_to_hex(size_t value);
 
 #endif

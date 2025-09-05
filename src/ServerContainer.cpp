@@ -1,36 +1,41 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   ServerContainer.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 16:34:05 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/05 21:48:02 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../include/ServerContainer.hpp"
 #include "../include/Client.hpp"
 #include <iostream>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netdb.h>
-#include <arpa/inet.h>
 #include <stdio.h>
 
-ServerContainer::ServerContainer() : m_default_server(0), m_servers() {}
+ServerContainer::ServerContainer():
+	m_is_child(false),
+	m_default_server(0),
+	m_servers()
+{}
 
-ServerContainer::ServerContainer(const ServerContainer& other) :
-    m_default_server(other.m_default_server), m_servers(other.m_servers)
+ServerContainer::ServerContainer(const ServerContainer& other):
+	m_is_child(other.m_is_child),
+    m_default_server(other.m_default_server),
+	m_servers(other.m_servers)
 {}
 
 ServerContainer& ServerContainer::operator=(const ServerContainer& other)
 {
     if (this != &other)
     {
-        m_servers = other.m_servers;
-        m_default_server = other.m_default_server;
+		this->m_is_child = other.m_is_child;
+        this->m_servers = other.m_servers;
+        this->m_default_server = other.m_default_server;
     }
     return (*this);
 }
@@ -45,11 +50,7 @@ ServerContainer::ServerContainer(const std::vector<Server>& servers)
 
 ServerContainer::~ServerContainer()
 {
-	for (size_t i = 0; i < this->m_poll_fds.size(); i++)
-	{
-		if (this->m_poll_fds[i].fd != -1)
-			close(this->m_poll_fds[i].fd);
-	}
+	close_fds();
 	for (std::map<int, Client*>::iterator it = this->m_clients_map.begin();
 		it != this->m_clients_map.end(); it++)
 	{
@@ -181,8 +182,26 @@ void ServerContainer::accept_client(size_t poll_index)
 		std::cerr << "accept failed!" << std::endl;
 		return;
 	}
+	std::pair<std::string, std::string> client_parsed_addr;
+
+	try
+	{
+		client_parsed_addr = parse_sockaddr(client_addr);
+	}
+	catch(const std::exception& e)
+	{
+		close(client_fd);
+		throw e;
+	}
+	
 	this->m_clients_map.insert(
-		std::pair<int, Client*>(client_fd, new Client(client_fd, this, this->m_servers_map[poll_data.fd], this->m_servers_listen_map[poll_data.fd]))
+		std::pair<int, Client*>(client_fd, new Client(
+			client_fd,
+			this,
+			this->m_servers_map[poll_data.fd],
+			this->m_servers_listen_map[poll_data.fd],
+			client_parsed_addr
+		))
 	);
 	debugClientConn(this->m_servers_listen_map[poll_data.fd]);
 	pollfd entry;
@@ -252,13 +271,23 @@ void ServerContainer::loop()
     }
 }
 
-void ServerContainer::add_to_poll(int fd)
+void ServerContainer::add_to_poll(int fd, short events)
 {
 	pollfd entry;
 	entry.fd = fd;
-	entry.events = 0;
+	entry.events = events;
 	entry.revents = 0;
 	this->m_poll_fds.push_back(entry);
+}
+
+pollfd& ServerContainer::get_poll_entry(int fd)
+{
+	for (size_t i = 0; i < this->m_poll_fds.size(); i++)
+	{
+		if (this->m_poll_fds[i].fd == fd)
+			return this->m_poll_fds[i];
+	}
+	throw WebservExceptions::PollEntryNotFound();
 }
 
 void ServerContainer::remove_from_poll(int fd)
@@ -271,6 +300,7 @@ void ServerContainer::remove_from_poll(int fd)
 			return;
 		}
 	}
+	throw WebservExceptions::PollEntryNotFound();
 }
 
 void ServerContainer::add_server(const Server& server)
@@ -305,4 +335,23 @@ const Server& ServerContainer::get_best_server(const std::string& ip, const std:
 	if (this->m_default_server)
 		return *this->m_default_server;
     throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
+}
+
+void ServerContainer::close_fds()
+{
+	for (size_t i = 0; i < this->m_poll_fds.size(); i++)
+	{
+		if (this->m_poll_fds[i].fd != -1)
+			close(this->m_poll_fds[i].fd);
+	}
+}
+
+bool ServerContainer::is_child() const
+{
+	return this->m_is_child;
+}
+
+void ServerContainer::set_child()
+{
+	this->m_is_child = true;
 }

@@ -10,7 +10,8 @@
 Client::Client(int fd,
 	ServerContainer* server_container,
 	Server* server,
-	const std::pair<std::string, std::string>* listen_entry):
+	const std::pair<std::string, std::string>* server_addr,
+	const std::pair<std::string, std::string>& client_addr):
 	m_listen_fd(fd),
 	m_file_fd(-1),
 	m_body_size(0),
@@ -22,9 +23,15 @@ Client::Client(int fd,
 	m_server_container(server_container),
 	m_request_buffer(),
 	m_response_buffer(),
+	m_cgi_buffer(),
 	m_header(),
+	m_cgi_header(),
 	m_body(),
-	m_listen_entry(listen_entry)
+	m_script_name(),
+	m_server_addr(server_addr),
+	m_client_addr(client_addr),
+	m_cgi_handler(server_container, this),
+	m_cgi_header_finished(false)
 {
 	this->m_last_activity = std::time(0);
 }
@@ -188,9 +195,6 @@ void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 
 void Client::handle_index()
 {
-	std::string& request_method = this->m_header.get_request_method();
-	if (request_method != "GET")
-		throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
 	IndexEntry index_entry = this->m_target_block->get_index_page(this->m_header.get_target());
 	if (index_entry.is_dir)
 	{
@@ -221,17 +225,45 @@ void Client::direct_serve(const BaseBlock* location_target)
 		throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
 }
 
-void Client::process_request()
+void Client::handle_cgi()
 {
-	if (this->m_connection_type == CONNECTION_CLOSE)
+	const Location* location_target;
+	std::string& target = this->m_header.get_target();
+	location_target = dynamic_cast<const Location*>(this->m_target_block);
+	if (!location_target || !location_target->is_cgi_requirments(target))
+		throw WebservExceptions::CGINotFound();
+	std::string full_path = concat_path(location_target->get_root(), target);
+	struct stat statbuf;
+	if (stat(full_path.c_str(), &statbuf))
 	{
-		this->m_request_buffer.erase(this->m_request_buffer.size());
-		this->m_client_status = CLIENT_DONE;
+		if (errno == ENOENT)
+			throw WebservExceptions::CGINotFound();
+		handle_http_file_errno();
 	}
+	if (!S_ISREG(statbuf.st_mode))
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	if (access(full_path.c_str(), R_OK))
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	this->m_script_name = full_path.substr(location_target->get_root().size());
+	this->m_cgi_handler.init_cgi(location_target->get_cgi_pass(), full_path);
+	this->m_process_state = PROCESS_CGI_BEGINNING;
+}
+
+void Client::process_request_get()
+{
 	std::string& target = this->m_header.get_target();
 	std::string path = concat_path(this->m_target_block->get_root(), target);
 	if (str_back(this->m_header.get_target()) != '/')
-		direct_serve(this->m_target_block);
+	{
+		try
+		{
+			handle_cgi();
+		}
+		catch (const WebservExceptions::CGINotFound& e)
+		{
+			direct_serve(this->m_target_block);
+		}
+	}
 	else
 	{
 		if (is_http_target_dir(path))
@@ -244,18 +276,45 @@ void Client::process_request()
 				serve_autoindex(entries);
 			}
 			else
-				throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+			{
+				try
+				{
+					handle_index();
+				}
+				catch (const WebservExceptions::NoAvailablePage& e)
+				{
+					throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+				}
+			}
 		}
 		else
-			handle_index();
+			throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	}
+}
+
+void Client::process_request()
+{
+	if (this->m_connection_type == CONNECTION_CLOSE)
+	{
+		this->m_request_buffer.erase(this->m_request_buffer.size());
+		this->m_client_status = CLIENT_DONE;
+	}
+	std::string& request_method = this->m_header.get_request_method();
+	if (request_method == "GET")
+		process_request_get();
+	else
+		throw WebservExceptions::HTTPException(HTTP_NOT_IMPLEMENTED);
 }
 
 void Client::select_target()
 {
 	const Server* server = &this->m_server_container->get_best_server(
-		this->m_listen_entry->first, this->m_listen_entry->second, this->m_header.get_virtual_host()
+		this->m_server_addr->first, this->m_server_addr->second, this->m_header.get_virtual_host()
 	);
+	if (!server->get_server_names().size())
+		this->m_server_name = this->m_server_addr->first;
+	else
+		this->m_server_name = this->m_header.get_virtual_host();
 	this->m_target_block = server;
 	try
 	{
@@ -305,9 +364,13 @@ std::string generate_fallback_body(const std::string& msg)
 		"<head><title>{template}</title></head>\n"
 		"<body>\n"
 		"<center><h1>{template}</h1></center>\n"
-		"<hr><center>webserv/1.0</center>\n"
+		"<hr><center>";
+	body.append(SERVER_SOFTWARE);
+	body.append(
+		"</center>\n"
 		"</body>\n"
-		"</html>\n";
+		"</html>\n"
+	);
 	replace_template_str(body, str_template, msg);
 	return body;
 }
@@ -371,6 +434,93 @@ void Client::prep_process_file_body(const std::string& file_path, const std::str
 	this->m_process_state = PROCESS_FILE_BODY;
 }
 
+void Client::process_cgi_beginning()
+{
+	if (this->m_cgi_handler.is_write_ready())
+	{
+		if (!this->m_body.empty())
+		{
+			std::string chunk = this->m_body.substr(0, CHUNK_SIZE);
+			this->m_body.erase(0, CHUNK_SIZE);
+			this->m_cgi_handler.write_cgi(this->m_body);
+			if (this->m_body.empty())
+				this->m_cgi_handler.close_write();
+		}
+		else
+			this->m_cgi_handler.close_write();
+	}
+	if (this->m_cgi_handler.is_read_ready())
+	{
+		if (!this->m_cgi_header_finished)
+		{
+			std::string data = this->m_cgi_handler.read_cgi();
+			this->m_cgi_buffer.push(data.c_str(), data.size());
+			if (this->m_cgi_buffer.is_header_finished())
+			{
+				std::string header_str = this->m_cgi_buffer.pull_header();
+				this->m_cgi_header.set_chunked();
+				this->m_cgi_header.parse_response(header_str);
+				this->m_header.clear();
+				this->m_header.generate_response_fields(
+					this->m_connection_type, HTTP_OK_MSG, this->m_cgi_header.is_chunked(), "text/html"
+				);
+				this->m_header.merge_cgi_fields(this->m_cgi_header);
+				header_str = this->m_header.generate_response_header();
+				std::string cgi_data = this->m_cgi_buffer.pull(this->m_cgi_buffer.size());
+				this->m_response_buffer.push(header_str.c_str(), header_str.size());
+				this->m_response_buffer.push(cgi_data.c_str(), cgi_data.size());
+				this->m_cgi_header_finished = true;
+			}
+		}
+	}
+	if (!this->m_cgi_handler.is_read_open() && !this->m_cgi_header_finished)
+	{
+		this->m_cgi_handler.clean_handler();
+		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
+	}
+	if (this->m_cgi_header_finished && this->m_body.empty())
+	{
+		this->m_body_size = 0;
+		this->m_process_state = PROCESS_CGI_READ;
+	}
+}
+
+void Client::process_cgi_read()
+{
+	if (!this->m_cgi_handler.is_read_open())
+		reset_client_state();
+	else
+	{
+		if (this->m_cgi_handler.is_read_ready())
+		{
+			std::string data = this->m_cgi_handler.read_cgi();
+			if (this->m_cgi_header.is_chunked())
+			{
+				std::string str_size = ul_to_hex(data.size());
+				this->m_response_buffer.push(str_size.c_str(), str_size.size());
+				this->m_response_buffer.push("\r\n", 2);
+				this->m_response_buffer.push(data.c_str(), data.size());
+				this->m_response_buffer.push("\r\n", 2);
+			}
+			else
+			{
+				this->m_body_size += data.size();
+				if (this->m_body_size > this->m_cgi_header.get_content_length())
+					data = data.substr(this->m_body_size - this->m_cgi_header.get_content_length());
+				this->m_response_buffer.push(data.c_str(), data.size());
+				if (this->m_body_size >= this->m_cgi_header.get_content_length())
+					reset_client_state();
+			}
+		}
+	}
+	if (!this->m_cgi_handler.is_read_open())
+	{
+		if (this->m_cgi_header.is_chunked())
+			this->m_response_buffer.push("0\r\n\r\n", 5);
+		reset_client_state();
+	}
+}
+
 void Client::process()
 {
 	if (this->m_client_status > CLIENT_DONE)
@@ -403,10 +553,21 @@ void Client::process()
 			case PROCESS_FILE_BODY:
 				process_file_body();
 				break;
+			case PROCESS_CGI_BEGINNING:
+				process_cgi_beginning();
+				break;
+			case PROCESS_CGI_READ:
+				process_cgi_read();
+				break;
 		}
 	}
 	catch (const WebservExceptions::HTTPException& e)
 	{
+		if (this->m_process_state == PROCESS_CGI_READ)
+		{
+			this->m_client_status = CLIENT_DISCONNECTED;
+			return;
+		}
 		if (e.get_error_code() == HTTP_BAD_REQUEST)
 		{
 			this->m_request_buffer.erase(this->m_request_buffer.size());
@@ -423,8 +584,12 @@ void Client::reset_client_state()
 	this->m_process_state = PROCESS_HEADER;
 	this->m_target_block = this->m_base_server;
 	this->m_body_size = 0;
-	m_header.clear();
-	m_body.clear();
+	this->m_cgi_header_finished = false;
+	this->m_header.clear();
+	this->m_cgi_header.clear();
+	this->m_body.clear();
+	this->m_cgi_buffer.erase(this->m_cgi_buffer.size());
+	this->m_cgi_handler.clean_handler();
 }
 
 void Client::close_file()
@@ -437,7 +602,32 @@ void Client::close_file()
 	}
 }
 
-time_t Client::get_last_activity()
+time_t Client::get_last_activity() const
 {
 	return this->m_last_activity;
+}
+
+HTTPHeader& Client::get_header()
+{
+	return this->m_header;
+}
+
+const std::pair<std::string, std::string>& Client::get_client_addr() const
+{
+	return this->m_client_addr;
+}
+
+const std::pair<std::string, std::string>& Client::get_server_addr() const
+{
+	return *this->m_server_addr;
+}
+
+const std::string& Client::get_script_name()
+{
+	return this->m_script_name;
+}
+
+const std::string& Client::get_server_name()
+{
+	return this->m_server_name;
 }

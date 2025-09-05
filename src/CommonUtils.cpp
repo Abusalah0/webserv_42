@@ -376,3 +376,58 @@ void replace_template_str(std::string& body,
 		pos = body.find(str_template, pos + str.size());
 	}
 }
+
+std::pair<std::string, std::string> parse_sockaddr(sockaddr_in& sockaddr)
+{
+	std::pair<std::string, std::string> parsed_addr;
+	
+	ushort port = ntohs(sockaddr.sin_port);
+	uint32_t ip_addr = ntohl(sockaddr.sin_addr.s_addr);
+	parsed_addr.first.append(ul_to_str(ip_addr >> 24));
+	parsed_addr.first.push_back('.');
+	parsed_addr.first.append(ul_to_str((ip_addr >> 16) & 0xFF));
+	parsed_addr.first.push_back('.');
+	parsed_addr.first.append(ul_to_str((ip_addr >> 8) & 0xFF));
+	parsed_addr.first.push_back('.');
+	parsed_addr.first.append(ul_to_str(ip_addr & 0xFF));
+	parsed_addr.second = ul_to_str(port);
+
+	return parsed_addr;
+}
+
+bool is_field_cgi_valid(const std::string& name)
+{
+	for (size_t i = 0; i < name.size(); i++)
+	{
+		if (!std::isalnum(name[i]) && name[i] != '-')
+			return false;
+	}
+	return true;
+}
+
+char chr_to_cgi(char c)
+{
+	if (std::isalpha(c))
+		return std::toupper(c);
+	else if (c == '-')
+		return '_';
+	return c;
+}
+
+std::string ul_to_hex(size_t value)
+{
+	std::string res;
+
+	if (!value)
+	{
+		res = "0";
+		return res;
+	}
+	while (value)
+	{
+		res.push_back(hex_base[value % 16]);
+		value /= 16;
+	}
+	std::reverse(res.begin(), res.end());
+	return res;
+}

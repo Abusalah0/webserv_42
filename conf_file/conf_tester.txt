@@ -1,0 +1,20 @@
+http
+{
+	root /home/coderx64/YoupiBanane;
+	server
+	{
+		listen localhost:1090;
+		index youpi.bla;
+		location / {
+			limit GET;
+		}
+		location /put_test/ {
+		}
+		location /post_body/ {
+			client_max_body_size 100;
+		}
+		location /directory/ {
+			index /nop/youpi.bad_extension;
+		}
+	}
+}

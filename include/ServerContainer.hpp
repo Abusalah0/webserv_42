@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   ServerContainer.hpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 15:42:52 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 16:26:25 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/05 21:47:45 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef SERVERCONTAINER_HPP
 # define SERVERCONTAINER_HPP
@@ -27,6 +27,7 @@ class Client;
 class ServerContainer
 {
     private:
+		bool m_is_child;
         Server* m_default_server;
         std::vector<Server> m_servers;
         std::map<int, Server*> m_servers_map;
@@ -61,8 +62,12 @@ class ServerContainer
         std::vector<Server>::const_iterator end() { return m_servers.end(); }
         const Server& get_best_server(const std::string& ip, const std::string& port, const std::string& virtual_host) const;
         const std::vector<Server>& get_servers() const;
-        void add_to_poll(int fd);
+        void add_to_poll(int fd, short events = 0);
+		pollfd& get_poll_entry(int fd);
         void remove_from_poll(int fd);
+		void close_fds();
+		bool is_child() const;
+		void set_child();
 };
 
 #endif // SERVERCONTAINER_HPP

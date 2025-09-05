@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 15:11:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/02 21:44:44 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/06 00:14:23 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -106,7 +106,7 @@ class HTTPHeader
  		* Getter for header fields
 		* @return header fields
 		*/
-		std::map<std::string, HTTPHeaderField> get_fields();
+		std::map<std::string, HTTPHeaderField>& get_fields();
 		/**
 		 * @brief Sets the content length for the header.
 		 * @param len The content length to set.
@@ -116,7 +116,7 @@ class HTTPHeader
 		 * @brief Gets map of response fields.
 		 * @return Deque of response fields.
 		 */
-		std::deque<HTTPHeaderField> get_response_fields();
+		std::deque<HTTPHeaderField>& get_response_fields();
 		/**
 		 * @brief Generates the response header as a string.
 		 * @return The generated response header string.
@@ -143,6 +143,8 @@ class HTTPHeader
 		void add_field(HTTPHeaderField& field);
 		void clear();
 		void debug();
+		void merge_cgi_fields(HTTPHeader& cgi_header);
+		void set_chunked();
 };
 
 #endif

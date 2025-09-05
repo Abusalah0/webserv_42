@@ -21,6 +21,7 @@ SRC = \
 	HTTPBuffer.cpp \
 	HTTPHeader.cpp \
 	normalize_path.cpp \
+	CGIHandler.cpp \
 	parser/parse_baseblock.cpp \
 	parser/parser.cpp \
 	parser/parser_utils.cpp \

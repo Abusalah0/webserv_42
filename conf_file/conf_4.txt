@@ -1,18 +1,21 @@
 http
 {
-    autoindex on;
     client_max_body_size 10m;
     server
     {
         listen 0.0.0.0:1090;
         listen 0.0.0.0:1091;
         root /home/coderx64/lol;
-        autoindex on;
+        
 	    default_server;
 		error_page 404 index.html;
 
-        location  /{
-            cgi blabla;
+		location  /{
+			cgi_extension .sh;
+			cgi_pass /usr/bin/bash;
+        }
+        location  /directory/{
+			cgi_pass /home/coderx64/lol/directory/ubuntu_cgi_tester;
         }
     }
 }

@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 12:01:53 by sbibers           #+#    #+#             */
-/*   Updated: 2025/09/03 22:16:03 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/05 21:45:39 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -124,6 +124,18 @@ namespace WebservExceptions
         const char* what() const throw();
     };
 	class LocationNotFound: public std::exception
+    {
+        const char* what() const throw();
+    };
+	class CGINotFound: public std::exception
+    {
+        const char* what() const throw();
+    };
+	class ExitChild: public std::exception
+    {
+        const char* what() const throw();
+    };
+	class PollEntryNotFound: public std::exception
     {
         const char* what() const throw();
     };

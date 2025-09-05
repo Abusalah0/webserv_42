@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   parser_print.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 20:23:35 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 16:21:16 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/05 16:20:10 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../../include/parser.hpp"
 
@@ -146,7 +146,8 @@ static void print_locations(const std::vector<Location> &locations)
             print_error_pages(loc.get_error_pages());
             // Location-specific properties
             std::cout << "    Upload Path: " << loc.get_root() << "\n";
-            std::cout << "    CGI Handlers: " << loc.get_cgi_handlers() << "\n";
+            std::cout << "    CGI Extension: " << loc.get_cgi_extension() << "\n";
+			std::cout << "    CGI Pass: " << loc.get_cgi_pass() << "\n";
             
             // Allowed methods
             print_allowed_methods(loc.get_allowed_methods());            

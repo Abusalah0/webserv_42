@@ -123,3 +123,18 @@ const char* WebservExceptions::LocationNotFound::what() const throw()
 {
     return "Location not found!";
 }
+
+const char* WebservExceptions::CGINotFound::what() const throw()
+{
+    return "CGI not found!";
+}
+
+const char* WebservExceptions::ExitChild::what() const throw()
+{
+    return "Exit child!";
+}
+
+const char* WebservExceptions::PollEntryNotFound::what() const throw()
+{
+    return "Poll entry not found!";
+}

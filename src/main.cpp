@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/01 22:33:18 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/05 19:11:07 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -45,6 +45,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 	signal(SIGINT, signal_handler);
+	signal(SIGPIPE, signal_handler);
 	ServerContainer server_container;
 	try
 	{
@@ -58,7 +59,8 @@ int main(int argc, char **argv)
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
+		if (!server_container.is_child())
+			std::cerr << e.what() << std::endl;
 		return (EXIT_FAILURE);
 	}
 	return (EXIT_SUCCESS);
