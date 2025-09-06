@@ -7,6 +7,7 @@
 HTTPHeader::HTTPHeader():
 	m_is_query_paramaters(),
 	m_is_chunked(),
+	m_response_code(200),
 	m_connection(CONNECTION_KEEP_ALIVE),
 	m_method(),
 	m_content_len(),
@@ -273,6 +274,17 @@ void HTTPHeader::parse_response_header_line(std::string& line)
 		this->m_fields[lowercase_name] = field;
 		parse_response_content_len();
 	}
+	else if (lowercase_name == "status")
+	{
+		try
+		{
+			this->m_response_code = parse_http_code(field.value);
+		}
+		catch(const std::exception& e)
+		{
+			throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
+		}
+	}
 	else
 		this->m_response_fields.push_back(field);
 }
@@ -292,22 +304,21 @@ void HTTPHeader::parse_response(std::string& input)
 	}
 }
 
-void HTTPHeader::merge_cgi_fields(HTTPHeader& cgi_header)
-{
-	std::map<std::string, HTTPHeaderField>& cgi_fields = cgi_header.get_fields();
-	std::map<std::string, HTTPHeaderField>& fields = get_fields();
+// void HTTPHeader::merge_cgi_fields(HTTPHeader& cgi_header)
+// {
+// 	std::map<std::string, HTTPHeaderField>& cgi_fields = cgi_header.get_fields();
+// 	std::map<std::string, HTTPHeaderField>& fields = get_fields();
 
-	for (std::map<std::string, HTTPHeaderField>::iterator it = cgi_fields.begin();
-		it != cgi_fields.end(); it++)
-	{
-		HTTPHeaderField& field = (*it).second;
-		fields[(*it).first] = field;
-	}
-	this->m_response_fields = cgi_header.m_response_fields;
-}
+// 	for (std::map<std::string, HTTPHeaderField>::iterator it = cgi_fields.begin();
+// 		it != cgi_fields.end(); it++)
+// 	{
+// 		HTTPHeaderField& field = (*it).second;
+// 		fields[(*it).first] = field;
+// 	}
+// 	this->m_response_fields = cgi_header.m_response_fields;
+// }
 
 void HTTPHeader::generate_response_fields(int client_status,
-	const std::string& msg,
 	bool is_chunked,
 	const char* media_type)
 {
@@ -341,7 +352,7 @@ void HTTPHeader::generate_response_fields(int client_status,
 	this->m_fields["date"] = field;
 
 	this->m_is_chunked = true;
-	this->m_response_msg = msg;
+	this->m_response_msg = status_table_lookup(this->m_response_code);
 }
 
 std::string HTTPHeader::generate_response_header()
@@ -465,4 +476,14 @@ void HTTPHeader::debug()
 void HTTPHeader::set_chunked()
 {
 	this->m_is_chunked = true;
+}
+
+void HTTPHeader::set_response_code(ushort code)
+{
+	this->m_response_code = code;
+}
+
+ushort HTTPHeader::get_response_code()
+{
+	return this->m_response_code;
 }

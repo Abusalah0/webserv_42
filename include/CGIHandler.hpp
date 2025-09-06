@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   CGIHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:13 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/05 23:12:27 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/06 18:22:19 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef CGIHANDLER_HPP
 #define CGIHANDLER_HPP
@@ -20,6 +20,8 @@ class Client;
 class Server;
 class ServerContainer;
 
+#define CGI_TIMEOUT 10
+
 class CGIHandler
 {
 	private:
@@ -28,6 +30,7 @@ class CGIHandler
 		int m_pipe[2];
 		pid_t m_pid;
 		std::map<std::string, std::string> m_env_map;
+		time_t m_last_activity;
 		void init_env_map();
 		void init_env_map_meta();
 		void child_process(const std::string& cgi_pass, const std::string& full_path);
@@ -49,6 +52,7 @@ class CGIHandler
 		void close_read();
 		bool is_write_open();
 		bool is_read_open();
+		bool is_timeout();
 };
 
 #endif

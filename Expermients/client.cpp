@@ -20,7 +20,7 @@ int main(int ac, char** av)
 	else
 	{
     	request =
-    	"GET ///cgi-bin///test%2Esh HTTP/1.1\r\n"
+    	"GET /python.py HTTP/1.1\r\n"
     	"User-Agent: LOL1AAFEFEEFEFEF:EFEF \r\n"
 		"Host: www.lol.com\r\n"
     	"Accept: en-US;;\r\n"
@@ -50,6 +50,7 @@ int main(int ac, char** av)
     send(fd, request, strlen(request), 0);
 	send(fd, request, strlen(request), 0);
     char buf[10001];
+	sleep(2);
     ssize_t bytes_read = recv(fd, buf, 10000, 0);
     buf[bytes_read] = 0;
     printf("%s\n", buf);

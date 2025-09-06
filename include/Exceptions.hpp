@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Exceptions.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 12:01:53 by sbibers           #+#    #+#             */
-/*   Updated: 2025/09/05 21:45:39 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/06 18:24:41 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef EXCEPTIONS_HPP
 #define EXCEPTIONS_HPP
@@ -34,9 +34,12 @@ static const HTTPStatus statusTable[] = {
 	{HTTP_INTERNAL_SERVER_ERROR, HTTP_INTERNAL_SERVER_ERROR_MSG},
 	{HTTP_NOT_IMPLEMENTED, HTTP_NOT_IMPLEMENTED_MSG},
 	{HTTP_BAD_GATEWAY, HTTP_BAD_GATEWAY_MSG},
+    {HTTP_GATEWAY_TIMEOUT, HTTP_GATEWAY_TIMEOUT_MSG},
     {HTTP_VERSION_ERROR, HTTP_VERSION_ERROR_MSG},
 	{0, 0}
 };
+
+std::string status_table_lookup(ushort code);
 
 namespace WebservExceptions
 {
@@ -44,7 +47,7 @@ namespace WebservExceptions
 	{
 		private:
 			ushort m_code;
-			const char* m_msg;
+			std::string m_msg;
 		public:
 			HTTPException(ushort code);
 			virtual ~HTTPException() throw();

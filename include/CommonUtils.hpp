@@ -34,6 +34,7 @@ typedef enum EConnectionTypes
 #define HTTP_INTERNAL_SERVER_ERROR 500
 #define HTTP_NOT_IMPLEMENTED 501
 #define HTTP_BAD_GATEWAY 502
+#define HTTP_GATEWAY_TIMEOUT 504
 #define HTTP_VERSION_ERROR 505
 
 #define HTTP_OK_MSG "200 OK"
@@ -47,6 +48,7 @@ typedef enum EConnectionTypes
 #define HTTP_INTERNAL_SERVER_ERROR_MSG "500 Internal Server Error"
 #define HTTP_NOT_IMPLEMENTED_MSG "501 Not Implemented"
 #define HTTP_BAD_GATEWAY_MSG "502 Bad Gateway"
+#define HTTP_GATEWAY_TIMEOUT_MSG "504 Gateway TImeout"
 #define HTTP_VERSION_ERROR_MSG "505 HTTP Version Not Supported"
 
 // Used when path of root is not absoulte or relative

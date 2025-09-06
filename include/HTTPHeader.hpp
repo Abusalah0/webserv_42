@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   HTTPHeader.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 15:11:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/06 00:14:23 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/06 18:14:13 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef REQUESTHEADER_HPP
 #define REQUESTHEADER_HPP
@@ -28,6 +28,7 @@ class HTTPHeader
 	private:
 		bool m_is_query_paramaters;
 		bool m_is_chunked;
+		ushort m_response_code;
 		ConnectionTypes m_connection;
 		std::string m_method;
 		size_t m_content_len;
@@ -130,7 +131,6 @@ class HTTPHeader
 		 * @param media_type provides the MIME.
 		 */
 		void generate_response_fields(int client_status,
-			const std::string& msg,
 			bool is_chunked,
 			const char* media_type);
 		/**
@@ -143,8 +143,10 @@ class HTTPHeader
 		void add_field(HTTPHeaderField& field);
 		void clear();
 		void debug();
-		void merge_cgi_fields(HTTPHeader& cgi_header);
+		// void merge_cgi_fields(HTTPHeader& cgi_header);
 		void set_chunked();
+		void set_response_code(ushort code);
+		ushort get_response_code();
 };
 
 #endif

@@ -185,7 +185,7 @@ void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 		"</html>\n"
 	);
 	this->m_header.set_content_length(body.size());
-	this->m_header.generate_response_fields(this->m_connection_type, HTTP_OK_MSG, false, "text/html");
+	this->m_header.generate_response_fields(this->m_connection_type, false, "text/html");
 	std::string response_header = this->m_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_response_buffer.push(body.c_str(), body.size());
@@ -225,14 +225,8 @@ void Client::direct_serve(const BaseBlock* location_target)
 		throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
 }
 
-void Client::handle_cgi()
+void validate_cgi_files_permissions(const std::string& full_path, const std::string& cgi_pass)
 {
-	const Location* location_target;
-	std::string& target = this->m_header.get_target();
-	location_target = dynamic_cast<const Location*>(this->m_target_block);
-	if (!location_target || !location_target->is_cgi_requirments(target))
-		throw WebservExceptions::CGINotFound();
-	std::string full_path = concat_path(location_target->get_root(), target);
 	struct stat statbuf;
 	if (stat(full_path.c_str(), &statbuf))
 	{
@@ -244,8 +238,30 @@ void Client::handle_cgi()
 		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	if (access(full_path.c_str(), R_OK))
 		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	if (stat(cgi_pass.c_str(), &statbuf))
+	{
+		if (errno == ENOENT)
+			throw WebservExceptions::CGINotFound();
+		handle_http_file_errno();
+	}
+	if (!S_ISREG(statbuf.st_mode))
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	if (access(full_path.c_str(), X_OK))
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+}
+
+void Client::handle_cgi()
+{
+	const Location* location_target;
+	std::string& target = this->m_header.get_target();
+	location_target = dynamic_cast<const Location*>(this->m_target_block);
+	if (!location_target || !location_target->is_cgi_requirments(target))
+		throw WebservExceptions::CGINotFound();
+	std::string full_path = concat_path(location_target->get_root(), target);
+	const std::string& cgi_pass = location_target->get_cgi_pass();
+	//validate_cgi_files_permissions(full_path, cgi_pass);
 	this->m_script_name = full_path.substr(location_target->get_root().size());
-	this->m_cgi_handler.init_cgi(location_target->get_cgi_pass(), full_path);
+	this->m_cgi_handler.init_cgi(cgi_pass, full_path);
 	this->m_process_state = PROCESS_CGI_BEGINNING;
 }
 
@@ -375,12 +391,13 @@ std::string generate_fallback_body(const std::string& msg)
 	return body;
 }
 
-void Client::fallback_generate_error(const std::string& msg, const std::string& location)
+void Client::fallback_generate_error(ushort code, const std::string& msg, const std::string& location)
 {
 	std::string body = generate_fallback_body(msg);
 	this->m_header.clear();
 	this->m_header.set_content_length(body.size());
-	this->m_header.generate_response_fields(this->m_connection_type, msg, false, "text/html");
+	this->m_header.set_response_code(code);
+	this->m_header.generate_response_fields(this->m_connection_type, false, "text/html");
 	if (!location.empty())
 	{
 		HTTPHeaderField field;
@@ -403,21 +420,21 @@ void Client::generate_error(ushort code, const std::string& msg, const std::stri
 	{
 		error_page = this->m_target_block->get_error_page(code);
 		if (!error_page.empty() && error_page[0] == '/')
-			prep_process_file_body(error_page, msg);
+			prep_process_file_body(error_page, code);
 		else
-			fallback_generate_error(HTTP_FOUND_MSG, error_page);
+			fallback_generate_error(HTTP_FOUND, HTTP_FOUND_MSG, error_page);
 	}
 	catch(const WebservExceptions::HTTPException& e)
 	{
-		fallback_generate_error(e.what(), location);
+		fallback_generate_error(e.get_error_code(), e.what(), location);
 	}
 	catch(const WebservExceptions::NoAvailablePage& e)
 	{
-		fallback_generate_error(msg, location);
+		fallback_generate_error(code, msg, location);
 	}
 }
 
-void Client::prep_process_file_body(const std::string& file_path, const std::string& msg)
+void Client::prep_process_file_body(const std::string& file_path, ushort code)
 {
 	struct stat statbuf;
 	if (stat(file_path.c_str(), &statbuf))
@@ -428,7 +445,8 @@ void Client::prep_process_file_body(const std::string& file_path, const std::str
 		handle_http_file_errno();
 	this->m_server_container->add_to_poll(this->m_file_fd);
 	const char* media_type = get_media_type(file_path);
-	this->m_header.generate_response_fields(this->m_connection_type, msg, false, media_type);
+	this->m_header.set_response_code(code);
+	this->m_header.generate_response_fields(this->m_connection_type, false, media_type);
 	std::string response_header = this->m_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_process_state = PROCESS_FILE_BODY;
@@ -461,14 +479,13 @@ void Client::process_cgi_beginning()
 				this->m_cgi_header.set_chunked();
 				this->m_cgi_header.parse_response(header_str);
 				this->m_header.clear();
+				this->m_header.set_response_code(this->m_cgi_header.get_response_code());
 				this->m_header.generate_response_fields(
-					this->m_connection_type, HTTP_OK_MSG, this->m_cgi_header.is_chunked(), "text/html"
+					this->m_connection_type, this->m_cgi_header.is_chunked(), "text/html"
 				);
-				this->m_header.merge_cgi_fields(this->m_cgi_header);
+				this->m_header.parse_response(header_str);
 				header_str = this->m_header.generate_response_header();
-				std::string cgi_data = this->m_cgi_buffer.pull(this->m_cgi_buffer.size());
 				this->m_response_buffer.push(header_str.c_str(), header_str.size());
-				this->m_response_buffer.push(cgi_data.c_str(), cgi_data.size());
 				this->m_cgi_header_finished = true;
 			}
 		}
@@ -483,10 +500,39 @@ void Client::process_cgi_beginning()
 		this->m_body_size = 0;
 		this->m_process_state = PROCESS_CGI_READ;
 	}
+	if (this->m_cgi_handler.is_timeout())
+		throw WebservExceptions::HTTPException(HTTP_GATEWAY_TIMEOUT);
+}
+
+void Client::handle_cgi_read_chunked(std::string& data)
+{
+	std::string str_size = ul_to_hex(data.size());
+	this->m_response_buffer.push(str_size.c_str(), str_size.size());
+	this->m_response_buffer.push("\r\n", 2);
+	this->m_response_buffer.push(data.c_str(), data.size());
+	this->m_response_buffer.push("\r\n", 2);
+}
+
+void Client::handle_cgi_read(std::string& data)
+{
+	this->m_body_size += data.size();
+	if (this->m_body_size > this->m_cgi_header.get_content_length())
+		data = data.substr(0, this->m_body_size - this->m_cgi_header.get_content_length());
+	this->m_response_buffer.push(data.c_str(), data.size());
+	if (this->m_body_size >= this->m_cgi_header.get_content_length())
+		reset_client_state();
 }
 
 void Client::process_cgi_read()
 {
+	if (this->m_cgi_buffer.size())
+	{
+		std::string data = this->m_cgi_buffer.pull(this->m_cgi_buffer.size());
+		if (this->m_cgi_header.is_chunked())
+			handle_cgi_read_chunked(data);
+		else
+			handle_cgi_read(data);
+	}
 	if (!this->m_cgi_handler.is_read_open())
 		reset_client_state();
 	else
@@ -495,29 +541,12 @@ void Client::process_cgi_read()
 		{
 			std::string data = this->m_cgi_handler.read_cgi();
 			if (this->m_cgi_header.is_chunked())
-			{
-				std::string str_size = ul_to_hex(data.size());
-				this->m_response_buffer.push(str_size.c_str(), str_size.size());
-				this->m_response_buffer.push("\r\n", 2);
-				this->m_response_buffer.push(data.c_str(), data.size());
-				this->m_response_buffer.push("\r\n", 2);
-			}
+				handle_cgi_read_chunked(data);
 			else
-			{
-				this->m_body_size += data.size();
-				if (this->m_body_size > this->m_cgi_header.get_content_length())
-					data = data.substr(this->m_body_size - this->m_cgi_header.get_content_length());
-				this->m_response_buffer.push(data.c_str(), data.size());
-				if (this->m_body_size >= this->m_cgi_header.get_content_length())
-					reset_client_state();
-			}
+				handle_cgi_read(data);
 		}
-	}
-	if (!this->m_cgi_handler.is_read_open())
-	{
-		if (this->m_cgi_header.is_chunked())
-			this->m_response_buffer.push("0\r\n\r\n", 5);
-		reset_client_state();
+		if (this->m_cgi_handler.is_timeout())
+			throw WebservExceptions::HTTPException(HTTP_GATEWAY_TIMEOUT);
 	}
 }
 

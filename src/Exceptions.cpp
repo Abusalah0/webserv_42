@@ -1,19 +1,21 @@
 #include "../include/Exceptions.hpp"
 
-static const char* statusTableLookup(ushort code)
+std::string status_table_lookup(ushort code)
 {
     for (int i = 0; statusTable[i].code != 0; ++i)
 	{
         if (statusTable[i].code == code)
             return statusTable[i].msg;
     }
-    return "Unknown Error";
+    std::string res = ul_to_str(code);
+    res.append(" Unknown Error");
+    return res;
 }
 
 WebservExceptions::HTTPException::HTTPException(ushort code):
 	m_code(code)
 {
-	this->m_msg = statusTableLookup(code);
+	this->m_msg = status_table_lookup(code);
 }
 
 WebservExceptions::HTTPException::~HTTPException() throw()
@@ -26,7 +28,7 @@ ushort WebservExceptions::HTTPException::get_error_code() const
 
 const char* WebservExceptions::HTTPException::what() const throw()
 {
-	return this->m_msg;
+	return this->m_msg.c_str();
 }
 
 const char* WebservExceptions::FileOpenFailure::what() const throw()

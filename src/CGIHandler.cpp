@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   CGIHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/06 01:20:36 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/06 18:22:47 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../include/CGIHandler.hpp"
 #include "../include/Client.hpp"
@@ -24,7 +24,8 @@ CGIHandler::CGIHandler(ServerContainer* server_container, Client* client):
 	m_client(client),
 	m_server_container(server_container),
 	m_pipe(),
-	m_pid(-1)
+	m_pid(-1),
+	m_last_activity()
 {
 	this->m_pipe[0] = -1;
 	this->m_pipe[1] = -1;
@@ -198,6 +199,7 @@ void CGIHandler::init_cgi(const std::string& cgi_pass, const std::string& full_p
 		this->m_pid = pid;
 		this->m_server_container->add_to_poll(this->m_pipe[0], POLLIN);
 		this->m_server_container->add_to_poll(this->m_pipe[1], POLLOUT);
+		this->m_last_activity = std::time(0);
 	}
 }
 
@@ -234,6 +236,8 @@ std::string CGIHandler::read_cgi()
 		clean_handler();
 		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
 	}
+	if (res == 0)
+		close_read();
 	buffer[res] = 0;
 	std::string str_buffer = buffer;
 	return str_buffer;
@@ -256,13 +260,11 @@ bool CGIHandler::is_read_ready()
 	if (this->m_pipe[0] == -1)
 		return false;
 	pollfd& entry = this->m_server_container->get_poll_entry(this->m_pipe[0]);
-	if (entry.revents & POLLHUP)
+	if (entry.revents & POLLIN || entry.revents & POLLHUP)
 	{
-		close_read();
-		return false;
-	}
-	if (entry.revents & POLLIN)
+		this->m_last_activity = std::time(0);
 		return true;
+	}
 	return false;
 }
 
@@ -272,7 +274,10 @@ bool CGIHandler::is_write_ready()
 		return false;
 	pollfd& entry = this->m_server_container->get_poll_entry(this->m_pipe[1]);
 	if (entry.revents & POLLOUT)
+	{
+		this->m_last_activity = std::time(0);
 		return true;
+	}
 	return false;
 }
 
@@ -300,6 +305,14 @@ bool CGIHandler::is_write_open()
 bool CGIHandler::is_read_open()
 {
 	if (this->m_pipe[0] != -1)
+		return true;
+	return false;
+}
+
+bool CGIHandler::is_timeout()
+{
+	time_t raw_time = std::time(0);
+	if (raw_time - CGI_TIMEOUT >= this->m_last_activity)
 		return true;
 	return false;
 }
