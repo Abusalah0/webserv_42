@@ -140,7 +140,7 @@ ushort parse_http_code(const std::string& str)
 	long code = strtol(str.c_str(), &endptr, 10);
 	if (*endptr || errno == ERANGE)
 		throw WebservExceptions::InvalidValue();
-	if (code < 0 || code > 999)
+	if (code < 100 || code > 999)
 		throw WebservExceptions::HttpCodeOutOfRange();
 	return code;
 }
@@ -430,4 +430,26 @@ std::string ul_to_hex(size_t value)
 	}
 	std::reverse(res.begin(), res.end());
 	return res;
+}
+
+bool c_isdigit(u_char c)
+{
+	if (c >= 0x30 && c <= 0x39)
+		return true;
+	return false;
+}
+
+bool is_response_status_valid(const std::string& field_value)
+{
+	size_t pos = field_value.find(' ');
+	if (pos == std::string::npos)
+		pos = field_value.size();
+	std::string value = field_value.substr(0, pos);
+	if (value.size() != 3)
+		return false;
+	if (!std::isdigit(value[0]) || value[0] == '0')
+		return false;
+	if (!check_str_chrs(value, c_isdigit))
+		return false;
+	return true;
 }

@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   HTTPBuffer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 01:19:47 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/03 16:35:27 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/07 00:35:09 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../include/HTTPBuffer.hpp"
 #include <iostream>
@@ -109,4 +109,22 @@ bool HTTPBuffer::is_clrf_found()
 		return true;
 	}
 	return false;
+}
+
+void HTTPBuffer::header_lf_to_clrf()
+{
+	size_t start_offset;
+	if (this->m_data.size() > CHUNK_SIZE)
+		start_offset = CHUNK_SIZE;
+	else
+		start_offset = this->m_data.size();
+	size_t pos = this->m_data.rfind('\n', start_offset);
+	while (pos != std::string::npos)
+	{
+		if (pos == 0 || this->m_data[pos - 1] != '\r')
+			this->m_data.insert(this->m_data.begin() + pos, '\r');
+		if (pos == 0)
+			return;
+		pos = this->m_data.rfind('\n', pos - 1);
+	}
 }

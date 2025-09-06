@@ -158,5 +158,7 @@ std::pair<std::string, std::string> parse_sockaddr(sockaddr_in& sockaddr);
 bool is_field_cgi_valid(const std::string& name);
 char chr_to_cgi(char c);
 std::string ul_to_hex(size_t value);
+bool c_isdigit(u_char c);
+bool is_response_status_valid(const std::string& field_value);
 
 #endif

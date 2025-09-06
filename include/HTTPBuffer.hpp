@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 01:09:42 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/08/30 20:34:10 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 00:35:14 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -36,6 +36,7 @@ class HTTPBuffer
 		size_t size();
 		bool is_header_finished();
 		bool is_clrf_found();
+		void header_lf_to_clrf();
 		std::string pull_header();
 		std::string pull_encoded();
 };

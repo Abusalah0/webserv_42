@@ -5,13 +5,11 @@ http
     {
         listen 0.0.0.0:1090;
         listen 0.0.0.0:1091;
-        root /home/amsaleh/lol;
+        root /home/coderx64/lol;
         
 	default_server;
         location  /{
-		index index.html;
-		cgi_extension .sh;
-		cgi_pass /usr/bin/sh;
+		cgi_pass /usr/bin/bash;
         }
     }
 }

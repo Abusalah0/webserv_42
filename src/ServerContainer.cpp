@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/05 21:48:02 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 02:23:50 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -20,13 +20,21 @@
 ServerContainer::ServerContainer():
 	m_is_child(false),
 	m_default_server(0),
-	m_servers()
+	m_servers(),
+	m_servers_map(),
+	m_servers_listen_map(),
+	m_clients_map(),
+	m_poll_fds()
 {}
 
 ServerContainer::ServerContainer(const ServerContainer& other):
 	m_is_child(other.m_is_child),
     m_default_server(other.m_default_server),
-	m_servers(other.m_servers)
+	m_servers(other.m_servers),
+	m_servers_map(other.m_servers_map),
+    m_servers_listen_map(other.m_servers_listen_map),
+	m_clients_map(other.m_clients_map),
+	m_poll_fds(other.m_poll_fds)
 {}
 
 ServerContainer& ServerContainer::operator=(const ServerContainer& other)
@@ -34,8 +42,12 @@ ServerContainer& ServerContainer::operator=(const ServerContainer& other)
     if (this != &other)
     {
 		this->m_is_child = other.m_is_child;
-        this->m_servers = other.m_servers;
         this->m_default_server = other.m_default_server;
+		this->m_servers = other.m_servers;
+		this->m_servers_map = other.m_servers_map;
+        this->m_servers_listen_map = other.m_servers_listen_map;
+        this->m_clients_map = other.m_clients_map;
+        this->m_poll_fds = other.m_poll_fds;
     }
     return (*this);
 }
@@ -226,7 +238,7 @@ void ServerContainer::loop_cleanup()
 bool is_client_timeout(Client* client)
 {
 	time_t raw_time = std::time(0);
-	if (client->get_last_activity() < raw_time - CLIENT_TIMEOUT_SEC)
+	if (raw_time >= client->get_last_activity() + CLIENT_TIMEOUT_SEC)
 		return true;
 	return false;
 }
@@ -266,7 +278,7 @@ void ServerContainer::loop()
 			}
 		}
 		loop_cleanup();
-		if (g_signum == SIGINT)
+		if (g_signum)
 			break;
     }
 }

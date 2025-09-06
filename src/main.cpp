@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/05 19:11:07 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/06 23:44:12 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -45,14 +45,15 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 	signal(SIGINT, signal_handler);
-	signal(SIGPIPE, signal_handler);
+	signal(SIGQUIT, signal_handler);
+	signal(SIGPIPE, SIG_IGN);
 	ServerContainer server_container;
 	try
 	{
 		const std::string buffer = read_file(argv[1]);
     	std::vector<t_token> tokens = tokenize_string(buffer);
     	parser(tokens, server_container);
-		if (g_signum == SIGINT)
+		if (g_signum)
 			return EXIT_SUCCESS;
 		server_container.setup_webserv();
 		server_container.loop();

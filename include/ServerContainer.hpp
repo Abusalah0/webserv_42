@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 15:42:52 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/05 21:47:45 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 02:23:30 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -19,6 +19,7 @@
 # include <vector>
 # include <map>
 #include <poll.h>
+#include <sys/wait.h>
 
 #define CLIENT_TIMEOUT_SEC 10
 

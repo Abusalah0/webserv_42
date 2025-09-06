@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   CGIHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/06 18:22:47 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 02:40:42 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../include/CGIHandler.hpp"
 #include "../include/Client.hpp"
@@ -220,6 +220,7 @@ void CGIHandler::clean_handler()
 	this->m_env_map.clear();
 	if (this->m_pid != -1)
 		kill(this->m_pid, SIGKILL);
+	waitpid(this->m_pid, 0, 0);
 	this->m_pid = -1;
 	if (this->m_pipe[0] != -1)
 		close_read();
@@ -312,7 +313,7 @@ bool CGIHandler::is_read_open()
 bool CGIHandler::is_timeout()
 {
 	time_t raw_time = std::time(0);
-	if (raw_time - CGI_TIMEOUT >= this->m_last_activity)
+	if (raw_time >= this->m_last_activity + CGI_TIMEOUT)
 		return true;
 	return false;
 }

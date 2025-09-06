@@ -74,10 +74,10 @@ class Client
 		void process_file_body();
 		void select_target();
 		void generate_error(ushort code, const std::string& msg, const std::string& location);
-		void fallback_generate_error(ushort code, const std::string& msg, const std::string& location);
+		void fallback_generate_error(const std::string& msg, const std::string& location);
 		void reset_client_state();
 		void close_file();
-		void prep_process_file_body(const std::string& file_path, ushort code = 200);
+		void prep_process_file_body(const std::string& file_path, const std::string& msg = HTTP_OK_MSG);
 		void serve_autoindex(const std::deque<AutoIndexEntry>& entries);
 		void direct_serve(const BaseBlock* location_target);
 		void handle_index();
