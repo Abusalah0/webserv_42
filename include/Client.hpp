@@ -71,6 +71,7 @@ class Client
 		void process_body_chunked_end();
 		void process_request();
 		void process_request_get();
+		void process_request_any();
 		void process_file_body();
 		void select_target();
 		void generate_error(ushort code, const std::string& msg, const std::string& location);

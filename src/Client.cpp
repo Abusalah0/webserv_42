@@ -308,6 +308,18 @@ void Client::process_request_get()
 	}
 }
 
+void Client::process_request_any()
+{
+	try
+	{
+		handle_cgi();
+	}
+	catch (const WebservExceptions::CGINotFound& e)
+	{
+		throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
+	}
+}
+
 void Client::process_request()
 {
 	if (this->m_connection_type == CONNECTION_CLOSE)
@@ -319,7 +331,7 @@ void Client::process_request()
 	if (request_method == "GET")
 		process_request_get();
 	else
-		throw WebservExceptions::HTTPException(HTTP_NOT_IMPLEMENTED);
+		process_request_any();
 }
 
 void Client::select_target()
