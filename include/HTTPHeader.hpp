@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 15:11:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/07 14:59:31 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 18:58:55 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -28,6 +28,7 @@ class HTTPHeader
 	private:
 		bool m_is_query_paramaters;
 		bool m_is_chunked;
+		bool m_ignore_content_len_field;
 		ConnectionTypes m_connection;
 		std::string m_method;
 		size_t m_content_len;
@@ -129,6 +130,7 @@ class HTTPHeader
 		 * @param is_chunked Indicates if the response is chunked.
 		 * @param media_type provides the MIME.
 		 */
+		void ignore_content_len_field();
 		void generate_response_fields(int client_status,
 			const std::string& msg,
 			bool is_chunked,

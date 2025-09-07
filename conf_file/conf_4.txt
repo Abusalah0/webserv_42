@@ -8,7 +8,7 @@ http
         root /home/coderx64/lol;
         
 	default_server;
-        location  /{
+        location  /dir{
 			cgi_pass /usr/bin/bash;
         }
     }

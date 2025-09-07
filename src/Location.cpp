@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:11:46 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 13:51:31 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 18:41:31 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -79,6 +79,8 @@ const std::set<std::string>& Location::get_allowed_methods() const
 void Location::set_upload_path(const std::string& path)
 {
     this->m_upload_path = path;
+	if (str_back(this->m_upload_path) != '/')
+		this->m_upload_path.push_back('/');
 }
 
 const std::string& Location::get_upload_path() const

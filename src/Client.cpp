@@ -581,6 +581,7 @@ void Client::process_cgi_beginning()
 				this->m_cgi_header.set_chunked();
 				this->m_cgi_header.parse_response(header_str);
 				this->m_header.clear();
+				this->m_header.ignore_content_len_field();
 				this->m_header.generate_response_fields(
 					this->m_connection_type, HTTP_OK_MSG, this->m_cgi_header.is_chunked(), "text/html"
 				);
@@ -651,6 +652,8 @@ void Client::process_cgi_read()
 		if (this->m_cgi_handler.is_timeout())
 			throw WebservExceptions::HTTPException(HTTP_GATEWAY_TIMEOUT);
 	}
+	if (this->m_cgi_handler.is_dead() && !this->m_cgi_header.is_chunked())
+		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
 }
 
 void Client::process_file_upload()

@@ -7,6 +7,7 @@
 HTTPHeader::HTTPHeader():
 	m_is_query_paramaters(),
 	m_is_chunked(),
+	m_ignore_content_len_field(),
 	m_connection(CONNECTION_KEEP_ALIVE),
 	m_method(),
 	m_content_len(),
@@ -315,7 +316,7 @@ void HTTPHeader::generate_response_fields(int client_status,
 		field.value = "chunked";
 		this->m_fields["transfer-encoding"] = field;
 	}
-	else
+	else if (!this->m_ignore_content_len_field)
 	{
 		field.name = "Content-Length";
 		field.value = ul_to_str(this->m_content_len);
@@ -435,6 +436,7 @@ void HTTPHeader::clear()
 {
 	this->m_is_query_paramaters = false;
 	this->m_is_chunked = false;
+	this->m_ignore_content_len_field = false;
 	this->m_connection = CONNECTION_KEEP_ALIVE;
 	this->m_content_len = 0;
 	this->m_query_parameters.clear();
@@ -464,4 +466,9 @@ void HTTPHeader::debug()
 void HTTPHeader::set_chunked()
 {
 	this->m_is_chunked = true;
+}
+
+void HTTPHeader::ignore_content_len_field()
+{
+	this->m_ignore_content_len_field = true;
 }
