@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:11:46 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/06 02:16:29 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 13:49:26 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -34,7 +34,8 @@ Location::Location(const Location& other) :
     m_allowed_methods(other.m_allowed_methods),
     m_upload_path(other.m_upload_path),
 	m_cgi_extension(other.m_cgi_extension),
-	m_cgi_pass(other.m_cgi_pass)
+	m_cgi_pass(other.m_cgi_pass),
+    m_upload_store(other.m_upload_store)
 {}
 
 Location::Location(const BaseBlock& baseBlock,
@@ -58,6 +59,7 @@ Location& Location::operator=(const Location& other)
     this->m_upload_path = other.m_upload_path;
     this->m_cgi_extension = other.m_cgi_extension;
 	this->m_cgi_pass = other.m_cgi_pass;
+	this->m_upload_store = other.m_upload_store;
     return (*this);
 }
 
@@ -85,18 +87,6 @@ const std::string& Location::get_upload_path() const
 {
     return (this->m_upload_path);
 }
-
-// void Location::set_cgi_handler(const std::string& handler)
-// {
-//     this->m_cgi_handler = handler;
-// }
-
-// const std::string& Location::get_cgi_handler() const
-// {
-// 	if (this->m_cgi_handler.empty())
-// 		throw WebservExceptions::CGINotFound();
-//     return (this->m_cgi_handler);
-// }
 
 void Location::set_cgi_extension(const std::string& extension)
 {
@@ -145,10 +135,21 @@ void Location::remove_allowed_method(const std::string& method)
 
 bool Location::is_method_allowed(const std::string& method) const
 {
+	// If no methods are specified, all methods are allowed
 	if (this->m_allowed_methods.empty())
 		return true;
-	std::set<std::string>::iterator it = this->m_allowed_methods.find(method);
-	if (it != this->m_allowed_methods.end())
-		return true;
-	return false;
+	
+	std::set<std::string>::const_iterator it = this->m_allowed_methods.find(method);
+	// Return true if method is found in allowed methods
+	return (it != this->m_allowed_methods.end());
+}
+
+void Location::set_upload_store(const std::string& path)
+{
+    this->m_upload_store = path;
+}
+
+const std::string& Location::get_upload_store() const
+{
+    return (this->m_upload_store);
 }

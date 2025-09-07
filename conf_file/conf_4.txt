@@ -9,7 +9,12 @@ http
         
 	default_server;
         location  /{
+<<<<<<< HEAD
 		cgi_pass /usr/bin/bash;
+=======
+            upload_store /tmp/upload;
+            limit POST GET;
+>>>>>>> 8395074615aca999b500d708acbb4149100b1d08
         }
     }
 }

@@ -87,6 +87,8 @@ class Client
 		void process_cgi_read();
 		void handle_cgi_read_chunked(std::string& data);
 		void handle_cgi_read(std::string& data);
+		void handle_post_request();
+		void handle_file_upload();
 	public:
 		Client();
 		Client(int fd,
