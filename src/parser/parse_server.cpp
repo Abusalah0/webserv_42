@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:20:29 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 22:51:14 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 22:21:03 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -70,8 +70,6 @@ static void store_server_directive(const std::vector<t_token> &tokens, Server &s
         parse_client_max_body_size_directive(tokens, srv, pos);
     else if (directive == "error_page")
         parse_error_page_directive(tokens, srv, pos);
-    else if (directive == "redirect")
-        parse_redirect_directive(tokens, srv, pos);
     else if (directive == "root")
         parse_root_directive(tokens, srv, pos);
     else if (directive == "autoindex")

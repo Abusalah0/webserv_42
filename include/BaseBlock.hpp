@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   BaseBlock.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:09:36 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/01 14:57:20 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 22:18:59 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef BASEBLOCK_HPP
 #define BASEBLOCK_HPP
@@ -36,9 +36,7 @@ class BaseBlock
 		std::size_t m_client_max_body_size;
 		std::vector<const std::string*> m_indexes;
 		std::set<ushort> m_set_error_pages;
-		std::set<ushort> m_set_redirect_pages;
 		std::map<ushort, const std::string*> m_error_page;
-		std::map<ushort, const std::string*> m_redirect_page;
 		std::set<std::string> m_pages_cache;
 	public:
 		/**
@@ -68,12 +66,6 @@ class BaseBlock
 		*/
 		void insert_error_page(const std::set<std::string>& codes, const std::string& pages);
 		/**
-		* @brief Inserts redirect pages.
-		* @param codes Set of HTTP redirect codes
-		* @param pages Redirect page path
-		*/
-		void insert_redirect_page(const std::set<std::string>& codes, const std::string& pages);
-		/**
 		 * @brief Checks if autoindex is enabled
 		 * @return true if autoindex is enabled, false otherwise
 		*/
@@ -97,17 +89,7 @@ class BaseBlock
 		 * @brief Gets the set of error pages.
 		 * @return A map of HTTP error codes to their corresponding error page paths.
 		 */
-		std::map<ushort, std::string> get_redirect_pages() const;
-		/**
-		 * @brief Gets the set of redirect pages.
-		 * @return A map of HTTP redirect codes to their corresponding redirect page paths.
-		 */
 		std::map<ushort, std::string> get_error_pages() const;
-		/**
-		 * @brief Checks if an error page exists for a given HTTP code.
-		 * @param code The HTTP error code to check.
-		 * @return True if the error page exists, false otherwise.
-		 */
 		IndexEntry get_index_page(const std::string& route) const;
 		/**
 		 * @brief Gets the error page for a given HTTP code.
@@ -115,12 +97,6 @@ class BaseBlock
 		 * @return The error page path if it exists, an empty string otherwise.
 		 */
 		std::string get_error_page(ushort code) const;
-		/**
-		 * @brief Gets the redirect page for a given HTTP code.
-		 * @param code The HTTP redirect code.
-		 * @return The redirect page path if it exists, an empty string otherwise.
-		 */
-		std::string get_redirect_page(ushort code) const;
 		/**
 		 * @brief Default constructor, copy constructor, and destructor.
 		 */

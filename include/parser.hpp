@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 13:11:23 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 21:03:45 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 22:20:42 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -207,14 +207,6 @@ void skip_directive(const std::vector<t_token> &tokens, std::size_t &pos);
  * @throws std::runtime_error on parse errors.
  */
 void skip_location_block(const std::vector<t_token> &tokens, std::size_t &pos);
-/**
- * @brief store a redirect directive into the given BaseBlock object.
- * @param tokens The vector of tokens to parse.
- * @param baseblock The BaseBlock object to populate with the redirect directive.
- * @param pos The current position in the token vector (will be updated).
- * @throws std::runtime_error on parse errors.
- */
-void    parse_redirect_directive(std::vector<t_token> const &tokens, BaseBlock &baseblock, std::size_t &pos);
 
 
 /**

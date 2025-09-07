@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:36:13 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 22:51:05 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 22:20:34 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -53,35 +53,6 @@ void    skip_over_semicolon(const std::vector<t_token> &tokens, std::size_t &pos
         throw_parse_error("Expected ';' after directive");
     }
     ++pos; // skip ';'
-}
-
-void    parse_redirect_directive(std::vector<t_token> const &tokens, BaseBlock &baseblock, std::size_t &pos)
-{
-    std::set<std::string> codes;
-    // collect codes until we hit a non-number (the path)
-    while (is_number(tokens[pos]))
-    {
-        codes.insert(tokens[pos].word.c_str());
-        ++pos;
-        expect_token(tokens, pos);
-    }
-    // must have at least one code
-    if (codes.empty())
-    {
-        throw_parse_error("Expected at least one redirect code");
-    }
-    // next token must be the path
-    if (!is_word(tokens[pos]))
-    {
-        throw_parse_error("Expected redirect path after code(s)");
-    }
-
-    std::string path = tokens[pos].word;
-    // insert each code with the same path
-    for (std::size_t i = 0; i < codes.size(); ++i)
-    {
-        baseblock.insert_redirect_page(codes, path);
-    }
 }
 
 void    parse_error_page_directive(const std::vector<t_token> &tokens, BaseBlock &baseBlock, std::size_t &pos)

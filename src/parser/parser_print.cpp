@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 20:23:35 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/05 16:20:10 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 22:21:29 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -64,21 +64,6 @@ static void print_error_pages(const std::map<ushort, std::string> &error_pages)
         }
     }
 
-}
-
-static void print_redirects(const std::map<ushort, std::string> &redirects)
-{
-    std::cout << "Redirect Pages (" << redirects.size() << "):\n";
-    if (redirects.empty())
-    {
-        std::cout << "  (No redirect pages configured)\n";
-        return;
-    }
-    for (std::map<ushort, std::string>::const_iterator it = redirects.begin();
-         it != redirects.end(); ++it)
-    {
-        std::cout << "  " << it->first << " -> " << it->second << "\n";
-    }
 }
 
 static void print_index_pages(const std::vector<std::string> &index_pages)
@@ -139,9 +124,7 @@ static void print_locations(const std::vector<Location> &locations)
             std::cout << "    Client Max Body Size: " << loc.get_client_max_body_size() << " bytes\n";
             
             // Location index pages
-            print_index_pages(loc.get_index_pages());            
-            // Location redirect pages
-            print_redirects(loc.get_redirect_pages());            
+            print_index_pages(loc.get_index_pages());                     
             // Location error pages
             print_error_pages(loc.get_error_pages());
             // Location-specific properties
@@ -177,8 +160,6 @@ void print_server_container(const ServerContainer &serverContainer)
         std::cout << "Client Max Body Size: " << srv.get_client_max_body_size() << " bytes\n";
         // Print index pages
         print_index_pages(srv.get_index_pages());    
-        // Print redirect pages
-        print_redirects(srv.get_redirect_pages());
         // Print error pages
         print_error_pages(srv.get_error_pages());        
         // Print server-specific properties

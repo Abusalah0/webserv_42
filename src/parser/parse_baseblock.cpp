@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:55:32 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 23:01:33 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 22:20:20 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -26,8 +26,6 @@ static void store_directive(BaseBlock &baseBlock, const std::string &directive, 
         parse_client_max_body_size_directive(tokens, baseBlock, pos);
     else if (directive == "error_page")
         parse_error_page_directive(tokens, baseBlock, pos);
-    else if (directive == "redirect")
-        parse_redirect_directive(tokens, baseBlock, pos);
     else if (directive == "root")
         parse_root_directive(tokens, baseBlock, pos);
     else if (directive == "autoindex")
