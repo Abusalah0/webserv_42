@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 22:24:31 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 22:46:34 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -25,21 +25,8 @@ ServerContainer::ServerContainer():
 	m_servers_listen_map(),
 	m_clients_map(),
 	m_poll_fds(),
-	m_cgis_term_entries(),
-	m_fds_skip_count()
-{
-	pollfd entry;
-	entry.events = 0;
-	entry.revents = 0;
-
-	entry.fd = STDIN_FILENO;
-	this->m_poll_fds.push_back(entry);
-	entry.fd = STDOUT_FILENO;
-	this->m_poll_fds.push_back(entry);
-	entry.fd = STDERR_FILENO;
-	this->m_poll_fds.push_back(entry);
-	this->m_fds_skip_count = 3;
-}
+	m_cgis_term_entries()
+{}
 
 ServerContainer::~ServerContainer()
 {
@@ -240,7 +227,7 @@ void ServerContainer::loop()
 				break;
 			throw WebservExceptions::PollFailed();
 		}
-		for (size_t i = m_fds_skip_count; i < this->m_poll_fds.size(); i++)
+		for (size_t i = 0; i < this->m_poll_fds.size(); i++)
 		{
 			pollfd& poll_data = this->m_poll_fds[i];
 			if (poll_data.revents)
@@ -338,7 +325,7 @@ const Server& ServerContainer::get_best_server(const std::string& ip, const std:
 
 void ServerContainer::close_fds()
 {
-	for (size_t i = m_fds_skip_count; i < this->m_poll_fds.size(); i++)
+	for (size_t i = 0; i < this->m_poll_fds.size(); i++)
 	{
 		if (this->m_poll_fds[i].fd != -1)
 			close(this->m_poll_fds[i].fd);

@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 15:42:52 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 22:13:36 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 22:46:19 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -44,7 +44,6 @@ class ServerContainer
 		std::map<int, Client*> m_clients_map;
         std::vector<pollfd> m_poll_fds;
 		std::deque<cgi_term_entry> m_cgis_term_entries;
-		size_t m_fds_skip_count;
     public:
         ServerContainer();
         ~ServerContainer();
