@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:06:03 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 13:32:59 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 14:03:20 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -63,11 +63,11 @@ void    store_location_directive(const std::vector<t_token> &tokens, std::size_t
         if(is_word(tokens[pos]))
             loc.set_cgi_pass(tokens[pos].word);
     }
-    else if (directive == "upload_store")
-    {
-        if(is_word(tokens[pos]))
-            loc.set_upload_store(tokens[pos].word);
-    }
+    // else if (directive == "upload_store")
+    // {
+    //     if(is_word(tokens[pos]))
+    //         loc.set_upload_store(tokens[pos].word);
+    // }
 	else if (directive == "client_max_body_size")
         parse_client_max_body_size_directive(tokens, loc, pos);
     else if (directive == "redirect")

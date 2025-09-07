@@ -31,7 +31,8 @@ enum ClientProcessState
 	PROCESS_REQUEST,
 	PROCESS_FILE_BODY,
 	PROCESS_CGI_BEGINNING,
-	PROCESS_CGI_READ
+	PROCESS_CGI_READ,
+	PROCESS_FILE_UPLOAD
 };
 
 static const std::string str_template = "{template}";
@@ -71,8 +72,10 @@ class Client
 		void process_body_chunked_end();
 		void process_request();
 		void process_request_get();
+		void process_request_post();
 		void process_request_any();
 		void process_file_body();
+		void process_file_upload();
 		void select_target();
 		void generate_error(ushort code, const std::string& msg, const std::string& location);
 		void fallback_generate_error(const std::string& msg, const std::string& location);
@@ -87,7 +90,6 @@ class Client
 		void process_cgi_read();
 		void handle_cgi_read_chunked(std::string& data);
 		void handle_cgi_read(std::string& data);
-		void handle_post_request();
 		void handle_file_upload();
 	public:
 		Client();

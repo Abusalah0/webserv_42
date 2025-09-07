@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:28:59 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 13:48:56 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 13:51:24 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -27,7 +27,7 @@ class Location : public BaseBlock
         std::string m_upload_path;
         std::string m_cgi_extension;
 		std::string m_cgi_pass;
-        std::string m_upload_store;
+        // std::string m_upload_store;
 
     public:
         Location();
@@ -52,8 +52,8 @@ class Location : public BaseBlock
 		void set_cgi_pass(const std::string& cgi_pass);
         const std::string& get_cgi_pass() const;
 		bool is_cgi_requirments(const std::string& target) const;
-        void set_upload_store(const std::string& store);
-        const std::string& get_upload_store() const;
+        // void set_upload_store(const std::string& store);
+        // const std::string& get_upload_store() const;
 
         void add_allowed_method(const std::string& method);
         void remove_allowed_method(const std::string& method);

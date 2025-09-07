@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:11:46 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 13:49:26 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 13:51:31 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -34,8 +34,7 @@ Location::Location(const Location& other) :
     m_allowed_methods(other.m_allowed_methods),
     m_upload_path(other.m_upload_path),
 	m_cgi_extension(other.m_cgi_extension),
-	m_cgi_pass(other.m_cgi_pass),
-    m_upload_store(other.m_upload_store)
+	m_cgi_pass(other.m_cgi_pass)
 {}
 
 Location::Location(const BaseBlock& baseBlock,
@@ -59,7 +58,6 @@ Location& Location::operator=(const Location& other)
     this->m_upload_path = other.m_upload_path;
     this->m_cgi_extension = other.m_cgi_extension;
 	this->m_cgi_pass = other.m_cgi_pass;
-	this->m_upload_store = other.m_upload_store;
     return (*this);
 }
 
@@ -144,12 +142,12 @@ bool Location::is_method_allowed(const std::string& method) const
 	return (it != this->m_allowed_methods.end());
 }
 
-void Location::set_upload_store(const std::string& path)
-{
-    this->m_upload_store = path;
-}
+// void Location::set_upload_store(const std::string& path)
+// {
+//     this->m_upload_store = path;
+// }
 
-const std::string& Location::get_upload_store() const
-{
-    return (this->m_upload_store);
-}
+// const std::string& Location::get_upload_store() const
+// {
+//     return (this->m_upload_store);
+// }

@@ -210,31 +210,11 @@ void Client::handle_index()
 
 void Client::direct_serve(const BaseBlock* location_target)
 {
-	std::string& request_method = this->m_header.get_request_method();
 	std::string& target = this->m_header.get_target();
 	std::string path = concat_path(location_target->get_root(), target);
 	
-	// Check if this is a POST request to an upload location
-	if (request_method == "POST")
-	{
-		const Location* location = dynamic_cast<const Location*>(location_target);
-		if (location && !location->get_upload_store().empty())
-		{
-			handle_post_request();
-			return;
-		}
-	}
-	
 	if (is_http_target_file(path))
-	{
-		if (request_method == "POST")
-		{
-			handle_post_request();
-			return;
-		}
 		prep_process_file_body(path);
-		return;
-	}
 	else if (is_http_target_dir(path))
 	{
 		const std::string& root = location_target->get_root();
@@ -243,16 +223,6 @@ void Client::direct_serve(const BaseBlock* location_target)
 	}
 	else
 	{
-		// If it's a POST request and the path doesn't exist, but it's an upload location, handle it
-		if (request_method == "POST")
-		{
-			const Location* location = dynamic_cast<const Location*>(location_target);
-			if (location && !location->get_upload_store().empty())
-			{
-				handle_post_request();
-				return;
-			}
-		}
 		throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
 	}
 }
@@ -297,13 +267,32 @@ void Client::handle_cgi()
 	this->m_process_state = PROCESS_CGI_BEGINNING;
 }
 
+void Client::handle_file_upload()
+{
+	const Location* location = dynamic_cast<const Location*>(this->m_target_block);
+	if (!location)
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	std::string& target = this->m_header.get_target();
+	std::string path = concat_path(location->get_root(), target);
+	size_t pos = path.rfind('/');
+	std::string dir = path.substr(0, pos);
+
+	if (access(dir.c_str(), W_OK))
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	
+	this->m_file_fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
+	if (this->m_file_fd == -1)
+		handle_http_file_errno();
+	this->m_server_container->add_to_poll(this->m_file_fd);
+	this->m_process_state = PROCESS_FILE_UPLOAD;
+}
+
 void Client::process_request_get()
 {
 	std::string& target = this->m_header.get_target();
-	std::string& request_method = this->m_header.get_request_method();
 	std::string path = concat_path(this->m_target_block->get_root(), target);
 	
-	if (str_back(this->m_header.get_target()) != '/')
+	if (str_back(target) != '/')
 	{
 		try
 		{
@@ -315,24 +304,13 @@ void Client::process_request_get()
 		}
 	}
 	else
-	{
-		// Check if this is a POST request to an upload location
-		if (request_method == "POST")
-		{
-			const Location* location = dynamic_cast<const Location*>(this->m_target_block);
-			if (location && !location->get_upload_store().empty())
-			{
-				handle_post_request();
-				return;
-			}
-		}
-		
+	{		
 		if (is_http_target_dir(path))
 		{
 			if (this->m_target_block->get_auto_index())
 			{
 				std::deque<AutoIndexEntry> entries = generate_autoindex_entries(
-					this->m_target_block->get_root(), this->m_header.get_target()
+					this->m_target_block->get_root(), target
 				);
 				serve_autoindex(entries);
 			}
@@ -350,6 +328,22 @@ void Client::process_request_get()
 		}
 		else
 			throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	}
+}
+
+void Client::process_request_post()
+{
+	std::string& target = this->m_header.get_target();
+	
+	if (str_back(target) == '/')
+		throw WebservExceptions::HTTPException(HTTP_NOT_IMPLEMENTED);
+	try
+	{
+		handle_cgi();
+	}
+	catch (const WebservExceptions::CGINotFound& e)
+	{
+		handle_file_upload();
 	}
 }
 
@@ -375,6 +369,8 @@ void Client::process_request()
 	std::string& request_method = this->m_header.get_request_method();
 	if (request_method == "GET")
 		process_request_get();
+	else if (request_method == "POST")
+		process_request_post();
 	else
 		process_request_any();
 }
@@ -607,6 +603,30 @@ void Client::process_cgi_read()
 	}
 }
 
+void Client::process_file_upload()
+{
+	size_t bytes_to_write = this->m_body.size();
+	if (bytes_to_write > CHUNK_SIZE)
+		bytes_to_write = CHUNK_SIZE;
+	ssize_t res = write(this->m_file_fd, this->m_body.c_str(), bytes_to_write);
+	if (res == -1)
+		WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
+	this->m_body.erase(0, bytes_to_write);
+	if (this->m_body.empty())
+	{
+		std::string& target = this->m_header.get_target();
+		std::string path = concat_path(this->m_target_block->get_root(), target);
+		std::string body = "File uploaded successfully to: " + path + "\n";
+		this->m_header.set_content_length(body.size());
+		this->m_header.generate_response_fields(HTTP_CREATED, HTTP_CREATED_MSG, false, "text/plain");
+		std::string response_header = this->m_header.generate_response_header();
+		this->m_response_buffer.push(response_header.c_str(), response_header.size());
+		this->m_response_buffer.push(body.c_str(), body.size());
+		this->m_response_buffer.create_barrier();
+		reset_client_state();
+	}
+}
+
 void Client::process()
 {
 	if (this->m_client_status > CLIENT_DONE)
@@ -644,6 +664,9 @@ void Client::process()
 				break;
 			case PROCESS_CGI_READ:
 				process_cgi_read();
+				break;
+			case PROCESS_FILE_UPLOAD:
+				process_file_upload();
 				break;
 		}
 	}
@@ -716,78 +739,4 @@ const std::string& Client::get_script_name()
 const std::string& Client::get_server_name()
 {
 	return this->m_server_name;
-}
-
-void Client::handle_post_request()
-{
-	// Check if this location supports file uploads
-	const Location* location = dynamic_cast<const Location*>(this->m_target_block);
-	if (location && !location->get_upload_store().empty())
-	{
-		handle_file_upload();
-	}
-	else
-	{
-		// simple POST requests without upload
-		std::string body = "POST request received successfully\n";
-		this->m_header.clear();
-		this->m_header.set_content_length(body.size());
-		this->m_header.generate_response_fields(HTTP_OK, HTTP_OK_MSG, false, "text/plain");
-		std::string response_header = this->m_header.generate_response_header();
-		this->m_response_buffer.push(response_header.c_str(), response_header.size());
-		this->m_response_buffer.push(body.c_str(), body.size());
-		this->m_response_buffer.create_barrier();
-		reset_client_state();
-	}
-}
-
-void Client::handle_file_upload()
-{
-	const Location* location = dynamic_cast<const Location*>(this->m_target_block);
-	if (!location)
-	{
-		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
-	}
-	
-	std::string upload_dir = location->get_upload_store();
-	if (upload_dir.empty())
-	{
-		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
-	}
-	
-	// Create upload directory if it doesn't exist
-	mkdir(upload_dir.c_str(), 0755);
-	
-	// For now, handle simple file upload (content body as file)
-	// In a real implementation, you'd parse multipart/form-data
-	std::ostringstream timestamp;
-	timestamp << std::time(0);
-	std::string filename = "uploaded_file_" + timestamp.str();
-	std::string filepath = upload_dir + "/" + filename;
-	
-	// write the body content to file
-	int upload_fd = open(filepath.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
-	if (upload_fd == -1)
-	{
-		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
-	}
-	
-	ssize_t bytes_written = write(upload_fd, this->m_body.c_str(), this->m_body.size());
-	close(upload_fd);
-	
-	if (bytes_written == -1)
-	{
-		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
-	}
-	
-	// success response
-	std::string body = "File uploaded successfully to: " + filepath + "\n";
-	this->m_header.clear();
-	this->m_header.set_content_length(body.size());
-	this->m_header.generate_response_fields(HTTP_CREATED, HTTP_CREATED_MSG, false, "text/plain");
-	std::string response_header = this->m_header.generate_response_header();
-	this->m_response_buffer.push(response_header.c_str(), response_header.size());
-	this->m_response_buffer.push(body.c_str(), body.size());
-	this->m_response_buffer.create_barrier();
-	reset_client_state();
 }
