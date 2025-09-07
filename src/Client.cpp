@@ -198,7 +198,7 @@ void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 
 void Client::handle_index()
 {
-	IndexEntry index_entry = this->m_target_block->get_index_page(this->m_header.get_target());
+	IndexEntry index_entry = this->m_target_block->get_index_page(this->m_header.get_aug_target());
 	if (index_entry.is_dir)
 	{
 		const std::string& root = this->m_target_block->get_root();
@@ -211,7 +211,7 @@ void Client::handle_index()
 
 void Client::direct_serve(const BaseBlock* location_target)
 {
-	std::string& target = this->m_header.get_target();
+	std::string& target = this->m_header.get_aug_target();
 	std::string path = concat_path(location_target->get_root(), target);
 	
 	if (is_http_target_file(path))
@@ -256,7 +256,7 @@ void validate_cgi_files_permissions(const std::string& full_path, const std::str
 void Client::handle_cgi()
 {
 	const Location* location_target;
-	std::string& target = this->m_header.get_target();
+	std::string& target = this->m_header.get_aug_target();
 	location_target = dynamic_cast<const Location*>(this->m_target_block);
 	if (!location_target || !location_target->is_cgi_requirments(target))
 		throw WebservExceptions::CGINotFound();
@@ -273,7 +273,7 @@ void Client::handle_file_upload()
 	const Location* location = dynamic_cast<const Location*>(this->m_target_block);
 	if (!location)
 		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
-	std::string& target = this->m_header.get_target();
+	std::string& target = this->m_header.get_aug_target();
 	std::string path = concat_path(location->get_root(), target);
 	size_t pos = path.rfind('/');
 	std::string dir = path.substr(0, pos);
@@ -298,7 +298,7 @@ void Client::handle_file_upload()
 
 void Client::handle_file_delete()
 {
-	std::string& target = this->m_header.get_target();
+	std::string& target = this->m_header.get_aug_target();
 	std::string path = concat_path(this->m_target_block->get_root(), target);
 
 	struct stat statbuf;
@@ -319,7 +319,7 @@ void Client::handle_file_delete()
 
 void Client::process_request_get()
 {
-	std::string& target = this->m_header.get_target();
+	std::string& target = this->m_header.get_aug_target();
 	std::string path = concat_path(this->m_target_block->get_root(), target);
 	
 	if (str_back(target) != '/')
@@ -435,10 +435,14 @@ void Client::select_target()
 	else
 		this->m_server_name = this->m_header.get_virtual_host();
 	this->m_target_block = server;
+	this->m_header.set_aug_target(this->m_header.get_target());
 	try
 	{
 		const Location* location = &server->match_location(this->m_header.get_target());
 		this->m_target_block = location;
+		std::string new_aug_target = this->m_header.get_aug_target();
+		new_aug_target.erase(0, location->get_upload_path().size() - 1);
+		this->m_header.set_aug_target(new_aug_target);
 		if (!location->is_method_allowed(this->m_header.get_request_method()))
 			throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
 	}
@@ -667,7 +671,7 @@ void Client::process_file_upload()
 	this->m_body.erase(0, bytes_to_write);
 	if (this->m_body.empty())
 	{
-		std::string& target = this->m_header.get_target();
+		std::string& target = this->m_header.get_aug_target();
 		std::string path = concat_path(this->m_target_block->get_root(), target);
 		std::string body = "File uploaded successfully to: " + path + "\n";
 		this->m_header.set_content_length(body.size());

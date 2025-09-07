@@ -12,6 +12,7 @@ HTTPHeader::HTTPHeader():
 	m_method(),
 	m_content_len(),
 	m_target(),
+	m_aug_target(),
 	m_query_parameters(),
 	m_virtual_host(),
 	m_response_msg(),
@@ -471,4 +472,14 @@ void HTTPHeader::set_chunked()
 void HTTPHeader::ignore_content_len_field()
 {
 	this->m_ignore_content_len_field = true;
+}
+
+std::string& HTTPHeader::get_aug_target()
+{
+	return this->m_aug_target;
+}
+
+void HTTPHeader::set_aug_target(const std::string& str)
+{
+	this->m_aug_target = str;
 }

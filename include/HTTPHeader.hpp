@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 15:11:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/07 18:58:55 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/08 01:05:59 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -33,6 +33,7 @@ class HTTPHeader
 		std::string m_method;
 		size_t m_content_len;
 		std::string m_target;
+		std::string m_aug_target;
 		std::string m_query_parameters;
 		std::string m_virtual_host;
 		std::string m_response_msg;
@@ -147,6 +148,8 @@ class HTTPHeader
 		void debug();
 		// void merge_cgi_fields(HTTPHeader& cgi_header);
 		void set_chunked();
+		std::string& get_aug_target();
+		void set_aug_target(const std::string& str);
 };
 
 #endif
