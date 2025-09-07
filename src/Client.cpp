@@ -93,6 +93,7 @@ void Client::handle_send()
 
 void Client::process_header()
 {
+	this->m_request_buffer.header_lf_to_clrf();
 	if (this->m_request_buffer.is_header_finished())
 	{
 		std::string input = this->m_request_buffer.pull_header();
