@@ -12,7 +12,7 @@ int main(int ac, char** av)
 	if (ac > 1)
 	{
 		request =
-    	"GET / HTTP/1.1\r\n"
+    	"GET /dir HTTP/1.1\r\n"
     	"Host: www.lol.com \r\n"
 		"Connection: close\r\n"
     	"\r\n";
@@ -20,7 +20,7 @@ int main(int ac, char** av)
 	else
 	{
     	request =
-    	"GET /python.py HTTP/1.1\r\n"
+    	"DELETE /dir HTTP/1.1\r\n"
     	"User-Agent: LOL1AAFEFEEFEFEF:EFEF \r\n"
 		"Host: www.lol.com\r\n"
     	"Accept: en-US;;\r\n"

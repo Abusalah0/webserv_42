@@ -300,6 +300,12 @@ void Client::handle_file_delete()
 	std::string& target = this->m_header.get_target();
 	std::string path = concat_path(this->m_target_block->get_root(), target);
 
+	struct stat statbuf;
+	if (stat(path.c_str(), &statbuf))
+		handle_http_file_errno();
+	if (!S_ISREG(statbuf.st_mode))
+		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+
 	if (std::remove(path.c_str()))
 		handle_http_file_errno();
 
@@ -375,7 +381,9 @@ void Client::process_request_delete()
 	std::string& target = this->m_header.get_target();
 	
 	if (str_back(target) == '/')
+	{
 		throw WebservExceptions::HTTPException(HTTP_NOT_IMPLEMENTED);
+	}
 	try
 	{
 		handle_cgi();
