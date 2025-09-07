@@ -73,6 +73,7 @@ class Client
 		void process_request();
 		void process_request_get();
 		void process_request_post();
+		void process_request_delete();
 		void process_request_any();
 		void process_file_body();
 		void process_file_upload();
@@ -91,6 +92,7 @@ class Client
 		void handle_cgi_read_chunked(std::string& data);
 		void handle_cgi_read(std::string& data);
 		void handle_file_upload();
+		void handle_file_delete();
 	public:
 		Client();
 		Client(int fd,

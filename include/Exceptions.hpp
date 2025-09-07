@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Exceptions.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 12:01:53 by sbibers           #+#    #+#             */
-/*   Updated: 2025/09/06 18:24:41 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 14:57:52 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef EXCEPTIONS_HPP
 #define EXCEPTIONS_HPP
@@ -24,6 +24,8 @@ struct HTTPStatus
 
 static const HTTPStatus statusTable[] = {
 	{HTTP_OK, HTTP_OK_MSG},
+	{HTTP_CREATED, HTTP_CREATED_MSG},
+	{HTTP_NO_CONTENT, HTTP_NO_CONTENT_MSG},
     {HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG},
 	{HTTP_FOUND, HTTP_FOUND_MSG},
 	{HTTP_BAD_REQUEST, HTTP_BAD_REQUEST_MSG},

@@ -277,14 +277,37 @@ void Client::handle_file_upload()
 	size_t pos = path.rfind('/');
 	std::string dir = path.substr(0, pos);
 
-	if (access(dir.c_str(), W_OK))
-		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	if (!access(path.c_str(), F_OK))
+	{
+		struct stat statbuf;
+		if (stat(path.c_str(), &statbuf))
+			handle_http_file_errno();
+		if (!S_ISREG(statbuf.st_mode))
+			throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+		if (access(dir.c_str(), W_OK))
+			throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+	}
 	
 	this->m_file_fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
 	if (this->m_file_fd == -1)
 		handle_http_file_errno();
 	this->m_server_container->add_to_poll(this->m_file_fd);
 	this->m_process_state = PROCESS_FILE_UPLOAD;
+}
+
+void Client::handle_file_delete()
+{
+	std::string& target = this->m_header.get_target();
+	std::string path = concat_path(this->m_target_block->get_root(), target);
+
+	if (std::remove(path.c_str()))
+		handle_http_file_errno();
+
+	this->m_header.generate_response_fields(HTTP_NO_CONTENT, HTTP_NO_CONTENT_MSG, false);
+	std::string response_header = this->m_header.generate_response_header();
+	this->m_response_buffer.push(response_header.c_str(), response_header.size());
+	this->m_response_buffer.create_barrier();
+	reset_client_state();
 }
 
 void Client::process_request_get()
@@ -347,6 +370,22 @@ void Client::process_request_post()
 	}
 }
 
+void Client::process_request_delete()
+{
+	std::string& target = this->m_header.get_target();
+	
+	if (str_back(target) == '/')
+		throw WebservExceptions::HTTPException(HTTP_NOT_IMPLEMENTED);
+	try
+	{
+		handle_cgi();
+	}
+	catch (const WebservExceptions::CGINotFound& e)
+	{
+		handle_file_delete();
+	}
+}
+
 void Client::process_request_any()
 {
 	try
@@ -371,6 +410,8 @@ void Client::process_request()
 		process_request_get();
 	else if (request_method == "POST")
 		process_request_post();
+	else if (request_method == "DELETE")
+		process_request_delete();
 	else
 		process_request_any();
 }

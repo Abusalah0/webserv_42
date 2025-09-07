@@ -327,9 +327,12 @@ void HTTPHeader::generate_response_fields(int client_status,
 	else
 		field.value = "close";
 	this->m_fields["connection"] = field;
-	field.name = "Content-Type";
-	field.value = media_type;
-	this->m_fields["content-type"] = field;
+	if (*media_type)
+	{
+		field.name = "Content-Type";
+		field.value = media_type;
+		this->m_fields["content-type"] = field;
+	}
 	field.name = "Date";
 	field.value = generate_http_date();
 	this->m_fields["date"] = field;

@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 15:11:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/07 01:10:09 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 14:59:31 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -132,7 +132,7 @@ class HTTPHeader
 		void generate_response_fields(int client_status,
 			const std::string& msg,
 			bool is_chunked,
-			const char* media_type);
+			const char* media_type = "");
 		/**
 		 * @brief Parses the Content-Length header from the response.
 		 */
