@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 22:12:41 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 22:24:31 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -49,8 +49,11 @@ ServerContainer::~ServerContainer()
 	{
 		delete (*it).second;
 	}
-	while (!this->m_cgis_term_entries.empty())
-		watch_cgis_term();
+	if (!this->m_is_child)
+	{
+		while (!this->m_cgis_term_entries.empty())
+			watch_cgis_term();
+	}
 }
 
 int ServerContainer::create_listen_socket(const std::pair<std::string, std::string>& listen_item)
