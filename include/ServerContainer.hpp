@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 15:42:52 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 02:23:30 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 22:13:36 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -22,6 +22,14 @@
 #include <sys/wait.h>
 
 #define CLIENT_TIMEOUT_SEC 10
+#define CGI_TERM_TIMEOUT_SEC 2
+#define POLL_TIMEOUT_MS 1000
+
+struct cgi_term_entry
+{
+	time_t soft_term_time;
+	pid_t pid;
+};
 
 class Client;
 
@@ -35,11 +43,10 @@ class ServerContainer
 		std::map<int, const std::pair<std::string, std::string>* > m_servers_listen_map;
 		std::map<int, Client*> m_clients_map;
         std::vector<pollfd> m_poll_fds;
+		std::deque<cgi_term_entry> m_cgis_term_entries;
+		size_t m_fds_skip_count;
     public:
         ServerContainer();
-        ServerContainer(const ServerContainer& other);
-        ServerContainer(const std::vector<Server>& servers);
-        ServerContainer& operator=(const ServerContainer& other);
         ~ServerContainer();
         /**
          * @brief adds a server to the vector of servers, and makes sure there is only one default server
@@ -55,10 +62,6 @@ class ServerContainer
 		void remove_client(size_t poll_index);
 		void loop_cleanup();
         Server* get_sock_server(int sockfd);
-        //void remove_server(int index);
-        //Server* get_server(int index);
-        // typedef typename std::vector<Server>::iterator iterator;
-        // typedef typename std::vector<Server>::const_iterator const_iterator;
         std::vector<Server>::iterator begin() { return m_servers.begin(); }
         std::vector<Server>::const_iterator end() { return m_servers.end(); }
         const Server& get_best_server(const std::string& ip, const std::string& port, const std::string& virtual_host) const;
@@ -69,6 +72,8 @@ class ServerContainer
 		void close_fds();
 		bool is_child() const;
 		void set_child();
+		void add_cgi_term_entry(cgi_term_entry& entry);
+		void watch_cgis_term();
 };
 
 #endif // SERVERCONTAINER_HPP

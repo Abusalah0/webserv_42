@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 02:23:50 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 22:12:41 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -24,40 +24,21 @@ ServerContainer::ServerContainer():
 	m_servers_map(),
 	m_servers_listen_map(),
 	m_clients_map(),
-	m_poll_fds()
-{}
-
-ServerContainer::ServerContainer(const ServerContainer& other):
-	m_is_child(other.m_is_child),
-    m_default_server(other.m_default_server),
-	m_servers(other.m_servers),
-	m_servers_map(other.m_servers_map),
-    m_servers_listen_map(other.m_servers_listen_map),
-	m_clients_map(other.m_clients_map),
-	m_poll_fds(other.m_poll_fds)
-{}
-
-ServerContainer& ServerContainer::operator=(const ServerContainer& other)
+	m_poll_fds(),
+	m_cgis_term_entries(),
+	m_fds_skip_count()
 {
-    if (this != &other)
-    {
-		this->m_is_child = other.m_is_child;
-        this->m_default_server = other.m_default_server;
-		this->m_servers = other.m_servers;
-		this->m_servers_map = other.m_servers_map;
-        this->m_servers_listen_map = other.m_servers_listen_map;
-        this->m_clients_map = other.m_clients_map;
-        this->m_poll_fds = other.m_poll_fds;
-    }
-    return (*this);
-}
+	pollfd entry;
+	entry.events = 0;
+	entry.revents = 0;
 
-ServerContainer::ServerContainer(const std::vector<Server>& servers) 
-{
-    for (size_t i = 0; i < servers.size(); i++)
-    {
-        add_server(servers[i]);
-    }
+	entry.fd = STDIN_FILENO;
+	this->m_poll_fds.push_back(entry);
+	entry.fd = STDOUT_FILENO;
+	this->m_poll_fds.push_back(entry);
+	entry.fd = STDERR_FILENO;
+	this->m_poll_fds.push_back(entry);
+	this->m_fds_skip_count = 3;
 }
 
 ServerContainer::~ServerContainer()
@@ -68,6 +49,8 @@ ServerContainer::~ServerContainer()
 	{
 		delete (*it).second;
 	}
+	while (!this->m_cgis_term_entries.empty())
+		watch_cgis_term();
 }
 
 int ServerContainer::create_listen_socket(const std::pair<std::string, std::string>& listen_item)
@@ -248,13 +231,13 @@ void ServerContainer::loop()
     while (true)
     {
 		errno = 0;
-        if (poll(this->m_poll_fds.data(), this->m_poll_fds.size(), -1) < 0)
+        if (poll(this->m_poll_fds.data(), this->m_poll_fds.size(), POLL_TIMEOUT_MS) < 0)
 		{
 			if (errno == EINTR)
 				break;
 			throw WebservExceptions::PollFailed();
 		}
-		for (size_t i = 0; i < this->m_poll_fds.size(); i++)
+		for (size_t i = m_fds_skip_count; i < this->m_poll_fds.size(); i++)
 		{
 			pollfd& poll_data = this->m_poll_fds[i];
 			if (poll_data.revents)
@@ -278,6 +261,7 @@ void ServerContainer::loop()
 			}
 		}
 		loop_cleanup();
+		watch_cgis_term();
 		if (g_signum)
 			break;
     }
@@ -351,7 +335,7 @@ const Server& ServerContainer::get_best_server(const std::string& ip, const std:
 
 void ServerContainer::close_fds()
 {
-	for (size_t i = 0; i < this->m_poll_fds.size(); i++)
+	for (size_t i = m_fds_skip_count; i < this->m_poll_fds.size(); i++)
 	{
 		if (this->m_poll_fds[i].fd != -1)
 			close(this->m_poll_fds[i].fd);
@@ -366,4 +350,30 @@ bool ServerContainer::is_child() const
 void ServerContainer::set_child()
 {
 	this->m_is_child = true;
+}
+
+void ServerContainer::add_cgi_term_entry(cgi_term_entry& entry)
+{
+	this->m_cgis_term_entries.push_back(entry);
+}
+
+void ServerContainer::watch_cgis_term()
+{
+	time_t raw_time = std::time(0);
+	size_t i = 0;
+	while (i < this->m_cgis_term_entries.size())
+	{
+		cgi_term_entry& entry = this->m_cgis_term_entries[i];
+		pid_t pid = waitpid(entry.pid, 0, WNOHANG);
+		if (pid)
+			this->m_cgis_term_entries.erase(this->m_cgis_term_entries.begin() + i);
+		else if (raw_time > entry.soft_term_time + CGI_TERM_TIMEOUT_SEC)
+		{
+			kill(entry.pid, SIGKILL);
+			waitpid(entry.pid, 0, 0);
+			this->m_cgis_term_entries.erase(this->m_cgis_term_entries.begin() + i);
+		}
+		else
+			i++;
+	}
 }

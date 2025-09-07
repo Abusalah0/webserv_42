@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/07 19:07:09 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/07 22:13:27 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -219,8 +219,13 @@ void CGIHandler::clean_handler()
 {
 	this->m_env_map.clear();
 	if (this->m_pid != -1)
-		kill(this->m_pid, SIGKILL);
-	waitpid(this->m_pid, 0, 0);
+	{
+		kill(this->m_pid, SIGTERM);
+		cgi_term_entry entry;
+		entry.soft_term_time = std::time(0);
+		entry.pid = this->m_pid;
+		this->m_server_container->add_cgi_term_entry(entry);
+	}
 	this->m_pid = -1;
 	if (this->m_pipe[0] != -1)
 		close_read();
