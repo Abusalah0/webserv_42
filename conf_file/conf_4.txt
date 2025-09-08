@@ -8,7 +8,10 @@ http
         root /home/coderx64/lol;
         
 	default_server;
-        location  /lol{
+		server_name www.bald.com;
+        location  /{
+			client_max_body_size 10;
+			index index.html;
 			root /home/coderx64/lol;
 			cgi_extension .sh;
 			cgi_pass /usr/bin/bash;
