@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 00:20:29 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 22:21:03 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/08 23:14:45 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -135,6 +135,8 @@ void parse_servers(const std::vector<t_token> &tokens, ServerContainer &server_c
         if (is_brace_close(tokens[pos]))
         {
             ++pos; // consume '}'
+			if (pos < tokens.size())
+        		throw_parse_error("Unexpected tokens after http block");
             return ;
         }
         // check for server directive
