@@ -674,7 +674,11 @@ void Client::process_file_upload()
 		std::string& target = this->m_header.get_aug_target();
 		std::string path = concat_path(this->m_target_block->get_root(), target);
 		std::string body = "File uploaded successfully to: " + path + "\n";
+		HTTPHeaderField field;
+		field.name = "Location";
+		field.value = this->m_header.get_target();
 		this->m_header.set_content_length(body.size());
+		this->m_header.add_field(field);
 		this->m_header.generate_response_fields(HTTP_CREATED, HTTP_CREATED_MSG, false, "text/plain");
 		std::string response_header = this->m_header.generate_response_header();
 		this->m_response_buffer.push(response_header.c_str(), response_header.size());
