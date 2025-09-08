@@ -60,25 +60,6 @@ bool validate_http_version(std::string& line, size_t s_offset)
 	return true;
 }
 
-bool validate_target(std::string& target)
-{
-	if (target[0] != '/')
-		return false;
-	std::string component;
-	for (size_t i = 1; i < target.size(); i++)
-	{
-		if (target[i] == '/')
-		{
-			if (component == "." || component == "..")
-				return false;
-			component.clear();
-		}
-		else
-			component += target[i];
-	}
-	return true;
-}
-
 void HTTPHeader::parse_request_line(std::string& line)
 {
 	size_t s_offset = 0;
@@ -101,8 +82,6 @@ void HTTPHeader::parse_request_line(std::string& line)
 		this->m_query_parameters = this->m_target.substr(query_parameters_offset + 1);
 		this->m_target.erase(query_parameters_offset);
 	}
-	if (!validate_target(this->m_target))
-		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 	std::string target = normalize_path(this->m_target);
 	if (str_back(target) != '/' && str_back(this->m_target) == '/')
 		target.push_back('/');
