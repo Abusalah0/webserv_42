@@ -1,20 +1,11 @@
 http
 {
-	root /home/coderx64/YoupiBanane;
+	root /home/amsaleh/www;
 	server
 	{
 		listen localhost:1090;
-		index youpi.bla;
+		index index.html;
 		location / {
-			limit GET;
-		}
-		location /put_test/ {
-		}
-		location /post_body/ {
-			client_max_body_size 100;
-		}
-		location /directory/ {
-			index /nop/youpi.bad_extension;
 		}
 	}
 }

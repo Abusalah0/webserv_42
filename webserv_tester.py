@@ -34,6 +34,7 @@ def run_test_code(test_desc, route, code):
 def test_general():
     print(f"{GREEN}General tests{RESET}:")
     run_test_code("Access route /", "/", 200)
+    run_test_code("Access route /dir/index.html", "/dir/index.html", 200)
     run_test_code("Access route /.", "/.", 200)
     run_test_code("Access route /xyz/../", "/xyz/../", 200)
     run_test_code("Access route /dir", "/dir", 301)
