@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 13:28:52 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/09 13:22:44 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../include/Server.hpp"
 #include "../include/Exceptions.hpp"
@@ -85,10 +85,6 @@ void Server::add_location(Location& location)
     this->m_locations.push_back(location);
 }
 
-void Server::remove_location(Location& location)
-{
-    (void)location; // Placeholder for future implementation
-}
 
 void Server::set_server_names(std::set<std::string>& names)
 {
@@ -108,11 +104,6 @@ void Server::set_listen(std::vector<std::pair<std::string, std::string> >& liste
 void Server::add_listen(std::pair<std::string, std::string>& listen)
 {
     this->m_listen.push_back(listen);
-}
-
-void Server::remove_listen(std::pair<std::string, std::string>& listen)
-{
-    (void)listen; // Placeholder for future implementation
 }
 
 const std::vector<Location> Server::get_locations() const
