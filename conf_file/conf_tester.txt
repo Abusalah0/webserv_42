@@ -1,11 +1,21 @@
 http
 {
-	root /home/amsaleh/www;
+	root /home/coderx64/www;
 	server
 	{
 		listen localhost:1090;
 		index index.html;
 		location / {
+		}
+		location /post {
+			client_max_body_size 1m;
+			limit POST;
+		}
+		location /delete {
+			limit DELETE;
+		}
+		location /cgi {
+			root /home/coderx64/www/cgi;
 		}
 	}
 }

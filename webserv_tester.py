@@ -1,24 +1,28 @@
 import sys
 from urllib3.connection import HTTPConnection
+import random
 
-url = sys.argv[1]
+#HTTPConnection.debuglevel = 1
+
+url = None
 host = None
 port = None
 
+YELLOW = "\033[33m"
 GREEN = "\033[32m"
 RED = "\033[31m"
 RESET = "\033[0m"
 
-def print_test_result_code(test_desc, resp_code, exp_code):
+def print_test_result_code(method, test_desc, resp_code, exp_code):
     if resp_code != exp_code:
-        print(f"{RED}Test {test_desc} failed{RESET}: Expected code {exp_code} returned {resp_code}.")
+        print(f"{RED}Test {method} {test_desc} failed{RESET}: Expected code {exp_code} returned {resp_code}.")
     else:
-        print(f"{GREEN}Test {test_desc} succeded{RESET}: Expected code {exp_code} returned {resp_code}.")
+        print(f"{GREEN}Test {method} {test_desc} succeded{RESET}: Expected code {exp_code} returned {resp_code}.")
     
-def print_test_fail(test_desc, reason):
-    print(f"{RED}Test {test_desc} failed{RESET}: {reason}")
+def print_test_fail(method, test_desc, reason):
+    print(f"{RED}Test {method} {test_desc} failed{RESET}: {reason}")
 
-def run_test_code(test_desc, route, code):
+def run_test_get(test_desc, route, code):
     try:
         conn = HTTPConnection(host, int(port))
         conn.request("GET", route, headers={
@@ -26,29 +30,52 @@ def run_test_code(test_desc, route, code):
             "User-Agent": "webserv-tester/1.0"
             })
         resp = conn.getresponse()
-        print_test_result_code(test_desc, resp.status, code)
-    except Exception as e:
-        print(e)
-        print_test_fail(test_desc, "Request failed.")
+        print_test_result_code("GET", test_desc, resp.status, code)
+        return resp._body
+    except:
+        print_test_fail("GET", test_desc, "Request failed.")
 
-def test_general():
-    print(f"{GREEN}General tests{RESET}:")
-    run_test_code("Access route /", "/", 200)
-    run_test_code("Access route /dir/index.html", "/dir/index.html", 200)
-    run_test_code("Access route /.", "/.", 200)
-    run_test_code("Access route /xyz/../", "/xyz/../", 200)
-    run_test_code("Access route /dir", "/dir", 301)
-    run_test_code("Access route /dir/../dir", "/dir/../dir", 301)
-    run_test_code("Access route /../", "/../", 400)
-    run_test_code("Access route /../xyz", "/../xyz", 400)
-    run_test_code("Access route /xyz/../..", "/../xyz", 400)
-    run_test_code("Access route /dir/", "/dir/", 403)
-    run_test_code("Access route /xyz", "/xyz", 404)
-    run_test_code("Access route /./xyz", "/./xyz", 404)
+def run_test_post(test_desc, route, code, body):
+    try:
+        conn = HTTPConnection(host, int(port))
+        conn.request("POST", route, headers={
+            "Host": "www.tester.com",
+            "User-Agent": "webserv-tester/1.0"
+            }, body=body, chunked=True)
+        resp = conn.getresponse()
+        print_test_result_code("POST", test_desc, resp.status, code)
+    except:
+        print_test_fail("POST", test_desc, "Request failed.")
+
+def test_get():
+    print(f"{YELLOW}GET tests{RESET}:")
+    run_test_get("route /", "/", 200)
+    run_test_get("route /dir/index.html", "/dir/index.html", 200)
+    run_test_get("route /.", "/.", 200)
+    run_test_get("route /xyz/../", "/xyz/../", 200)
+    run_test_get("route /dir/", "/dir/", 200)
+    run_test_get("route /dir/dir/", "/dir/dir/", 200)
+    run_test_get("route ''", "", 200)
+    run_test_get("route /dir", "/dir", 301)
+    run_test_get("route /dir/../dir", "/dir/../dir", 301)
+    run_test_get("route /../", "/../", 400)
+    run_test_get("route /../xyz", "/../xyz", 400)
+    run_test_get("route /xyz/../..", "/../xyz", 400)
+    run_test_get("route /forbidden", "/forbidden", 403)
+    run_test_get("route /xyz", "/xyz", 404)
+    run_test_get("route /./xyz", "/./xyz", 404)
+    run_test_get("route /dir/dir/dir/", "/dir/dir/dir/", 404)
+    
+def test_post():
+    print(f"{YELLOW}POST tests{RESET}:")
+    run_test_post("route /", "/", 501, "LOL")
+    run_test_post("route /file", "/file", 201, "ZOMBIE")
 
 if len(sys.argv) != 2:
     print("Usage: webserv_tester <http://hostname:port>")
     exit(1)
+
+url = sys.argv[1]
 
 if url[:7] != "http://":
     print("Unknown schema.")
@@ -65,4 +92,5 @@ if len(tmp) > 1:
         print("Invalid port.")
         exit(1)
 
-test_general()
+test_get()
+test_post()

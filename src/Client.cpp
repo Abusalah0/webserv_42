@@ -155,7 +155,6 @@ void Client::process_body_chunked_end()
 		std::string clrf = this->m_request_buffer.pull(2);
 		if (clrf.compare("\r\n"))
 			throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
-		this->m_header.set_content_length(this->m_body.size());
 		this->m_process_state = PROCESS_REQUEST;
 	}
 }
@@ -187,6 +186,8 @@ void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 		"</pre><hr></body>\n"
 		"</html>\n"
 	);
+
+	this->m_header.clear();
 	this->m_header.set_content_length(body.size());
 	this->m_header.generate_response_fields(this->m_connection_type, HTTP_OK_MSG, false, "text/html");
 	std::string response_header = this->m_header.generate_response_header();
@@ -310,6 +311,7 @@ void Client::handle_file_delete()
 	if (std::remove(path.c_str()))
 		handle_http_file_errno();
 
+	this->m_header.clear();
 	this->m_header.generate_response_fields(HTTP_NO_CONTENT, HTTP_NO_CONTENT_MSG, false);
 	std::string response_header = this->m_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
@@ -357,7 +359,7 @@ void Client::process_request_get()
 			}
 		}
 		else
-			throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+			throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
 	}
 }
 
@@ -545,6 +547,7 @@ void Client::prep_process_file_body(const std::string& file_path, const std::str
 	struct stat statbuf;
 	if (stat(file_path.c_str(), &statbuf))
 		handle_http_file_errno();
+	this->m_header.clear();
 	this->m_header.set_content_length(statbuf.st_size);
 	this->m_file_fd = open(file_path.c_str(), O_RDONLY);
 	if (this->m_file_fd == -1)
@@ -676,6 +679,7 @@ void Client::process_file_upload()
 		std::string body = "File uploaded successfully to: " + path + "\n";
 		HTTPHeaderField field;
 		field.name = "Location";
+		this->m_header.clear();
 		field.value = this->m_header.get_target();
 		this->m_header.set_content_length(body.size());
 		this->m_header.add_field(field);
