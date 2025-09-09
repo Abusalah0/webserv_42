@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   parser.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/19 22:00:55 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/08 23:13:22 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/09 09:52:26 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../../include/parser.hpp"
 
@@ -39,4 +39,6 @@ void parser(const std::vector<t_token> &tokens, ServerContainer &serverContainer
     parse_servers(tokens, serverContainer, baseBlock, pos);
     //print servercontainer for debugging
     // print_server_container(serverContainer);
+    if (pos != tokens.size())
+        throw_parse_error("Unexpected tokens after http block");
 }
