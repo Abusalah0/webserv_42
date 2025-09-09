@@ -1,20 +1,53 @@
 <mxfile host="65bd71144e">
     <diagram id="CyGPFzp1g8SWmMi1MeqF" name="Page-1">
-        <mxGraphModel dx="450" dy="663" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="433" dy="482" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="10" value="&lt;i&gt;BasesBlock&lt;/i&gt;" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-                    <mxGeometry x="290" y="140" width="280" height="440" as="geometry"/>
+                <mxCell id="10" value="&lt;i&gt;BasesBlock&lt;/i&gt;" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="130" width="480" height="570" as="geometry"/>
                 </mxCell>
-                <mxCell id="11" value="- m_auto_inderx: bool&lt;div&gt;- m_index_set: bool&lt;/div&gt;&lt;div&gt;- m_root: string&lt;/div&gt;&lt;div&gt;- m_client_max_body_size : size_t&lt;/div&gt;&lt;div&gt;- m_indexes: vector&amp;lt;string *&amp;gt;&lt;/div&gt;&lt;div&gt;- m_set_error_pages: set&amp;lt;ushort&amp;gt;&lt;/div&gt;&lt;div&gt;- m_set_redirect_page: set&amp;lt;ushort&amp;gt;&lt;/div&gt;&lt;div&gt;- m_error_page: map&amp;lt;ushort, const string*&amp;gt;&lt;/div&gt;&lt;div&gt;- m_redirect_page: map&amp;lt;ushort, const string*&amp;gt;&lt;/div&gt;&lt;div&gt;- m_pages_cache: set&amp;lt;string&amp;gt;&lt;/div&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="10">
-                    <mxGeometry y="26" width="280" height="174" as="geometry"/>
+                <mxCell id="11" value="- m_auto_inderx: bool&lt;div&gt;- m_index_set: bool&lt;/div&gt;&lt;div&gt;- m_root: string&lt;/div&gt;&lt;div&gt;- m_client_max_body_size : size_t&lt;/div&gt;&lt;div&gt;- m_indexes: vector&amp;lt;string *&amp;gt;&lt;/div&gt;&lt;div&gt;- m_set_error_pages: set&amp;lt;ushort&amp;gt;&lt;/div&gt;&lt;div&gt;- m_set_redirect_page: set&amp;lt;ushort&amp;gt;&lt;/div&gt;&lt;div&gt;- m_error_page: map&amp;lt;ushort, const string*&amp;gt;&lt;/div&gt;&lt;div&gt;- m_redirect_page: map&amp;lt;ushort, const string*&amp;gt;&lt;/div&gt;&lt;div&gt;- m_pages_cache: set&amp;lt;string&amp;gt;&lt;/div&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=13;" parent="10" vertex="1">
+                    <mxGeometry y="26" width="480" height="174" as="geometry"/>
                 </mxCell>
-                <mxCell id="12" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="10">
-                    <mxGeometry y="200" width="280" height="8" as="geometry"/>
+                <mxCell id="12" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;fontSize=13;" parent="10" vertex="1">
+                    <mxGeometry y="200" width="480" height="8" as="geometry"/>
                 </mxCell>
-                <mxCell id="13" value="+ set_auto_index: void&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="10">
-                    <mxGeometry y="208" width="280" height="232" as="geometry"/>
+                <mxCell id="13" value="&lt;div&gt;+ BaseBlock()&lt;/div&gt;&lt;div&gt;+ BaseBlock(obj: BaseBlock &amp;amp;)&lt;/div&gt;&lt;div&gt;+ ~BaseBlock() virtual&lt;/div&gt;+ set_auto_index (str : const string&amp;amp;): void&lt;div&gt;+ set_root (root : const string&amp;amp;): void&lt;/div&gt;&lt;div&gt;+ set_client_max_body_size(str_size : const string&amp;amp;): void&lt;/div&gt;&lt;div&gt;+ insert_index_pages(indexes: const vector&amp;lt; string &amp;gt;&amp;amp;): void&lt;/div&gt;&lt;div&gt;+ insert_error_pages (codes: const set&amp;lt; string &amp;gt;&amp;amp;, pages: const string&amp;amp;): void&lt;/div&gt;&lt;div&gt;+ insert_redirect_page(codes: const set&amp;lt; string &amp;gt;&amp;amp;, pages: const string &amp;amp;): void&lt;/div&gt;&lt;div&gt;+ get_auto_index() const : bool&lt;/div&gt;&lt;div&gt;+ get_root() const: const string&amp;amp;&lt;/div&gt;&lt;div&gt;+ get_client_max_body_size() const: size_t&lt;/div&gt;&lt;div&gt;+ get_index_pages() const: vector&amp;lt; string &amp;gt;&lt;/div&gt;&lt;div&gt;+ get_redirect_pages() const: map&amp;lt;ushort, string&amp;gt;&lt;/div&gt;&lt;div&gt;+ get_error_pages() const: map&amp;lt; ushort, string &amp;gt;&lt;/div&gt;&lt;div&gt;+ get_index_page(route: const string&amp;amp;) const: IndexEntry&lt;/div&gt;&lt;div&gt;+ get_error_page(code: ushort) const: string&lt;/div&gt;&lt;div&gt;+ get_redirect_page(code: ushort) const: string&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=13;" parent="10" vertex="1">
+                    <mxGeometry y="208" width="480" height="362" as="geometry"/>
+                </mxCell>
+                <mxCell id="23" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Server&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ field: Type&amp;nbsp;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ method(): Type&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="650" y="890" width="160" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="24" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ field: Type&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;/&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ method(): Type&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" vertex="1" parent="1">
+                    <mxGeometry x="70" y="890" width="160" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="Extends" style="endArrow=block;endSize=16;endFill=0;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.595;entryY=1.001;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="23" target="13">
+                    <mxGeometry width="160" relative="1" as="geometry">
+                        <mxPoint x="980" y="890" as="sourcePoint"/>
+                        <mxPoint x="536" y="700" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="730" y="820"/>
+                            <mxPoint x="640" y="820"/>
+                            <mxPoint x="536" y="820"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="31" value="Extends" style="endArrow=block;endSize=16;endFill=0;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.387;entryY=0.995;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="24" target="13">
+                    <mxGeometry width="160" relative="1" as="geometry">
+                        <mxPoint x="150" y="890" as="sourcePoint"/>
+                        <mxPoint x="510" y="704" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="150" y="810"/>
+                            <mxPoint x="436" y="810"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="32" value="BaseBlock is the main class in which the servers and locations objects inheret from, it has the base attribute for an object would need to operate.&amp;nbsp;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;" vertex="1" parent="1">
+                    <mxGeometry x="790" y="70" width="150" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="this class represents an individual server,&amp;nbsp;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;" vertex="1" parent="1">
+                    <mxGeometry x="860" y="830" width="100" height="150" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
