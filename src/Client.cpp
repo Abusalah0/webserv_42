@@ -93,7 +93,7 @@ void Client::handle_send()
 
 void Client::process_header()
 {
-	this->m_request_buffer.header_lf_to_clrf();
+	this->m_request_buffer.header_lf_to_crlf();
 	if (this->m_request_buffer.is_header_finished())
 	{
 		std::string input = this->m_request_buffer.pull_header();
@@ -118,7 +118,7 @@ void Client::process_body()
 
 void Client::process_body_chunked_size()
 {
-	if (this->m_request_buffer.is_clrf_found())
+	if (this->m_request_buffer.is_crlf_found())
 	{
 		std::string chunk_size_str = this->m_request_buffer.pull_encoded();
 		this->m_request_buffer.erase(2);
@@ -152,8 +152,8 @@ void Client::process_body_chunked_end()
 {
 	if (this->m_request_buffer.size() >= 2)
 	{
-		std::string clrf = this->m_request_buffer.pull(2);
-		if (clrf.compare("\r\n"))
+		std::string crlf = this->m_request_buffer.pull(2);
+		if (crlf.compare("\r\n"))
 			throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 		this->m_process_state = PROCESS_REQUEST;
 	}
@@ -581,7 +581,7 @@ void Client::process_cgi_beginning()
 		{
 			std::string data = this->m_cgi_handler.read_cgi();
 			this->m_cgi_buffer.push(data.c_str(), data.size());
-			this->m_cgi_buffer.header_lf_to_clrf();
+			this->m_cgi_buffer.header_lf_to_crlf();
 			if (this->m_cgi_buffer.is_header_finished())
 			{
 				std::string header_str = this->m_cgi_buffer.pull_header();

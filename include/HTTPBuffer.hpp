@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 01:09:42 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/07 17:38:12 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/10 20:29:09 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -17,7 +17,7 @@
 #include <deque>
 #include <string>
 
-static const std::string dclrf = "\r\n\r\n";
+static const std::string dcrlf = "\r\n\r\n";
 
 class HTTPBuffer
 {
@@ -35,8 +35,8 @@ class HTTPBuffer
 		std::string pull(size_t n);
 		size_t size();
 		bool is_header_finished();
-		bool is_clrf_found();
-		void header_lf_to_clrf();
+		bool is_crlf_found();
+		void header_lf_to_crlf();
 		std::string pull_header();
 		std::string pull_encoded();
 };

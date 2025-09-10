@@ -1,6 +1,7 @@
 import sys
 from http.client import HTTPConnection
 import random
+import requests
 
 # HTTPConnection.debuglevel = 1
 
@@ -12,6 +13,24 @@ YELLOW = "\033[33m"
 GREEN = "\033[32m"
 RED = "\033[31m"
 RESET = "\033[0m"
+
+post_tests_dict = {
+    "/": {"data": b"LOL", "code": 501},
+    "/post/": {"data": b"ZOMBIE", "code": 501},
+    "/post/zombie": {"data": b"ZOMBIE", "code": 201},
+    "/post/bald": {"data": b"", "code": 201},
+    "/post/random_1kb": {"data": random.randbytes(1024), "code": 201},
+    "/post/random_1025b": {"data": random.randbytes(1025), "code": 413},
+    "/post/forbidden": {"data": b"FORBIDDEN", "code": 403}
+}
+
+post_validation_tests_dict = {
+    "/zombie": {"data": post_tests_dict["/post/zombie"]["data"], "code": 200},
+    "/bald": {"data": post_tests_dict["/post/bald"]["data"], "code": 200},
+    "/random_1kb": {"data": post_tests_dict["/post/random_1kb"]["data"], "code": 200},
+    "/random_1025b": {"data": post_tests_dict["/post/random_1025b"]["data"], "code": 404},
+    "/forbidden": {"data": post_tests_dict["/post/forbidden"]["data"], "code": 403}
+}
 
 def print_test_result_code(method, test_desc, resp_code, exp_code):
     if resp_code != exp_code:
@@ -31,7 +50,7 @@ def run_test_get(test_desc, route, code):
             })
         resp = conn.getresponse()
         print_test_result_code("GET", test_desc, resp.status, code)
-        return resp.read().decode("ascii")
+        return resp.read()
     except:
         print_test_fail("GET", test_desc, "Request failed.")
 
@@ -40,18 +59,22 @@ def run_test_post(test_desc, route, code, body):
         conn = HTTPConnection(host, int(port))
         conn.request("POST", route, headers={
             "Host": "www.tester.com",
-            "User-Agent": "webserv-tester/1.0"
-            }, body=body, encode_chunked=True)
+            "User-Agent": "webserv-tester/1.0",
+            "Content-Length": str(len(body)),
+            "Content-Type": "application/octet-stream"
+            }, body=body, encode_chunked=False)
         resp = conn.getresponse()
         print_test_result_code("POST", test_desc, resp.status, code)
     except:
         print_test_fail("POST", test_desc, "Request failed.")
 
-def run_test_compare(test_desc, resp_body, exp_body):
+def run_test_compare(resp_body: bytes, exp_body: bytes):
     if resp_body != exp_body:
-        print(f"{RED}Compare {test_desc} failed{RESET}.")
+        print(resp_body)
+        print(exp_body)
+        print(f"{RED}Compare response body with post request body failed{RESET}.")
     else:
-        print(f"{GREEN}Compare {test_desc} succeded{RESET}.")
+        print(f"{GREEN}Compare response body with post request body succeded{RESET}.")
 
 def test_get():
     print(f"{YELLOW}GET tests{RESET}:")
@@ -74,11 +97,19 @@ def test_get():
     
 def test_post():
     print(f"{YELLOW}POST tests{RESET}:")
-    run_test_post("route /", "/", 501, "LOL")
-    run_test_post("route /post/", "/post/", 501, "ZOMBIE")
-    run_test_post("route /post/file", "/file", 201, "ZOMBIE")
-    body = run_test_get("route /file", "/file", 200)
-    run_test_compare("/file response with request body", body, "ZOMBIE")
+    for key in post_tests_dict:
+        data = post_tests_dict[key]["data"]
+        code = post_tests_dict[key]["code"]
+        run_test_post(f"route {key}", key, code, data)
+        
+def test_post_validation():
+    print(f"{YELLOW}POST validation tests{RESET}:")
+    for key in post_validation_tests_dict:
+        data = post_validation_tests_dict[key]["data"]
+        code = post_validation_tests_dict[key]["code"]
+        body = run_test_get(f"route {key}", key, code)
+        if code == 200:
+            run_test_compare(body, data)
 
 if len(sys.argv) != 2:
     print("Usage: webserv_tester <http://hostname:port>")
@@ -103,3 +134,4 @@ if len(tmp) > 1:
 
 test_get()
 test_post()
+test_post_validation()

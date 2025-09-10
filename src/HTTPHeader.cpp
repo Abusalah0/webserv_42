@@ -225,15 +225,15 @@ void HTTPHeader::parse_request(std::string& input)
 	std::string line;
 	while (true)
 	{
-		size_t clrf_pos = input.find("\r\n", line_start);
-		if (clrf_pos == line_start)
+		size_t crlf_pos = input.find("\r\n", line_start);
+		if (crlf_pos == line_start)
 			break;
-		line = input.substr(line_start, clrf_pos - line_start);
+		line = input.substr(line_start, crlf_pos - line_start);
 		if (!line_start)
 			parse_request_line(line);
 		else
 			parse_request_header_line(line);
-		line_start = clrf_pos + 2;
+		line_start = crlf_pos + 2;
 	}
 	if (this->m_fields.find("host") == this->m_fields.end())
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
@@ -300,12 +300,12 @@ void HTTPHeader::parse_response(std::string& input)
 	std::string line;
 	while (true)
 	{
-		size_t clrf_pos = input.find("\r\n", line_start);
-		if (clrf_pos == line_start)
+		size_t crlf_pos = input.find("\r\n", line_start);
+		if (crlf_pos == line_start)
 			break;
-		line = input.substr(line_start, clrf_pos - line_start);
+		line = input.substr(line_start, crlf_pos - line_start);
 		parse_response_header_line(line);
-		line_start = clrf_pos + 2;
+		line_start = crlf_pos + 2;
 	}
 }
 
