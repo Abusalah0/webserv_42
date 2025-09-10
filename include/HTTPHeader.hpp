@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 15:11:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/08 01:05:59 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/11 00:10:39 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -16,6 +16,7 @@
 #include "CommonUtils.hpp"
 #include <deque>
 #include <map>
+#include <set>
 
 typedef struct SHTTPHeaderField
 {
@@ -39,6 +40,8 @@ class HTTPHeader
 		std::string m_response_msg;
     	std::map<std::string, HTTPHeaderField> m_fields;
 		std::deque<HTTPHeaderField> m_response_fields;
+		std::string m_allowed_methods;
+		std::string m_last_modified;
 		void parse_request_line(std::string& line);
 		void parse_request_header_line(std::string& line);
 		void parse_response_header_line(std::string& line);
@@ -143,13 +146,16 @@ class HTTPHeader
 		/**
 		 * @brief Clears the header fields and resets member variables.
 		 */
-		void add_field(HTTPHeaderField& field);
+		// void add_field(HTTPHeaderField& field);
+		void add_field(const std::string& name, const std::string& value);
 		void clear();
 		void debug();
 		// void merge_cgi_fields(HTTPHeader& cgi_header);
 		void set_chunked();
 		std::string& get_aug_target();
 		void set_aug_target(const std::string& str);
+		void set_last_modified(time_t raw_time);
+		void set_allowed_methods(const std::set<std::string>& allowed_methods);
 };
 
 #endif

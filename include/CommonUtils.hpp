@@ -153,6 +153,7 @@ std::string concat_path(const std::string& root, const std::string& target);
 bool is_http_target_file(const std::string& path);
 bool is_http_target_dir(const std::string& path);
 std::string generate_http_date();
+std::string generate_http_date(time_t raw_time);
 std::string generate_autoindex_date();
 std::deque<AutoIndexEntry> generate_autoindex_entries(const std::string& root, const std::string target);
 void replace_template_str(std::string& body,

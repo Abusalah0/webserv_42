@@ -26,8 +26,8 @@ Client::Client(int fd,
 	m_request_buffer(),
 	m_response_buffer(),
 	m_cgi_buffer(),
-	m_header(),
-	m_cgi_header(),
+	m_req_header(),
+	m_resp_header(),
 	m_body(),
 	m_script_name(),
 	m_server_addr(server_addr),
@@ -97,8 +97,8 @@ void Client::process_header()
 	if (this->m_request_buffer.is_header_finished())
 	{
 		std::string input = this->m_request_buffer.pull_header();
-		this->m_header.parse_request(input);
-		this->m_connection_type = this->m_header.get_connection_type();
+		this->m_req_header.parse_request(input);
+		this->m_connection_type = this->m_req_header.get_connection_type();
 		this->m_process_state = PROCESS_SELECT_TARGET;
 	}
 	if (this->m_request_buffer.size() > CHUNK_SIZE)
@@ -109,9 +109,9 @@ void Client::process_header()
 
 void Client::process_body()
 {
-	if (this->m_request_buffer.size() >= this->m_header.get_content_length())
+	if (this->m_request_buffer.size() >= this->m_req_header.get_content_length())
 	{
-		this->m_body = this->m_request_buffer.pull(this->m_header.get_content_length());
+		this->m_body = this->m_request_buffer.pull(this->m_req_header.get_content_length());
 		this->m_process_state = PROCESS_REQUEST;
 	}
 }
@@ -165,7 +165,7 @@ void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 		"<head><title>Index of {template}</title></head>\n"
 		"<body>\n"
 		"<h1>Index of {template}</h1><hr><pre>\n";
-	replace_template_str(body, str_template, this->m_header.get_target());
+	replace_template_str(body, str_template, this->m_req_header.get_target());
 	for (size_t i = 0; i < entries.size(); i++)
 	{
 		const AutoIndexEntry& entry = entries[i];
@@ -187,10 +187,9 @@ void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 		"</html>\n"
 	);
 
-	this->m_header.clear();
-	this->m_header.set_content_length(body.size());
-	this->m_header.generate_response_fields(this->m_connection_type, HTTP_OK_MSG, false, "text/html");
-	std::string response_header = this->m_header.generate_response_header();
+	this->m_resp_header.set_content_length(body.size());
+	this->m_resp_header.generate_response_fields(this->m_connection_type, HTTP_OK_MSG, false, "text/html");
+	std::string response_header = this->m_resp_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_response_buffer.push(body.c_str(), body.size());
 	this->m_response_buffer.create_barrier();
@@ -199,7 +198,7 @@ void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 
 void Client::handle_index()
 {
-	IndexEntry index_entry = this->m_target_block->get_index_page(this->m_header.get_aug_target());
+	IndexEntry index_entry = this->m_target_block->get_index_page(this->m_req_header.get_aug_target());
 	if (index_entry.is_dir)
 	{
 		const std::string& root = this->m_target_block->get_root();
@@ -212,7 +211,7 @@ void Client::handle_index()
 
 void Client::direct_serve(const BaseBlock* location_target)
 {
-	std::string& target = this->m_header.get_aug_target();
+	std::string& target = this->m_req_header.get_aug_target();
 	std::string path = concat_path(location_target->get_root(), target);
 	
 	if (is_http_target_file(path))
@@ -257,7 +256,7 @@ void validate_cgi_files_permissions(const std::string& full_path, const std::str
 void Client::handle_cgi()
 {
 	const Location* location_target;
-	std::string& target = this->m_header.get_aug_target();
+	std::string& target = this->m_req_header.get_aug_target();
 	location_target = dynamic_cast<const Location*>(this->m_target_block);
 	if (!location_target || !location_target->is_cgi_requirments(target))
 		throw WebservExceptions::CGINotFound();
@@ -274,7 +273,7 @@ void Client::handle_file_upload()
 	const Location* location = dynamic_cast<const Location*>(this->m_target_block);
 	if (!location)
 		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
-	std::string& target = this->m_header.get_aug_target();
+	std::string& target = this->m_req_header.get_aug_target();
 	std::string path = concat_path(location->get_root(), target);
 	size_t pos = path.rfind('/');
 	std::string dir = path.substr(0, pos);
@@ -299,7 +298,7 @@ void Client::handle_file_upload()
 
 void Client::handle_file_delete()
 {
-	std::string& target = this->m_header.get_aug_target();
+	std::string& target = this->m_req_header.get_aug_target();
 	std::string path = concat_path(this->m_target_block->get_root(), target);
 
 	struct stat statbuf;
@@ -311,9 +310,8 @@ void Client::handle_file_delete()
 	if (std::remove(path.c_str()))
 		handle_http_file_errno();
 
-	this->m_header.clear();
-	this->m_header.generate_response_fields(HTTP_NO_CONTENT, HTTP_NO_CONTENT_MSG, false);
-	std::string response_header = this->m_header.generate_response_header();
+	this->m_resp_header.generate_response_fields(HTTP_NO_CONTENT, HTTP_NO_CONTENT_MSG, false);
+	std::string response_header = this->m_resp_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_response_buffer.create_barrier();
 	reset_client_state();
@@ -321,7 +319,7 @@ void Client::handle_file_delete()
 
 void Client::process_request_get()
 {
-	std::string& target = this->m_header.get_aug_target();
+	std::string& target = this->m_req_header.get_aug_target();
 	std::string path = concat_path(this->m_target_block->get_root(), target);
 	
 	if (str_back(target) != '/')
@@ -365,7 +363,7 @@ void Client::process_request_get()
 
 void Client::process_request_post()
 {
-	std::string& target = this->m_header.get_aug_target();
+	std::string& target = this->m_req_header.get_aug_target();
 	std::string path = concat_path(this->m_target_block->get_root(), target);
 	
 	if (str_back(target) == '/')
@@ -391,7 +389,7 @@ void Client::process_request_post()
 
 void Client::process_request_delete()
 {
-	std::string& target = this->m_header.get_aug_target();
+	std::string& target = this->m_req_header.get_aug_target();
 	std::string path = concat_path(this->m_target_block->get_root(), target);
 	
 	if (str_back(target) == '/')
@@ -434,7 +432,7 @@ void Client::process_request()
 		this->m_request_buffer.erase(this->m_request_buffer.size());
 		this->m_client_status = CLIENT_DONE;
 	}
-	std::string& request_method = this->m_header.get_request_method();
+	std::string& request_method = this->m_req_header.get_request_method();
 	if (request_method == "GET")
 		process_request_get();
 	else if (request_method == "POST")
@@ -448,34 +446,37 @@ void Client::process_request()
 void Client::select_target()
 {
 	const Server* server = &this->m_server_container->get_best_server(
-		this->m_server_addr->first, this->m_server_addr->second, this->m_header.get_virtual_host()
+		this->m_server_addr->first, this->m_server_addr->second, this->m_req_header.get_virtual_host()
 	);
 	if (!server->get_server_names().size())
 		this->m_server_name = this->m_server_addr->first;
 	else
-		this->m_server_name = this->m_header.get_virtual_host();
+		this->m_server_name = this->m_req_header.get_virtual_host();
 	this->m_target_block = server;
-	this->m_header.set_aug_target(this->m_header.get_target());
+	this->m_req_header.set_aug_target(this->m_req_header.get_target());
 	try
 	{
-		const Location* location = &server->match_location(this->m_header.get_target());
+		const Location* location = &server->match_location(this->m_req_header.get_target());
 		this->m_target_block = location;
-		std::string new_aug_target = this->m_header.get_aug_target();
+		std::string new_aug_target = this->m_req_header.get_aug_target();
 		new_aug_target.erase(0, location->get_upload_path().size() - 1);
-		this->m_header.set_aug_target(new_aug_target);
-		if (!location->is_method_allowed(this->m_header.get_request_method()))
+		this->m_req_header.set_aug_target(new_aug_target);
+		if (!location->is_method_allowed(this->m_req_header.get_request_method()))
+		{
+			this->m_resp_header.set_allowed_methods(location->get_allowed_methods());
 			throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
+		}
 	}
 	catch (const WebservExceptions::LocationNotFound& e)
 	{
 	}
-	if (this->m_header.get_content_length())
+	if (this->m_req_header.get_content_length())
 	{
-		if (this->m_header.get_content_length() > this->m_target_block->get_client_max_body_size())
+		if (this->m_req_header.get_content_length() > this->m_target_block->get_client_max_body_size())
 			throw WebservExceptions::HTTPException(HTTP_CONTENT_TOO_LARGE);
 		this->m_process_state = PROCESS_BODY;
 	}
-	else if (this->m_header.is_chunked())
+	else if (this->m_req_header.is_chunked())
 		this->m_process_state = PROCESS_BODY_CHUNKED_SIZE;
 	else
 		this->m_process_state = PROCESS_REQUEST;
@@ -521,17 +522,11 @@ std::string generate_fallback_body(const std::string& msg)
 void Client::fallback_generate_error(const std::string& msg, const std::string& location)
 {
 	std::string body = generate_fallback_body(msg);
-	this->m_header.clear();
-	this->m_header.set_content_length(body.size());
-	this->m_header.generate_response_fields(this->m_connection_type, msg, false, "text/html");
+	this->m_resp_header.set_content_length(body.size());
+	this->m_resp_header.generate_response_fields(this->m_connection_type, msg, false, "text/html");
 	if (!location.empty())
-	{
-		HTTPHeaderField field;
-		field.name = "Location";
-		field.value = location;
-		this->m_header.add_field(field);
-	}
-	std::string response_header = this->m_header.generate_response_header();
+		this->m_resp_header.add_field("Location", location);
+	std::string response_header = this->m_resp_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_response_buffer.push(body.c_str(), body.size());
 	this->m_response_buffer.create_barrier();
@@ -565,15 +560,15 @@ void Client::prep_process_file_body(const std::string& file_path, const std::str
 	struct stat statbuf;
 	if (stat(file_path.c_str(), &statbuf))
 		handle_http_file_errno();
-	this->m_header.clear();
-	this->m_header.set_content_length(statbuf.st_size);
+	this->m_resp_header.set_content_length(statbuf.st_size);
 	this->m_file_fd = open(file_path.c_str(), O_RDONLY);
 	if (this->m_file_fd == -1)
 		handle_http_file_errno();
 	this->m_server_container->add_to_poll(this->m_file_fd);
 	const char* media_type = get_media_type(file_path);
-	this->m_header.generate_response_fields(this->m_connection_type, msg, false, media_type);
-	std::string response_header = this->m_header.generate_response_header();
+	this->m_resp_header.set_last_modified(statbuf.st_mtim.tv_sec);
+	this->m_resp_header.generate_response_fields(this->m_connection_type, msg, false, media_type);
+	std::string response_header = this->m_resp_header.generate_response_header();
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_process_state = PROCESS_FILE_BODY;
 }
@@ -603,15 +598,15 @@ void Client::process_cgi_beginning()
 			if (this->m_cgi_buffer.is_header_finished())
 			{
 				std::string header_str = this->m_cgi_buffer.pull_header();
-				this->m_cgi_header.set_chunked();
-				this->m_cgi_header.parse_response(header_str);
-				this->m_header.clear();
-				this->m_header.ignore_content_len_field();
-				this->m_header.generate_response_fields(
-					this->m_connection_type, HTTP_OK_MSG, this->m_cgi_header.is_chunked(), "text/html"
+				HTTPHeader tmp_header;
+				tmp_header.set_chunked();
+				tmp_header.parse_response(header_str);
+				this->m_resp_header.ignore_content_len_field();
+				this->m_resp_header.generate_response_fields(
+					this->m_connection_type, HTTP_OK_MSG, tmp_header.is_chunked(), "text/html"
 				);
-				this->m_header.parse_response(header_str);
-				header_str = this->m_header.generate_response_header();
+				this->m_resp_header.parse_response(header_str);
+				header_str = this->m_resp_header.generate_response_header();
 				this->m_response_buffer.push(header_str.c_str(), header_str.size());
 				this->m_cgi_header_finished = true;
 			}
@@ -645,10 +640,10 @@ void Client::handle_cgi_read_chunked(std::string& data)
 void Client::handle_cgi_read(std::string& data)
 {
 	this->m_body_size += data.size();
-	if (this->m_body_size > this->m_cgi_header.get_content_length())
-		data = data.substr(0, this->m_body_size - this->m_cgi_header.get_content_length());
+	if (this->m_body_size > this->m_resp_header.get_content_length())
+		data = data.substr(0, this->m_body_size - this->m_resp_header.get_content_length());
 	this->m_response_buffer.push(data.c_str(), data.size());
-	if (this->m_body_size >= this->m_cgi_header.get_content_length())
+	if (this->m_body_size >= this->m_resp_header.get_content_length())
 		reset_client_state();
 }
 
@@ -657,7 +652,7 @@ void Client::process_cgi_read()
 	if (this->m_cgi_buffer.size())
 	{
 		std::string data = this->m_cgi_buffer.pull(this->m_cgi_buffer.size());
-		if (this->m_cgi_header.is_chunked())
+		if (this->m_resp_header.is_chunked())
 			handle_cgi_read_chunked(data);
 		else
 			handle_cgi_read(data);
@@ -669,7 +664,7 @@ void Client::process_cgi_read()
 		if (this->m_cgi_handler.is_read_ready())
 		{
 			std::string data = this->m_cgi_handler.read_cgi();
-			if (this->m_cgi_header.is_chunked())
+			if (this->m_resp_header.is_chunked())
 				handle_cgi_read_chunked(data);
 			else
 				handle_cgi_read(data);
@@ -677,7 +672,7 @@ void Client::process_cgi_read()
 		if (this->m_cgi_handler.is_timeout())
 			throw WebservExceptions::HTTPException(HTTP_GATEWAY_TIMEOUT);
 	}
-	if (this->m_cgi_handler.is_dead() && !this->m_cgi_header.is_chunked())
+	if (this->m_cgi_handler.is_dead() && !this->m_resp_header.is_chunked())
 		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
 }
 
@@ -692,17 +687,13 @@ void Client::process_file_upload()
 	this->m_body.erase(0, bytes_to_write);
 	if (this->m_body.empty())
 	{
-		std::string& target = this->m_header.get_aug_target();
+		std::string& target = this->m_req_header.get_aug_target();
 		std::string path = concat_path(this->m_target_block->get_root(), target);
 		std::string body = "File uploaded successfully to: " + path + "\n";
-		HTTPHeaderField field;
-		field.name = "Location";
-		this->m_header.clear();
-		field.value = this->m_header.get_target();
-		this->m_header.set_content_length(body.size());
-		this->m_header.add_field(field);
-		this->m_header.generate_response_fields(HTTP_CREATED, HTTP_CREATED_MSG, false, "text/plain");
-		std::string response_header = this->m_header.generate_response_header();
+		this->m_resp_header.set_content_length(body.size());
+		this->m_resp_header.add_field("Location", this->m_req_header.get_target());
+		this->m_resp_header.generate_response_fields(HTTP_CREATED, HTTP_CREATED_MSG, false, "text/plain");
+		std::string response_header = this->m_resp_header.generate_response_header();
 		this->m_response_buffer.push(response_header.c_str(), response_header.size());
 		this->m_response_buffer.push(body.c_str(), body.size());
 		this->m_response_buffer.create_barrier();
@@ -777,8 +768,8 @@ void Client::reset_client_state()
 	this->m_target_block = this->m_base_server;
 	this->m_body_size = 0;
 	this->m_cgi_header_finished = false;
-	this->m_header.clear();
-	this->m_cgi_header.clear();
+	this->m_req_header.clear();
+	this->m_resp_header.clear();
 	this->m_body.clear();
 	this->m_cgi_buffer.erase(this->m_cgi_buffer.size());
 	this->m_cgi_handler.clean_handler();
@@ -799,9 +790,9 @@ time_t Client::get_last_activity() const
 	return this->m_last_activity;
 }
 
-HTTPHeader& Client::get_header()
+HTTPHeader& Client::get_request_header()
 {
-	return this->m_header;
+	return this->m_req_header;
 }
 
 const std::pair<std::string, std::string>& Client::get_client_addr() const

@@ -52,6 +52,17 @@ post_validation_tests_dict = {
     "/forbidden": {"data": post_tests_dict["/post/forbidden"]["data"], "code": 403}
 }
 
+delete_tests_dict = {
+    "/": 501,
+    "/delete": 404,
+    "/delete/": 501,
+    "/dir": 301,
+    "/delete/zombie": 204,
+    "/delete/bald": 204,
+    "/delete/random_1kb": 204,
+    "/delete/random_1025kb": 404
+}
+
 def print_test_result_code(method, test_desc, resp_code, exp_code):
     if resp_code != exp_code:
         print(f"{RED}Test {method} {test_desc} failed{RESET}: Expected code {exp_code} returned {resp_code}.")
@@ -70,9 +81,12 @@ def run_test_get(test_desc, route, code):
             })
         resp = conn.getresponse()
         print_test_result_code("GET", test_desc, resp.status, code)
+        if code != 200:
+            return None
         return resp.read()
     except:
         print_test_fail("GET", test_desc, "Request failed.")
+        return None
 
 def run_test_post(test_desc, route, code, body):
     try:
@@ -85,8 +99,26 @@ def run_test_post(test_desc, route, code, body):
             }, body=body, encode_chunked=False)
         resp = conn.getresponse()
         print_test_result_code("POST", test_desc, resp.status, code)
+        return resp.headers.get("Location")
     except:
         print_test_fail("POST", test_desc, "Request failed.")
+        return None
+
+def run_test_delete(test_desc, route, code):
+    try:
+        conn = HTTPConnection(host, int(port))
+        conn.request("DELETE", route, headers={
+            "Host": "www.tester.com",
+            "User-Agent": "webserv-tester/1.0"
+            })
+        resp = conn.getresponse()
+        print_test_result_code("DELETE", test_desc, resp.status, code)
+        if code == resp.status:
+            return True
+        return False
+    except:
+        print_test_fail("DELETE", test_desc, "Request failed.")
+        return False
 
 def run_test_compare(resp_body: bytes, exp_body: bytes):
     if resp_body != exp_body:
@@ -98,38 +130,31 @@ def test_get():
     print(f"{YELLOW}GET tests{RESET}:")
     for key in get_tests_dict:
         run_test_get(f"route {key}", key, get_tests_dict[key])
-    # run_test_get("route /", "/", 200)
-    # run_test_get("route /dir/index.html", "/dir/index.html", 200)
-    # run_test_get("route /.", "/.", 200)
-    # run_test_get("route /xyz/../", "/xyz/../", 200)
-    # run_test_get("route /dir/", "/dir/", 200)
-    # run_test_get("route /dir/dir/", "/dir/dir/", 200)
-    # run_test_get("route ''", "", 200)
-    # run_test_get("route /dir", "/dir", 301)
-    # run_test_get("route /dir/../dir", "/dir/../dir", 301)
-    # run_test_get("route /../", "/../", 400)
-    # run_test_get("route /../xyz", "/../xyz", 400)
-    # run_test_get("route /xyz/../..", "/../xyz", 400)
-    # run_test_get("route /forbidden", "/forbidden", 403)
-    # run_test_get("route /xyz", "/xyz", 404)
-    # run_test_get("route /./xyz", "/./xyz", 404)
-    # run_test_get("route /dir/dir/dir/", "/dir/dir/dir/", 404)
-    
+
 def test_post():
     print(f"{YELLOW}POST tests{RESET}:")
     for key in post_tests_dict:
         data = post_tests_dict[key]["data"]
         code = post_tests_dict[key]["code"]
-        run_test_post(f"route {key}", key, code, data)
-        
-def test_post_validation():
-    print(f"{YELLOW}POST validation tests{RESET}:")
-    for key in post_validation_tests_dict:
-        data = post_validation_tests_dict[key]["data"]
-        code = post_validation_tests_dict[key]["code"]
-        body = run_test_get(f"route {key}", key, code)
-        if code == 200:
-            run_test_compare(body, data)
+        location = run_test_post(f"route {key}", key, code, data)
+        if code == 201 and location:
+            print(f"{YELLOW}Running POST {location} validation{RESET}")
+            if location == None or location[:6] != "/post/":
+                print(f"{RED}Location is invalid.{RESET}")
+            else:
+                body = run_test_get(f"route {location[5:]}", location[5:], 200)
+                if body != None:
+                    run_test_compare(body, data)
+            
+def test_delete():
+    print(f"{YELLOW}DELETE tests{RESET}:")
+    for key in delete_tests_dict:
+        code = delete_tests_dict[key]
+        res = run_test_delete(f"route {key}", key, code)
+        if res and code == 204:
+            print(f"{YELLOW}Running DELETE {key} validation{RESET}")
+            route = key[7:]
+            run_test_get(f"route {route}", route, 404)
 
 if len(sys.argv) != 2:
     print("Usage: webserv_tester <http://hostname:port>")
@@ -154,4 +179,4 @@ if len(tmp) > 1:
 
 test_get()
 test_post()
-test_post_validation()
+test_delete()
