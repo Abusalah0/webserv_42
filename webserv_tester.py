@@ -14,6 +14,25 @@ GREEN = "\033[32m"
 RED = "\033[31m"
 RESET = "\033[0m"
 
+get_tests_dict = {
+    "/": 200,
+    "/dir/index.html": 200,
+    "/.": 200,
+    "/xyz/../": 200,
+    "/dir/": 200,
+    "/dir/dir/": 200,
+    "": 200,
+    "/dir": 301,
+    "/dir/../dir": 301,
+    "/../": 400,
+    "/../xyz": 400,
+    "/xyz/../..": 400,
+    "/forbidden": 403,
+    "/xyz": 404,
+    "/./xyz": 404,
+    "/dir/dir/dir/": 404
+}
+
 post_tests_dict = {
     "/": {"data": b"LOL", "code": 501},
     "/post/": {"data": b"ZOMBIE", "code": 501},
@@ -77,22 +96,24 @@ def run_test_compare(resp_body: bytes, exp_body: bytes):
 
 def test_get():
     print(f"{YELLOW}GET tests{RESET}:")
-    run_test_get("route /", "/", 200)
-    run_test_get("route /dir/index.html", "/dir/index.html", 200)
-    run_test_get("route /.", "/.", 200)
-    run_test_get("route /xyz/../", "/xyz/../", 200)
-    run_test_get("route /dir/", "/dir/", 200)
-    run_test_get("route /dir/dir/", "/dir/dir/", 200)
-    run_test_get("route ''", "", 200)
-    run_test_get("route /dir", "/dir", 301)
-    run_test_get("route /dir/../dir", "/dir/../dir", 301)
-    run_test_get("route /../", "/../", 400)
-    run_test_get("route /../xyz", "/../xyz", 400)
-    run_test_get("route /xyz/../..", "/../xyz", 400)
-    run_test_get("route /forbidden", "/forbidden", 403)
-    run_test_get("route /xyz", "/xyz", 404)
-    run_test_get("route /./xyz", "/./xyz", 404)
-    run_test_get("route /dir/dir/dir/", "/dir/dir/dir/", 404)
+    for key in get_tests_dict:
+        run_test_get(f"route {key}", key, get_tests_dict[key])
+    # run_test_get("route /", "/", 200)
+    # run_test_get("route /dir/index.html", "/dir/index.html", 200)
+    # run_test_get("route /.", "/.", 200)
+    # run_test_get("route /xyz/../", "/xyz/../", 200)
+    # run_test_get("route /dir/", "/dir/", 200)
+    # run_test_get("route /dir/dir/", "/dir/dir/", 200)
+    # run_test_get("route ''", "", 200)
+    # run_test_get("route /dir", "/dir", 301)
+    # run_test_get("route /dir/../dir", "/dir/../dir", 301)
+    # run_test_get("route /../", "/../", 400)
+    # run_test_get("route /../xyz", "/../xyz", 400)
+    # run_test_get("route /xyz/../..", "/../xyz", 400)
+    # run_test_get("route /forbidden", "/forbidden", 403)
+    # run_test_get("route /xyz", "/xyz", 404)
+    # run_test_get("route /./xyz", "/./xyz", 404)
+    # run_test_get("route /dir/dir/dir/", "/dir/dir/dir/", 404)
     
 def test_post():
     print(f"{YELLOW}POST tests{RESET}:")

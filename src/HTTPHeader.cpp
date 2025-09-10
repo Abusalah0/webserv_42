@@ -83,6 +83,8 @@ bool validate_target(std::string& target)
 		else
 			component += target[i];
 	}
+	if (component == ".." && !pos)
+		return false;
 	return true;
 }
 
