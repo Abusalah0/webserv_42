@@ -320,7 +320,6 @@ void HTTPHeader::generate_response_fields(int client_status,
 	this->m_fields["server"] = field;
 	if (is_chunked)
 	{
-		std::cout << "LOL" << std::endl;
 		field.name = "Transfer-Encoding";
 		field.value = "chunked";
 		this->m_fields["transfer-encoding"] = field;

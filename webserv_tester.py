@@ -1,8 +1,8 @@
 import sys
-from urllib3.connection import HTTPConnection
+from http.client import HTTPConnection
 import random
 
-#HTTPConnection.debuglevel = 1
+# HTTPConnection.debuglevel = 1
 
 url = None
 host = None
@@ -31,7 +31,7 @@ def run_test_get(test_desc, route, code):
             })
         resp = conn.getresponse()
         print_test_result_code("GET", test_desc, resp.status, code)
-        return resp._body
+        return resp.read().decode("ascii")
     except:
         print_test_fail("GET", test_desc, "Request failed.")
 
@@ -41,11 +41,17 @@ def run_test_post(test_desc, route, code, body):
         conn.request("POST", route, headers={
             "Host": "www.tester.com",
             "User-Agent": "webserv-tester/1.0"
-            }, body=body, chunked=True)
+            }, body=body, encode_chunked=True)
         resp = conn.getresponse()
         print_test_result_code("POST", test_desc, resp.status, code)
     except:
         print_test_fail("POST", test_desc, "Request failed.")
+
+def run_test_compare(test_desc, resp_body, exp_body):
+    if resp_body != exp_body:
+        print(f"{RED}Compare {test_desc} failed{RESET}.")
+    else:
+        print(f"{GREEN}Compare {test_desc} succeded{RESET}.")
 
 def test_get():
     print(f"{YELLOW}GET tests{RESET}:")
@@ -69,7 +75,10 @@ def test_get():
 def test_post():
     print(f"{YELLOW}POST tests{RESET}:")
     run_test_post("route /", "/", 501, "LOL")
-    run_test_post("route /file", "/file", 201, "ZOMBIE")
+    run_test_post("route /post/", "/post/", 501, "ZOMBIE")
+    run_test_post("route /post/file", "/file", 201, "ZOMBIE")
+    body = run_test_get("route /file", "/file", 200)
+    run_test_compare("/file response with request body", body, "ZOMBIE")
 
 if len(sys.argv) != 2:
     print("Usage: webserv_tester <http://hostname:port>")
