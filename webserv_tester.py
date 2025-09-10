@@ -17,6 +17,7 @@ RESET = "\033[0m"
 post_tests_dict = {
     "/": {"data": b"LOL", "code": 501},
     "/post/": {"data": b"ZOMBIE", "code": 501},
+    "/dir": {"data": b"ZOMBIE", "code": 301},
     "/post/zombie": {"data": b"ZOMBIE", "code": 201},
     "/post/bald": {"data": b"", "code": 201},
     "/post/random_1kb": {"data": random.randbytes(1024), "code": 201},
@@ -70,8 +71,6 @@ def run_test_post(test_desc, route, code, body):
 
 def run_test_compare(resp_body: bytes, exp_body: bytes):
     if resp_body != exp_body:
-        print(resp_body)
-        print(exp_body)
         print(f"{RED}Compare response body with post request body failed{RESET}.")
     else:
         print(f"{GREEN}Compare response body with post request body succeded{RESET}.")

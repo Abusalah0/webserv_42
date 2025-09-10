@@ -365,35 +365,53 @@ void Client::process_request_get()
 
 void Client::process_request_post()
 {
-	std::string& target = this->m_header.get_target();
+	std::string& target = this->m_header.get_aug_target();
+	std::string path = concat_path(this->m_target_block->get_root(), target);
 	
 	if (str_back(target) == '/')
 		throw WebservExceptions::HTTPException(HTTP_NOT_IMPLEMENTED);
-	try
+	if (is_http_target_dir(path))
 	{
-		handle_cgi();
+		const std::string& root = this->m_target_block->get_root();
+		std::string location = path.substr(root.size());
+		generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
 	}
-	catch (const WebservExceptions::CGINotFound& e)
+	else
 	{
-		handle_file_upload();
+		try
+		{
+			handle_cgi();
+		}
+		catch (const WebservExceptions::CGINotFound& e)
+		{
+			handle_file_upload();
+		}
 	}
 }
 
 void Client::process_request_delete()
 {
-	std::string& target = this->m_header.get_target();
+	std::string& target = this->m_header.get_aug_target();
+	std::string path = concat_path(this->m_target_block->get_root(), target);
 	
 	if (str_back(target) == '/')
-	{
 		throw WebservExceptions::HTTPException(HTTP_NOT_IMPLEMENTED);
-	}
-	try
+	if (is_http_target_dir(path))
 	{
-		handle_cgi();
+		const std::string& root = this->m_target_block->get_root();
+		std::string location = path.substr(root.size());
+		generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
 	}
-	catch (const WebservExceptions::CGINotFound& e)
+	else
 	{
-		handle_file_delete();
+		try
+		{
+			handle_cgi();
+		}
+		catch (const WebservExceptions::CGINotFound& e)
+		{
+			handle_file_delete();
+		}
 	}
 }
 
