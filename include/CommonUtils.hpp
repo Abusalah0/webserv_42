@@ -33,6 +33,7 @@ typedef enum EConnectionTypes
 #define HTTP_NOT_FOUND 404
 #define HTTP_METHOD_NOT_ALLOWED 405
 #define HTTP_CONTENT_TOO_LARGE 413
+#define HTTP_IAM_A_TEAPOT 418
 #define HTTP_INTERNAL_SERVER_ERROR 500
 #define HTTP_NOT_IMPLEMENTED 501
 #define HTTP_BAD_GATEWAY 502
@@ -49,6 +50,7 @@ typedef enum EConnectionTypes
 #define HTTP_NOT_FOUND_MSG "404 Not Found"
 #define HTTP_METHOD_NOT_ALLOWED_MSG "405 Method Not Allowed"
 #define HTTP_CONTENT_TOO_LARGE_MSG "413 Content Too Large"
+#define HTTP_IAM_A_TEAPOT_MSG "418 I'm a teapot"
 #define HTTP_INTERNAL_SERVER_ERROR_MSG "500 Internal Server Error"
 #define HTTP_NOT_IMPLEMENTED_MSG "501 Not Implemented"
 #define HTTP_BAD_GATEWAY_MSG "502 Bad Gateway"

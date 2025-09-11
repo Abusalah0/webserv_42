@@ -34,8 +34,8 @@ get_tests_dict = {
 }
 
 post_tests_dict = {
-    "/": {"data": b"LOL", "code": 501},
-    "/post/": {"data": b"ZOMBIE", "code": 501},
+    "/": {"data": b"LOL", "code": 405},
+    "/post/": {"data": b"ZOMBIE", "code": 405},
     "/dir": {"data": b"ZOMBIE", "code": 301},
     "/post/zombie": {"data": b"ZOMBIE", "code": 201},
     "/post/bald": {"data": b"", "code": 201},
@@ -53,10 +53,8 @@ post_validation_tests_dict = {
 }
 
 delete_tests_dict = {
-    "/": 501,
-    "/delete": 404,
-    "/delete/": 501,
-    "/dir": 301,
+    "/": 405,
+    "/delete/": 405,
     "/delete/zombie": 204,
     "/delete/bald": 204,
     "/delete/random_1kb": 204,

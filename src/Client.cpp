@@ -305,7 +305,7 @@ void Client::handle_file_delete()
 	if (stat(path.c_str(), &statbuf))
 		handle_http_file_errno();
 	if (!S_ISREG(statbuf.st_mode))
-		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+		throw WebservExceptions::HTTPException(HTTP_IAM_A_TEAPOT);
 
 	if (std::remove(path.c_str()))
 		handle_http_file_errno();
@@ -367,7 +367,7 @@ void Client::process_request_post()
 	std::string path = concat_path(this->m_target_block->get_root(), target);
 	
 	if (str_back(target) == '/')
-		throw WebservExceptions::HTTPException(HTTP_NOT_IMPLEMENTED);
+		throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
 	if (is_http_target_dir(path))
 	{
 		const std::string& root = this->m_target_block->get_root();
@@ -390,26 +390,16 @@ void Client::process_request_post()
 void Client::process_request_delete()
 {
 	std::string& target = this->m_req_header.get_aug_target();
-	std::string path = concat_path(this->m_target_block->get_root(), target);
 	
 	if (str_back(target) == '/')
-		throw WebservExceptions::HTTPException(HTTP_NOT_IMPLEMENTED);
-	if (is_http_target_dir(path))
+		throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
+	try
 	{
-		const std::string& root = this->m_target_block->get_root();
-		std::string location = path.substr(root.size());
-		generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
+		handle_cgi();
 	}
-	else
+	catch (const WebservExceptions::CGINotFound& e)
 	{
-		try
-		{
-			handle_cgi();
-		}
-		catch (const WebservExceptions::CGINotFound& e)
-		{
-			handle_file_delete();
-		}
+		handle_file_delete();
 	}
 }
 

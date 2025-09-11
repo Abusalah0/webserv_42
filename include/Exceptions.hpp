@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 12:01:53 by sbibers           #+#    #+#             */
-/*   Updated: 2025/09/07 14:57:52 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/11 18:32:04 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -33,6 +33,7 @@ static const HTTPStatus statusTable[] = {
 	{HTTP_NOT_FOUND, HTTP_NOT_FOUND_MSG},
 	{HTTP_METHOD_NOT_ALLOWED, HTTP_METHOD_NOT_ALLOWED_MSG},
 	{HTTP_CONTENT_TOO_LARGE, HTTP_CONTENT_TOO_LARGE_MSG},
+    {HTTP_IAM_A_TEAPOT, HTTP_IAM_A_TEAPOT_MSG},
 	{HTTP_INTERNAL_SERVER_ERROR, HTTP_INTERNAL_SERVER_ERROR_MSG},
 	{HTTP_NOT_IMPLEMENTED, HTTP_NOT_IMPLEMENTED_MSG},
 	{HTTP_BAD_GATEWAY, HTTP_BAD_GATEWAY_MSG},
