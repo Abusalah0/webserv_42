@@ -17,7 +17,9 @@ HTTPHeader::HTTPHeader():
 	m_virtual_host(),
 	m_response_msg(),
 	m_fields(),
-	m_response_fields()
+	m_response_fields(),
+	m_allowed_methods(),
+	m_last_modified()
 {}
 
 HTTPHeader::~HTTPHeader()
@@ -83,6 +85,8 @@ bool validate_target(std::string& target)
 		else
 			component += target[i];
 	}
+	if (component == ".." && !pos)
+		return false;
 	return true;
 }
 
@@ -225,15 +229,15 @@ void HTTPHeader::parse_request(std::string& input)
 	std::string line;
 	while (true)
 	{
-		size_t clrf_pos = input.find("\r\n", line_start);
-		if (clrf_pos == line_start)
+		size_t crlf_pos = input.find("\r\n", line_start);
+		if (crlf_pos == line_start)
 			break;
-		line = input.substr(line_start, clrf_pos - line_start);
+		line = input.substr(line_start, crlf_pos - line_start);
 		if (!line_start)
 			parse_request_line(line);
 		else
 			parse_request_header_line(line);
-		line_start = clrf_pos + 2;
+		line_start = crlf_pos + 2;
 	}
 	if (this->m_fields.find("host") == this->m_fields.end())
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
@@ -300,12 +304,12 @@ void HTTPHeader::parse_response(std::string& input)
 	std::string line;
 	while (true)
 	{
-		size_t clrf_pos = input.find("\r\n", line_start);
-		if (clrf_pos == line_start)
+		size_t crlf_pos = input.find("\r\n", line_start);
+		if (crlf_pos == line_start)
 			break;
-		line = input.substr(line_start, clrf_pos - line_start);
+		line = input.substr(line_start, crlf_pos - line_start);
 		parse_response_header_line(line);
-		line_start = clrf_pos + 2;
+		line_start = crlf_pos + 2;
 	}
 }
 
@@ -314,37 +318,22 @@ void HTTPHeader::generate_response_fields(int client_status,
 	bool is_chunked,
 	const char* media_type)
 {
-	HTTPHeaderField field;
-	field.name = "Server";
-	field.value = SERVER_SOFTWARE;
-	this->m_fields["server"] = field;
+	add_field("Server", SERVER_SOFTWARE);
 	if (is_chunked)
-	{
-		field.name = "Transfer-Encoding";
-		field.value = "chunked";
-		this->m_fields["transfer-encoding"] = field;
-	}
+		add_field("Transfer-Encoding", "chunked");
 	else if (!this->m_ignore_content_len_field)
-	{
-		field.name = "Content-Length";
-		field.value = ul_to_str(this->m_content_len);
-		this->m_fields["content-length"] = field;
-	}
-	field.name = "Connection";
+		add_field("Content-Length", ul_to_str(this->m_content_len));
+	std::string conn_value = "close";
 	if (!client_status)
-		field.value = "keep-alive";
-	else
-		field.value = "close";
-	this->m_fields["connection"] = field;
+		conn_value = "keep-alive";
+	add_field("Connection", conn_value);
 	if (*media_type)
-	{
-		field.name = "Content-Type";
-		field.value = media_type;
-		this->m_fields["content-type"] = field;
-	}
-	field.name = "Date";
-	field.value = generate_http_date();
-	this->m_fields["date"] = field;
+		add_field("Content-Type", media_type);
+	if (!this->m_last_modified.empty())
+		add_field("Last-Modified", this->m_last_modified);
+	if (!this->m_allowed_methods.empty())
+		add_field("Allow", this->m_allowed_methods);
+	add_field("Date", generate_http_date());
 
 	this->m_is_chunked = true;
 	if (this->m_response_msg.empty())
@@ -433,11 +422,14 @@ std::deque<HTTPHeaderField>& HTTPHeader::get_response_fields()
 	return this->m_response_fields;
 }
 
-void HTTPHeader::add_field(HTTPHeaderField& field)
+void HTTPHeader::add_field(const std::string& name, const std::string& value)
 {
-	std::string lowercase = field.name;
+	HTTPHeaderField field;
+	std::string lowercase = name;
 	std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), c_tolower);
-	this->m_fields["location"] = field;
+	field.name = name;
+	field.value = value;
+	this->m_fields[lowercase] = field;
 }
 
 void HTTPHeader::clear()
@@ -451,6 +443,8 @@ void HTTPHeader::clear()
 	this->m_response_msg.clear();
 	this->m_fields.clear();
 	this->m_response_fields.clear();
+	this->m_allowed_methods.clear();
+	this->m_last_modified.clear();
 }
 
 void HTTPHeader::debug()
@@ -489,4 +483,21 @@ std::string& HTTPHeader::get_aug_target()
 void HTTPHeader::set_aug_target(const std::string& str)
 {
 	this->m_aug_target = str;
+}
+
+void HTTPHeader::set_last_modified(time_t raw_time)
+{
+	this->m_last_modified = generate_http_date(raw_time);
+}
+
+void HTTPHeader::set_allowed_methods(const std::set<std::string>& allowed_methods)
+{
+	std::set<std::string>::iterator it = allowed_methods.begin();
+	while (it != allowed_methods.end())
+	{
+		this->m_allowed_methods.append(*it);
+		it++;
+		if (it != allowed_methods.end())
+			this->m_allowed_methods.append(", ");
+	}
 }

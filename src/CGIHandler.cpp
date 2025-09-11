@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/07 22:13:27 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/10 23:50:06 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -38,7 +38,7 @@ CGIHandler::~CGIHandler()
 
 void CGIHandler::init_env_map_meta()
 {
-	HTTPHeader& header = this->m_client->get_header();
+	HTTPHeader& header = this->m_client->get_request_header();
 	const std::pair<std::string, std::string> client_addr = this->m_client->get_client_addr();
 	const std::pair<std::string, std::string> server_addr = this->m_client->get_server_addr();
 	const std::map<std::string, HTTPHeaderField>& fields = header.get_fields();
@@ -68,7 +68,7 @@ void CGIHandler::init_env_map_meta()
 
 void CGIHandler::init_env_map()
 {
-	HTTPHeader& header = this->m_client->get_header();
+	HTTPHeader& header = this->m_client->get_request_header();
 	const std::map<std::string, HTTPHeaderField>& fields = header.get_fields();
 	init_env_map_meta();
 

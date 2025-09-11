@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 01:19:47 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/07 19:05:31 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/10 20:30:00 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -91,7 +91,7 @@ bool HTTPBuffer::is_header_finished()
 	else
 		limit_it = this->m_data.begin() + CHUNK_SIZE;
 	
-	std::string::iterator it = std::search(this->m_data.begin(), limit_it, dclrf.begin(), dclrf.begin() + 4);
+	std::string::iterator it = std::search(this->m_data.begin(), limit_it, dcrlf.begin(), dcrlf.begin() + 4);
 	if (it != limit_it)
 	{
 		this->m_header_end_cursor = std::distance(this->m_data.begin(), it) + 4;
@@ -115,21 +115,25 @@ void debug_str(const std::string& str)
 	std::cout << res << std::endl;
 }
 
-void HTTPBuffer::header_lf_to_clrf()
+void HTTPBuffer::header_lf_to_crlf()
 {
 	size_t pos = this->m_data.find('\n');
 	while (pos != std::string::npos)
 	{
 		if (pos == 0 || this->m_data[pos - 1] != '\r')
+		{
 			this->m_data.insert(this->m_data.begin() + pos, '\r');
-		if (pos > 1)
-			if (!this->m_data.compare(pos - 2, 4, "\r\n\r\n", 4))
+			pos++;
+		}
+		if (pos > 2)
+			if (!this->m_data.compare(pos - 1, 4, "\r\n\r\n", 4))
 				return;
 		pos = this->m_data.find('\n', pos + 1);
 	}
 }
 
-bool HTTPBuffer::is_clrf_found()
+
+bool HTTPBuffer::is_crlf_found()
 {
 	size_t pos = this->m_data.find("\r\n");
 	if (pos != std::string::npos)

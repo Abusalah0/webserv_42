@@ -55,8 +55,8 @@ class Client
 		HTTPBuffer m_request_buffer;
 		HTTPBuffer m_response_buffer;
 		HTTPBuffer m_cgi_buffer;
-		HTTPHeader m_header;
-		HTTPHeader m_cgi_header;
+		HTTPHeader m_req_header;
+		HTTPHeader m_resp_header;
 		std::string m_body;
 		std::string m_script_name;
 		std::string m_server_name;
@@ -108,7 +108,7 @@ class Client
 		int get_client_status();
 		void generate_redirection();
 		time_t get_last_activity() const;
-		HTTPHeader& get_header();
+		HTTPHeader& get_request_header();
 		const std::pair<std::string, std::string>& get_client_addr() const;
 		const std::pair<std::string, std::string>& get_server_addr() const;
 		const std::string& get_script_name();

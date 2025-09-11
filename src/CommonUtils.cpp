@@ -314,6 +314,27 @@ std::string generate_http_date()
 	return date;
 }
 
+std::string generate_http_date(time_t raw_time)
+{
+	std::string date;
+	tm* datetime = gmtime(&raw_time);
+	date.append(daysArr[datetime->tm_wday]);
+	date.append(", ");
+	date.append(tmvalue_to_str(datetime->tm_mday));
+	date.push_back(' ');
+	date.append(monthsArr[datetime->tm_mon]);
+	date.push_back(' ');
+	date.append(ul_to_str(datetime->tm_year + 1900));
+	date.push_back(' ');
+	date.append(tmvalue_to_str(datetime->tm_hour));
+	date.push_back(':');
+	date.append(tmvalue_to_str(datetime->tm_min));
+	date.push_back(':');
+	date.append(tmvalue_to_str(datetime->tm_sec));
+	date.append(" GMT");
+	return date;
+}
+
 std::string generate_autoindex_date()
 {
 	std::string date;
