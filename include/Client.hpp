@@ -60,6 +60,8 @@ class Client
 		std::string m_body;
 		std::string m_script_name;
 		std::string m_server_name;
+		std::string m_document_root;
+		std::string m_path_translated;
 		size_t m_chunk_size;
 		const std::pair<std::string, std::string>* m_server_addr;
 		const std::pair<std::string, std::string> m_client_addr;
@@ -113,6 +115,8 @@ class Client
 		const std::pair<std::string, std::string>& get_server_addr() const;
 		const std::string& get_script_name();
 		const std::string& get_server_name();
+		const std::string& get_document_root();
+		const std::string& get_path_translated();
 };
 
 #endif

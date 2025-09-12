@@ -30,6 +30,8 @@ Client::Client(int fd,
 	m_resp_header(),
 	m_body(),
 	m_script_name(),
+	m_document_root(),
+	m_path_translated(),
 	m_server_addr(server_addr),
 	m_client_addr(client_addr),
 	m_cgi_handler(server_container, this),
@@ -241,16 +243,19 @@ void validate_cgi_files_permissions(const std::string& full_path, const std::str
 		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	if (access(full_path.c_str(), R_OK))
 		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
-	if (stat(cgi_pass.c_str(), &statbuf))
+	if (cgi_pass != "executable")
 	{
-		if (errno == ENOENT)
-			throw WebservExceptions::CGINotFound();
-		handle_http_file_errno();
+		if (stat(cgi_pass.c_str(), &statbuf))
+		{
+			if (errno == ENOENT)
+				throw WebservExceptions::CGINotFound();
+			handle_http_file_errno();
+		}
+		if (!S_ISREG(statbuf.st_mode))
+			throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
+		if (access(cgi_pass.c_str(), X_OK))
+			throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	}
-	if (!S_ISREG(statbuf.st_mode))
-		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
-	if (access(cgi_pass.c_str(), X_OK))
-		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 }
 
 void Client::handle_cgi()
@@ -263,7 +268,7 @@ void Client::handle_cgi()
 	std::string full_path = concat_path(location_target->get_root(), target);
 	const std::string& cgi_pass = location_target->get_cgi_pass();
 	validate_cgi_files_permissions(full_path, cgi_pass);
-	this->m_script_name = full_path.substr(location_target->get_root().size());
+	this->m_script_name = this->m_req_header.get_target();
 	this->m_cgi_handler.init_cgi(cgi_pass, full_path);
 	this->m_process_state = PROCESS_CGI_BEGINNING;
 }
@@ -438,28 +443,34 @@ void Client::select_target()
 	const Server* server = &this->m_server_container->get_best_server(
 		this->m_server_addr->first, this->m_server_addr->second, this->m_req_header.get_virtual_host()
 	);
-	if (!server->get_server_names().size())
-		this->m_server_name = this->m_server_addr->first;
-	else
+	if (server->get_server_names().size())
 		this->m_server_name = this->m_req_header.get_virtual_host();
+	else
+		this->m_server_name.clear();
 	this->m_target_block = server;
 	this->m_req_header.set_aug_target(this->m_req_header.get_target());
 	try
 	{
 		const Location* location = &server->match_location(this->m_req_header.get_target());
 		this->m_target_block = location;
-		std::string new_aug_target = this->m_req_header.get_aug_target();
-		new_aug_target.erase(0, location->get_upload_path().size() - 1);
-		this->m_req_header.set_aug_target(new_aug_target);
 		if (!location->is_method_allowed(this->m_req_header.get_request_method()))
 		{
 			this->m_resp_header.set_allowed_methods(location->get_allowed_methods());
 			throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
 		}
+		std::string new_aug_target = this->m_req_header.get_aug_target();
+		new_aug_target.erase(0, location->get_upload_path().size() - 1);
+		this->m_req_header.set_aug_target(new_aug_target);
+		this->m_path_translated = this->m_req_header.get_target();
+		this->m_path_translated.erase(0, location->get_upload_path().size());
+		if (this->m_path_translated.empty() || this->m_path_translated[0] != '/')
+			this->m_path_translated.insert(this->m_path_translated.begin(), '/');
+		this->m_path_translated = concat_path(location->get_root(), this->m_path_translated);
 	}
 	catch (const WebservExceptions::LocationNotFound& e)
 	{
 	}
+	this->m_document_root = this->m_target_block->get_root();
 	if (this->m_req_header.get_content_length())
 	{
 		if (this->m_req_header.get_content_length() > this->m_target_block->get_client_max_body_size())
@@ -803,4 +814,14 @@ const std::string& Client::get_script_name()
 const std::string& Client::get_server_name()
 {
 	return this->m_server_name;
+}
+
+const std::string& Client::get_document_root()
+{
+	return this->m_document_root;
+}
+
+const std::string& Client::get_path_translated()
+{
+	return this->m_path_translated;
 }

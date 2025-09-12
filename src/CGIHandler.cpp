@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/10 23:50:06 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/12 03:37:39 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -44,7 +44,8 @@ void CGIHandler::init_env_map_meta()
 	const std::map<std::string, HTTPHeaderField>& fields = header.get_fields();
 	std::map<std::string, HTTPHeaderField>::const_iterator it;
 	this->m_env_map["AUTH_TYPE"] = "";
-	this->m_env_map["CONTENT_LENGTH"] = ul_to_str(header.get_content_length());
+	if (header.get_content_length())
+		this->m_env_map["CONTENT_LENGTH"] = ul_to_str(header.get_content_length());
 	it = fields.find("content-type");
 	if (it != fields.end())
 		this->m_env_map["CONTENT_TYPE"] = (*it).second.value;
@@ -53,10 +54,11 @@ void CGIHandler::init_env_map_meta()
 	this->m_env_map["GATEWAY_INTERFACE"] = "CGI/1.1";
 	this->m_env_map["PATH_INFO"] = header.get_target();
 	this->m_env_map["REQUEST_URI"] = header.get_target();
-	this->m_env_map["PATH_TRANSLATED"] = "";
+	this->m_env_map["DOCUMENT_ROOT"] = this->m_client->get_document_root();
+	this->m_env_map["PATH_TRANSLATED"] = this->m_client->get_path_translated();
 	this->m_env_map["QUERY_STRING"] = header.get_query_parameters();
 	this->m_env_map["REMOTE_ADDR"] = client_addr.first;
-	this->m_env_map["REMOTE_HOST"] = client_addr.first;
+	this->m_env_map["REMOTE_HOST"] = "";
 	this->m_env_map["REMOTE_USER"] = "";
 	this->m_env_map["REQUEST_METHOD"] = header.get_request_method();
 	this->m_env_map["SCRIPT_NAME"] = this->m_client->get_script_name();
@@ -124,19 +126,32 @@ char** CGIHandler::generate_args(const std::string& cgi_pass, const std::string&
 {
 	char** args;
 
-	args = new char*[3]();
+	if (cgi_pass == "executable")
+		args = new char*[2]();
+	else
+		args = new char*[3]();
 	try
 	{
-		args[0] = new char[cgi_pass.size() + 1];
-		args[1] = new char[full_path.size() + 1];
+		if (cgi_pass == "executable")
+			args[0] = new char[full_path.size() + 1];
+		else
+		{
+			args[0] = new char[cgi_pass.size() + 1];
+			args[1] = new char[full_path.size() + 1];
+		}
 	}
 	catch(const std::exception& e)
 	{
 		delete_darray(args);
 		throw;
 	}
-	std::strcpy(args[0], cgi_pass.c_str());
-	std::strcpy(args[1], full_path.c_str());
+	if (cgi_pass == "executable")
+		std::strcpy(args[0], full_path.c_str());
+	else
+	{
+		std::strcpy(args[0], cgi_pass.c_str());
+		std::strcpy(args[1], full_path.c_str());
+	}
 	
 	return args;
 }
@@ -175,7 +190,10 @@ void CGIHandler::child_process(const std::string& cgi_pass, const std::string& f
 		throw;
 	}
 
-	execve(cgi_pass.c_str(), args, env);
+	if (cgi_pass == "executable")
+		execve(full_path.c_str(), args, env);
+	else
+		execve(cgi_pass.c_str(), args, env);
 	delete_darray(args);
 	delete_darray(env);
 	throw WebservExceptions::ExitChild();

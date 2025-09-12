@@ -1,18 +1,20 @@
 import sys
 from http.client import HTTPConnection
 import random
-import requests
+import string
 
 # HTTPConnection.debuglevel = 1
 
 url = None
 host = None
-port = None
+port = 80
 
 YELLOW = "\033[33m"
 GREEN = "\033[32m"
 RED = "\033[31m"
 RESET = "\033[0m"
+
+alphabet = string.ascii_letters.encode()
 
 get_tests_dict = {
     "/": 200,
@@ -39,8 +41,8 @@ post_tests_dict = {
     "/dir": {"data": b"ZOMBIE", "code": 301},
     "/post/zombie": {"data": b"ZOMBIE", "code": 201},
     "/post/bald": {"data": b"", "code": 201},
-    "/post/random_1kb": {"data": random.randbytes(1024), "code": 201},
-    "/post/random_1025b": {"data": random.randbytes(1025), "code": 413},
+    "/post/random_1kb": {"data": bytes(random.choices(alphabet, k=1024)), "code": 201},
+    "/post/random_1025b": {"data": bytes(random.choices(alphabet, k=1025)), "code": 413},
     "/post/forbidden": {"data": b"FORBIDDEN", "code": 403}
 }
 
@@ -58,7 +60,7 @@ delete_tests_dict = {
     "/delete/zombie": 204,
     "/delete/bald": 204,
     "/delete/random_1kb": 204,
-    "/delete/random_1025kb": 404
+    "/delete/random_1025b": 404
 }
 
 def print_test_result_code(method, test_desc, resp_code, exp_code):
@@ -70,9 +72,12 @@ def print_test_result_code(method, test_desc, resp_code, exp_code):
 def print_test_fail(method, test_desc, reason):
     print(f"{RED}Test {method} {test_desc} failed{RESET}: {reason}")
 
-def run_test_get(test_desc, route, code):
+def run_test_get(test_desc, route, code, query = None):
     try:
         conn = HTTPConnection(host, int(port))
+        if query:
+            route += f"?{query}"
+            test_desc += f" Query:{query}"
         conn.request("GET", route, headers={
             "Host": "www.tester.com",
             "User-Agent": "webserv-tester/1.0"
@@ -80,11 +85,12 @@ def run_test_get(test_desc, route, code):
         resp = conn.getresponse()
         print_test_result_code("GET", test_desc, resp.status, code)
         if code != 200:
-            return None
-        return resp.read()
-    except:
+            return False, None
+        return True, resp.read()
+    except Exception as e:
+        print(e)
         print_test_fail("GET", test_desc, "Request failed.")
-        return None
+        return False, None
 
 def run_test_post(test_desc, route, code, body):
     try:
@@ -140,8 +146,8 @@ def test_post():
             if location == None or location[:6] != "/post/":
                 print(f"{RED}Location is invalid.{RESET}")
             else:
-                body = run_test_get(f"route {location[5:]}", location[5:], 200)
-                if body != None:
+                res, body = run_test_get(f"route {location[5:]}", location[5:], 200)
+                if res:
                     run_test_compare(body, data)
             
 def test_delete():
@@ -154,18 +160,26 @@ def test_delete():
             route = key[7:]
             run_test_get(f"route {route}", route, 404)
 
+def test_cgi_validation():
+    print(f"{YELLOW}CGI validation test{RESET}:")
+    res, body = run_test_get("/cgi_py/validation_cgi.py",
+                 "/cgi%5Fpy/validation_cgi.py",
+                 200,
+                 "xyzwebservtester=tester&lol=LOL%7A%30&list=abc,123,tester")
+    print(f"{YELLOW}CGI Output{RESET}: {body}")
+
 if len(sys.argv) != 2:
     print("Usage: webserv_tester <http://hostname:port>")
-    exit(1)
+    sys.exit(1)
 
 url = sys.argv[1]
 
 if url[:7] != "http://":
     print("Unknown schema.")
-    exit(1)
+    sys.exit(1)
 if not url[7:]:
     print("Empty hostname.")
-    exit(1)
+    sys.exit(1)
 tmp = url[7:].split(":")
 host = tmp[0]
 if len(tmp) > 1:
@@ -173,8 +187,10 @@ if len(tmp) > 1:
         port = int(tmp[1])
     except:
         print("Invalid port.")
-        exit(1)
+        sys.exit(1)
 
 test_get()
 test_post()
 test_delete()
+test_cgi_validation()
+sys.exit(0)

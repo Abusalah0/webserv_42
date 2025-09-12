@@ -14,8 +14,14 @@ http
 		location /delete {
 			limit DELETE;
 		}
+		location /cgi_py {
+			root /home/coderx64/www/cgi;
+			cgi_pass /usr/bin/python3;
+			cgi_extension .py;
+		}
 		location /cgi {
 			root /home/coderx64/www/cgi;
+			cgi_pass executable;
 		}
 	}
 }
