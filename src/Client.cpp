@@ -215,7 +215,7 @@ void Client::direct_serve(const BaseBlock* location_target)
 {
 	std::string& target = this->m_req_header.get_aug_target();
 	std::string path = concat_path(location_target->get_root(), target);
-	
+
 	if (is_http_target_file(path))
 		prep_process_file_body(path);
 	else if (is_http_target_dir(path))
@@ -233,6 +233,10 @@ void Client::direct_serve(const BaseBlock* location_target)
 void validate_cgi_files_permissions(const std::string& full_path, const std::string& cgi_pass)
 {
 	struct stat statbuf;
+
+	int cgi_file_perm = R_OK;
+	if (cgi_pass == "executable")
+		cgi_file_perm = X_OK;
 	if (stat(full_path.c_str(), &statbuf))
 	{
 		if (errno == ENOENT)
@@ -241,7 +245,7 @@ void validate_cgi_files_permissions(const std::string& full_path, const std::str
 	}
 	if (!S_ISREG(statbuf.st_mode))
 		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
-	if (access(full_path.c_str(), R_OK))
+	if (access(full_path.c_str(), cgi_file_perm))
 		throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	if (cgi_pass != "executable")
 	{
@@ -282,7 +286,7 @@ void Client::handle_file_upload()
 	std::string path = concat_path(location->get_root(), target);
 	size_t pos = path.rfind('/');
 	std::string dir = path.substr(0, pos);
-
+	
 	if (!access(path.c_str(), F_OK))
 	{
 		struct stat statbuf;
@@ -293,7 +297,7 @@ void Client::handle_file_upload()
 		if (access(dir.c_str(), W_OK))
 			throw WebservExceptions::HTTPException(HTTP_FORBIDDEN);
 	}
-	
+
 	this->m_file_fd = open(path.c_str(), O_CREAT | O_WRONLY | O_TRUNC, 0644);
 	if (this->m_file_fd == -1)
 		handle_http_file_errno();
@@ -640,9 +644,10 @@ void Client::handle_cgi_read_chunked(std::string& data)
 
 void Client::handle_cgi_read(std::string& data)
 {
+	size_t old_body_size = this->m_body_size;
 	this->m_body_size += data.size();
 	if (this->m_body_size > this->m_resp_header.get_content_length())
-		data = data.substr(0, this->m_body_size - this->m_resp_header.get_content_length());
+		data = data.substr(0, this->m_resp_header.get_content_length() - old_body_size);
 	this->m_response_buffer.push(data.c_str(), data.size());
 	if (this->m_body_size >= this->m_resp_header.get_content_length())
 		reset_client_state();
@@ -659,7 +664,11 @@ void Client::process_cgi_read()
 			handle_cgi_read(data);
 	}
 	if (!this->m_cgi_handler.is_read_open())
+	{
+		if (this->m_body_size < this->m_resp_header.get_content_length())
+			throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
 		reset_client_state();
+	}
 	else
 	{
 		if (this->m_cgi_handler.is_read_ready())
@@ -673,8 +682,7 @@ void Client::process_cgi_read()
 		if (this->m_cgi_handler.is_timeout())
 			throw WebservExceptions::HTTPException(HTTP_GATEWAY_TIMEOUT);
 	}
-	if (this->m_cgi_handler.is_dead() && !this->m_resp_header.is_chunked())
-		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
+	this->m_cgi_handler.handle_death();
 }
 
 void Client::process_file_upload()

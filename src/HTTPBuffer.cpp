@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 01:19:47 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/10 20:30:00 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/14 00:52:27 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -100,21 +100,6 @@ bool HTTPBuffer::is_header_finished()
 	return false;
 }
 
-void debug_str(const std::string& str)
-{
-	std::string res;
-	for (size_t i = 0; i < str.size(); i++)
-	{
-		if (str[i] == '\n')
-			res.append("\\n");
-		else if (str[i] == '\r')
-			res.append("\\r");
-		else
-			res.push_back(str[i]);
-	}
-	std::cout << res << std::endl;
-}
-
 void HTTPBuffer::header_lf_to_crlf()
 {
 	size_t pos = this->m_data.find('\n');
@@ -126,12 +111,13 @@ void HTTPBuffer::header_lf_to_crlf()
 			pos++;
 		}
 		if (pos > 2)
-			if (!this->m_data.compare(pos - 1, 4, "\r\n\r\n", 4))
+		{
+			if (!this->m_data.compare(pos - 3, 4, "\r\n\r\n", 4))
 				return;
+		}
 		pos = this->m_data.find('\n', pos + 1);
 	}
 }
-
 
 bool HTTPBuffer::is_crlf_found()
 {

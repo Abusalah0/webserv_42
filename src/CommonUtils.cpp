@@ -474,3 +474,21 @@ bool is_response_status_valid(const std::string& field_value)
 		return false;
 	return true;
 }
+
+std::deque<std::string> extract_route_components(const std::string& str)
+{
+	std::deque<std::string> res;
+	std::string component;
+
+	for (size_t i = 1; i < str.size(); i++)
+	{
+		if (str[i] == '/')
+		{
+			res.push_back(component);
+			component.clear();
+		}
+		else
+			component.push_back(str[i]);
+	}
+	return res;
+}

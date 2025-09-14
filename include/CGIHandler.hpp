@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   CGIHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:13 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/06 18:22:19 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/13 23:56:58 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef CGIHANDLER_HPP
 #define CGIHANDLER_HPP
@@ -42,7 +42,7 @@ class CGIHandler
 		~CGIHandler();
 		void init_cgi(const std::string& cgi_pass, const std::string& full_path);
 		void reset_cgi();
-		bool is_dead();
+		void handle_death();
 		void clean_handler();
 		std::string read_cgi();
 		void write_cgi(const std::string& str);

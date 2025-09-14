@@ -3,7 +3,7 @@ http
 	root /home/coderx64/www;
 	server
 	{
-		listen localhost:1090;
+		listen 192.168.1.167:1090;
 		index index.html;
 		location / {
 		}
@@ -22,6 +22,7 @@ http
 		location /cgi {
 			root /home/coderx64/www/cgi;
 			cgi_pass executable;
+			cgi_extension .cgi;
 		}
 	}
 }

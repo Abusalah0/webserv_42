@@ -162,6 +162,43 @@ HTTPHeaderField split_request_header(std::string& line)
 	return field;
 }
 
+HTTPHeaderField split_response_header(std::string& line)
+{
+	HTTPHeaderField field;
+	size_t s_offset = 0;
+	size_t e_offset = 0;
+
+	while (e_offset < line.size())
+	{
+		if (line[e_offset] == ':')
+			break;
+		e_offset++;
+	}
+	if (!e_offset || e_offset == line.size())
+		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
+	field.name = line.substr(s_offset, e_offset);
+	s_offset = e_offset + 1;
+	if (s_offset == line.size())
+		return field;
+	while (s_offset < line.size())
+	{
+		if (!is_ws_chr(line[s_offset]))
+			break;
+		s_offset++;
+	}
+	if (s_offset == line.size())
+		return field;
+	e_offset = line.size() - 1;
+	while (e_offset > s_offset)
+	{
+		if (!is_ws_chr(line[e_offset]))
+			break;
+		e_offset--;
+	}
+	field.value = line.substr(s_offset, (e_offset - s_offset + 1));
+	return field;
+}
+
 char c_tolower(char c)
 {
 	if (c >= 0x41 && c <= 0x5A)
@@ -269,7 +306,7 @@ void HTTPHeader::parse_response_content_len()
 
 void HTTPHeader::parse_response_header_line(std::string& line)
 {
-	HTTPHeaderField field = split_request_header(line);
+	HTTPHeaderField field = split_response_header(line);
 	if (!check_str_chrs(field.name, is_token_chr))
 		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
 	if (!check_str_chrs(field.value, is_field_value_chr))

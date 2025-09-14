@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/09 13:22:44 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/12 19:05:34 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../include/Server.hpp"
 #include "../include/Exceptions.hpp"
@@ -124,16 +124,27 @@ bool Server::match_virtual_host(const std::string &virtual_host) const
 
 const Location& Server::match_location(std::string& route) const
 {
-	size_t pos = route.rfind('/');
-	if (pos == std::string::npos)
-		throw WebservExceptions::LocationNotFound();
-	std::string correct_route = route.substr(0, pos + 1);
+	const Location* location = NULL;
+	size_t max_i = 0;
 	for (size_t i = 0; i < this->m_locations.size(); i++)
 	{
-		if (this->m_locations[i].get_upload_path() == correct_route)
-			return this->m_locations[i];
+		std::deque<std::string> location_components = extract_route_components(this->m_locations[i].get_upload_path());
+		std::deque<std::string> route_components = extract_route_components(route);
+		size_t comp_i = 0;
+		while (comp_i < location_components.size())
+		{
+			if (location_components[comp_i] != route_components[comp_i])
+				break;
+			comp_i++;
+		}
+		if (comp_i == location_components.size() && comp_i + 1 > max_i)
+		{
+			location = &this->m_locations[i];
+			max_i = comp_i + 1;
+		}
 	}
-		
+	if (location)
+		return *location;
 	throw WebservExceptions::LocationNotFound();
 }
 
