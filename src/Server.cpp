@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/12 19:05:34 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/17 23:21:38 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../include/Server.hpp"
 #include "../include/Exceptions.hpp"
@@ -114,37 +114,39 @@ const std::vector<Location> Server::get_locations() const
 bool Server::match_virtual_host(const std::string &virtual_host) const
 {
 	if (!this->m_server_names.size())
-		return true;
+		return (true);
     if (this->m_server_names.find(virtual_host) == this->m_server_names.end())
 	{
-        return false;
+        return (false);
 	}
-	return true;
+	return (true);
 }
 
 const Location& Server::match_location(std::string& route) const
 {
 	const Location* location = NULL;
 	size_t max_i = 0;
+	size_t comp_i = 0;
+	
 	for (size_t i = 0; i < this->m_locations.size(); i++)
 	{
 		std::deque<std::string> location_components = extract_route_components(this->m_locations[i].get_upload_path());
 		std::deque<std::string> route_components = extract_route_components(route);
-		size_t comp_i = 0;
+		comp_i = 0;
 		while (comp_i < location_components.size())
 		{
 			if (location_components[comp_i] != route_components[comp_i])
-				break;
-			comp_i++;
+				break ;
+			comp_i++;// count matching components
 		}
-		if (comp_i == location_components.size() && comp_i + 1 > max_i)
+		if (comp_i == location_components.size() && comp_i + 1 > max_i)// full match a location path and more specific than previous matches
 		{
 			location = &this->m_locations[i];
 			max_i = comp_i + 1;
 		}
 	}
-	if (location)
-		return *location;
+	if (location)// if we found a matching location
+		return (*location);
 	throw WebservExceptions::LocationNotFound();
 }
 
@@ -165,15 +167,15 @@ void Server::set_default_server()
 
 bool Server::is_default_server() const
 {
-	return this->m_is_default;
+	return (this->m_is_default);
 }
 
 bool Server::root_location_exist() const
 {
-	return this->m_root_location_exist;
+	return (this->m_root_location_exist);
 }
 
 const Location& Server::get_root_location() const
 {
-	return this->m_locations[this->m_root_location_index];
+	return (this->m_locations[this->m_root_location_index]);
 }
