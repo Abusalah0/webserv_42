@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/18 03:03:59 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/18 03:09:04 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/19 02:21:16 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,11 +155,11 @@ ushort parse_http_code(const std::string& str)
 
 	errno = 0;
 	long code = strtol(str.c_str(), &endptr, 10);
-	if (*endptr || errno == ERANGE)
+	if (*endptr || errno == ERANGE)// not fully converted or out of range
 	{
 		throw WebservExceptions::InvalidValue();
 	}
-	if (code < 100 || code > 999)
+	if (code < 100 || code > 999)// out of HTTP code range
 	{
 		throw WebservExceptions::HttpCodeOutOfRange();
 	}
