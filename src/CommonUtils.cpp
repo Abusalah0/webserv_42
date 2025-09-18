@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   CommonUtils.cpp                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/18 03:03:59 by abdsalah          #+#    #+#             */
+/*   Updated: 2025/09/18 03:09:04 by abdsalah         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../include/CommonUtils.hpp"
 #include "../include/Exceptions.hpp"
 #include <map>
@@ -6,10 +18,11 @@
 #include <ctime>
 #include <iostream>
 
-/* 			Media Type Task :) 	     	*/
-
+/**
+ * @brief intialize the media types map.
+ * @return the map of media types.
+ */
 static std::map<std::string, const char *> init_media_types()
-// init all the media types.
 {
     std::map<std::string, const char*> media_types;
     media_types[".aac"] = "audio/aac";
@@ -91,6 +104,7 @@ static std::map<std::string, const char *> init_media_types()
     media_types[".3gp"] = "video/3gpp";
     media_types[".3g2"] = "video/3gpp2";
     media_types[".7z"] = "application/x-7z-compressed";
+
     return (media_types);
 }
 
@@ -98,51 +112,59 @@ const char *get_media_type(const std::string &file_path)
 {
     static const std::map<std::string, const char*> media_types = init_media_types();
     size_t dot_pos = file_path.find('.');
+
     if (dot_pos == std::string::npos)
     {
         return ("application/octet-stream"); // can not find (.) in the path.
     }
+
     std::string extention = file_path.substr(dot_pos);
     std::transform(extention.begin(), extention.end(), extention.begin(), tolower); // change string to lowercase.
     std::map<std::string, const char *>::const_iterator it = media_types.find(extention); // iterator to find if the extention exist or not.
+
     if (it != media_types.end())
+	{
         return (it->second);
+	}
     return ("application/octet-stream");
 }
 
-/**
- * Getter for last character reference in string
- * @param str string reference
- * @return last character reference or null reference
- */
 const char& str_back(const std::string& str)
 {
 	static const char null_chr = '\0';
+
     if (str.empty())
-        return null_chr;
-    return str[str.size() - 1];
+	{
+        return (null_chr);
+	}
+    return (str[str.size() - 1]);
 }
 
-/**
- * Parse HTTP code with validation
- * @param str HTTP code as string
- * @return HTTP code as ushort
- */
 ushort parse_http_code(const std::string& str)
 {
 	char* endptr;
 
 	if (str.empty())
+	{
 		throw WebservExceptions::InvalidValue();
+	}
 	if (!std::isdigit(str[0]))
+	{
 		throw WebservExceptions::InvalidValue();
+	}
+
 	errno = 0;
 	long code = strtol(str.c_str(), &endptr, 10);
 	if (*endptr || errno == ERANGE)
+	{
 		throw WebservExceptions::InvalidValue();
+	}
 	if (code < 100 || code > 999)
+	{
 		throw WebservExceptions::HttpCodeOutOfRange();
-	return code;
+	}
+
+	return (code);
 }
 
 bool is_token_chr(u_char c)
@@ -153,61 +175,81 @@ bool is_token_chr(u_char c)
 		&& c != '.' && c != '^' && c != '_'
 		&& c != '`' && c != '|' && c != '~'
 		&& !std::isalnum(c))
-		return false;
-	return true;
+	{
+		return (false);
+	}
+	return (true);
 }
 
 bool is_ws_chr(u_char c)
 {
 	if (c == ' ' || c == '\t')
-		return true;
-	return false;
+	{
+		return (true);
+	}
+	return (false);
 }
 
 bool is_vchar(u_char c)
 {
 	if (c >= 0x21 && c <= 0x7E)
-		return true;
-	return false;
+	{
+		return (true);
+	}
+	return (false);
 }
 
 bool is_obs_chr(u_char c)
 {
 	if (c >= 0x80)
-		return true;
-	return false;
+	{
+		return (true);
+	}
+	return (false);
 }
 
 bool is_field_value_chr(u_char c)
 {
 	if (!is_ws_chr(c) && !is_vchar(c) && !is_obs_chr(c))
-		return false;
-	return true;
+	{
+		return (false);
+	}
+	return (true);
 }
 
 bool check_str_chrs(std::string& str, bool (*func)(u_char c))
 {
 	size_t i = 0;
+
 	while (i < str.size())
 	{
 		if (!func(str[i]))
-			return false;
+		{
+			return (false);
+		}
 		i++;
 	}
-	return true;
+
+	return (true);
 }
 
 size_t parse_chunk_size(std::string& str)
 {
 	if (str.size() > 14)
+	{
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+	}
+
 	for (size_t i = 0; i < str.size(); ++i)
 	{
 		if (!std::isxdigit(str[i]))
+		{
 			throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+		}
 	}
 	size_t chunk_size = strtoul(str.c_str(), 0, 16);
-	return chunk_size;
+
+	return (chunk_size);
 }
 
 std::string ul_to_str(size_t value)
@@ -217,7 +259,7 @@ std::string ul_to_str(size_t value)
 	if (!value)
 	{
 		res.push_back('0');
-		return res;
+		return (res);
 	}
 	while (value)
 	{
@@ -225,10 +267,16 @@ std::string ul_to_str(size_t value)
 		value /= 10;
 	}
 	std::reverse(res.begin(), res.end());
-	return res;
+	
+	return (res);
 }
 
-std::string tmvalue_to_str(int value)
+/**
+ * @brief Convert a tm struct value to a two-digit string.
+ * @param value The integer value from the tm struct.
+ * @return A string representation of the value, padded to two digits if necessary.
+ */
+static std::string tmvalue_to_str(int value)
 {
 	std::string res;
 
@@ -244,8 +292,11 @@ std::string tmvalue_to_str(int value)
 	}
 	std::reverse(res.begin(), res.end());
 	if (res.size() < 2)
+	{
 		res.insert(res.begin(), '0');
-	return res;
+	}
+
+	return (res);
 }
 
 void handle_http_file_errno()
@@ -266,30 +317,46 @@ void handle_http_file_errno()
 std::string concat_path(const std::string& root, const std::string& target)
 {
 	std::string path = root;
+
 	if (str_back(path) == '/' && !path.empty())
+	{
 		path.erase(path.size() - 1);
+	}
 	path.append(target);
-	return path;
+
+	return (path);
 }
 
 bool is_http_target_file(const std::string& path)
 {
 	struct stat statbuf;
+
 	if (stat(path.c_str(), &statbuf))
-		return false;
+	{
+		return (false);
+	}
 	if (S_ISREG(statbuf.st_mode))
-		return true;
-	return false;
+	{
+		return (true);
+	}
+
+	return (false);
 }
 
 bool is_http_target_dir(const std::string& path)
 {
 	struct stat statbuf;
+	
 	if (stat(path.c_str(), &statbuf))
-		return false;
+	{
+		return (false);
+	}
 	if (S_ISDIR(statbuf.st_mode))
-		return true;
-	return false;
+	{
+		return (true);
+	}
+	
+	return (false);
 }
 
 std::string generate_http_date()
@@ -297,6 +364,8 @@ std::string generate_http_date()
 	std::string date;
 	time_t raw_time = time(0);
 	tm* datetime = gmtime(&raw_time);
+	
+	// Example: "Sun, 06 Nov 1994 08:49:37 GMT" 
 	date.append(daysArr[datetime->tm_wday]);
 	date.append(", ");
 	date.append(tmvalue_to_str(datetime->tm_mday));
@@ -311,13 +380,16 @@ std::string generate_http_date()
 	date.push_back(':');
 	date.append(tmvalue_to_str(datetime->tm_sec));
 	date.append(" GMT");
-	return date;
+
+	return (date);
 }
 
 std::string generate_http_date(time_t raw_time)
 {
 	std::string date;
 	tm* datetime = gmtime(&raw_time);
+
+	// Example: "Sun, 06 Nov 1994 08:49:37 GMT"
 	date.append(daysArr[datetime->tm_wday]);
 	date.append(", ");
 	date.append(tmvalue_to_str(datetime->tm_mday));
@@ -332,7 +404,8 @@ std::string generate_http_date(time_t raw_time)
 	date.push_back(':');
 	date.append(tmvalue_to_str(datetime->tm_sec));
 	date.append(" GMT");
-	return date;
+
+	return (date);
 }
 
 std::string generate_autoindex_date()
@@ -340,6 +413,8 @@ std::string generate_autoindex_date()
 	std::string date;
 	time_t raw_time = time(0);
 	tm* datetime = gmtime(&raw_time);
+
+	// Example: "06-Nov-1994 08:49"
 	date.append(tmvalue_to_str(datetime->tm_mday));
 	date.push_back('-');
 	date.append(monthsArr[datetime->tm_mon]);
@@ -349,40 +424,49 @@ std::string generate_autoindex_date()
 	date.append(tmvalue_to_str(datetime->tm_hour));
 	date.push_back(':');
 	date.append(tmvalue_to_str(datetime->tm_min));
-	return date;
+
+	return (date);
 }
 
 std::deque<AutoIndexEntry> generate_autoindex_entries(const std::string& root, const std::string target)
 {
 	std::string path = concat_path(root, target);
+	
 	DIR* dir_s = opendir(path.c_str());
 	if (!dir_s)
 		handle_http_file_errno();
+
 	std::deque<AutoIndexEntry> entries;
 	dirent* dir_ent = readdir(dir_s);
 	std::string ent_name;
 	std::string ent_path;
+	
 	while (dir_ent)
 	{
 		ent_name = dir_ent->d_name;
-		if (ent_name.compare("."))
+		if (ent_name.compare("."))// skip (.) entry
 		{
 			struct stat statbuf;
 			ent_path = path + ent_name;
+			
 			if (!stat(ent_path.c_str(), &statbuf))
 			{
-				if (S_ISDIR(statbuf.st_mode))
+				if (S_ISDIR(statbuf.st_mode))// append (/) at the end of directory names
+				{
 					ent_name.push_back('/');
+				}
+				// Fill the entry with the directory information
 				AutoIndexEntry entry;
 				entry.ent_name = ent_name;
 				entry.statbuf = statbuf;
-				entries.push_back(entry);
+				entries.push_back(entry); // Add the entry to the list
 			}
 		}
-		dir_ent = readdir(dir_s);
+		dir_ent = readdir(dir_s);// read the next entry
 	}
-	closedir(dir_s);
-	return entries;
+	closedir(dir_s);// Close the directory stream
+	
+	return (entries);
 }
 
 void replace_template_str(std::string& body,
@@ -390,6 +474,7 @@ void replace_template_str(std::string& body,
 	const std::string& str)
 {
 	size_t pos = body.find(str_template);
+	
 	while (pos != std::string::npos)
 	{
 		body.erase(pos, str_template.size());
@@ -401,9 +486,11 @@ void replace_template_str(std::string& body,
 std::pair<std::string, std::string> parse_sockaddr(sockaddr_in& sockaddr)
 {
 	std::pair<std::string, std::string> parsed_addr;
-	
+	// Get port and IP address
 	ushort port = ntohs(sockaddr.sin_port);
 	uint32_t ip_addr = ntohl(sockaddr.sin_addr.s_addr);
+	
+	// Convert IP address to string format
 	parsed_addr.first.append(ul_to_str(ip_addr >> 24));
 	parsed_addr.first.push_back('.');
 	parsed_addr.first.append(ul_to_str((ip_addr >> 16) & 0xFF));
@@ -413,7 +500,7 @@ std::pair<std::string, std::string> parse_sockaddr(sockaddr_in& sockaddr)
 	parsed_addr.first.append(ul_to_str(ip_addr & 0xFF));
 	parsed_addr.second = ul_to_str(port);
 
-	return parsed_addr;
+	return (parsed_addr);
 }
 
 bool is_field_cgi_valid(const std::string& name)
@@ -421,18 +508,26 @@ bool is_field_cgi_valid(const std::string& name)
 	for (size_t i = 0; i < name.size(); i++)
 	{
 		if (!std::isalnum(name[i]) && name[i] != '-')
-			return false;
+		{
+			return (false);
+		}
 	}
-	return true;
+
+	return (true);
 }
 
 char chr_to_cgi(char c)
 {
 	if (std::isalpha(c))
-		return std::toupper(c);
+	{
+		return (std::toupper(c));
+	}
 	else if (c == '-')
-		return '_';
-	return c;
+	{
+		return ('_');
+	}
+
+	return (c);
 }
 
 std::string ul_to_hex(size_t value)
@@ -442,7 +537,7 @@ std::string ul_to_hex(size_t value)
 	if (!value)
 	{
 		res = "0";
-		return res;
+		return (res);
 	}
 	while (value)
 	{
@@ -450,29 +545,44 @@ std::string ul_to_hex(size_t value)
 		value /= 16;
 	}
 	std::reverse(res.begin(), res.end());
-	return res;
+	
+	return (res);
 }
 
 bool c_isdigit(u_char c)
 {
 	if (c >= 0x30 && c <= 0x39)
-		return true;
-	return false;
+	{
+		return (true);
+	}
+	
+	return (false);
 }
 
 bool is_response_status_valid(const std::string& field_value)
 {
 	size_t pos = field_value.find(' ');
+
 	if (pos == std::string::npos)
+	{
 		pos = field_value.size();
+	}
 	std::string value = field_value.substr(0, pos);
+
 	if (value.size() != 3)
-		return false;
+	{
+		return (false);
+	}
 	if (!std::isdigit(value[0]) || value[0] == '0')
-		return false;
+	{
+		return (false);
+	}
 	if (!check_str_chrs(value, c_isdigit))
-		return false;
-	return true;
+	{
+		return (false);
+	}
+	
+	return (true);
 }
 
 std::deque<std::string> extract_route_components(const std::string& str)
@@ -482,7 +592,7 @@ std::deque<std::string> extract_route_components(const std::string& str)
 
 	for (size_t i = 1; i < str.size(); i++)
 	{
-		if (str[i] == '/')
+		if (str[i] == '/')// split by '/'
 		{
 			res.push_back(component);
 			component.clear();
@@ -490,5 +600,6 @@ std::deque<std::string> extract_route_components(const std::string& str)
 		else
 			component.push_back(str[i]);
 	}
-	return res;
+	
+	return (res);
 }
