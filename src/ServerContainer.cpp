@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   ServerContainer.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 22:46:34 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/18 22:38:34 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../include/ServerContainer.hpp"
 #include "../include/Client.hpp"
@@ -48,18 +48,23 @@ int ServerContainer::create_listen_socket(const std::pair<std::string, std::stri
     addrinfo hints;
     addrinfo* pai;
     bool socket_binded = false;
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = 0;
-    hints.ai_next = 0;
-    hints.ai_flags = 0;
-    hints.ai_canonname = 0;
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	// initialize hints
+    hints.ai_family = AF_INET;// IPv4
+    hints.ai_socktype = SOCK_STREAM;// TCP
+    hints.ai_protocol = 0;// any protocol
+    hints.ai_next = 0;// no next
+    hints.ai_flags = 0;// no flags
+    hints.ai_canonname = 0;// no canonname
+	
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);// create socket
     if (sockfd == -1)
 	{
         throw WebservExceptions::SocketFailed();
 	}
+	
 	int value = 1;
+	// set socket options, SOL_SOCKET manipulates options at the sockets API level,
+	// SO_REUSEADDR allows reuse of local addresses to prevent "Address already in use" errors
 	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(value)))
 	{
 		close(sockfd);
@@ -70,28 +75,32 @@ int ServerContainer::create_listen_socket(const std::pair<std::string, std::stri
         close(sockfd);
         throw WebservExceptions::GAIFailed();
     }
+	
     for (addrinfo* current_pai = pai;
         current_pai != NULL;
         current_pai = current_pai->ai_next)
     {
-        if (!bind(sockfd, current_pai->ai_addr, current_pai->ai_addrlen))
+        if (!bind(sockfd, current_pai->ai_addr, current_pai->ai_addrlen))// bind the socket to the address
         {
             socket_binded = true;
-            break;
+            break ;
         }
     }
-    freeaddrinfo(pai);
-    if (!socket_binded)
+	
+    freeaddrinfo(pai);// free the addrinfo struct
+    if (!socket_binded)// if binding failed
     {
         close(sockfd);
         throw WebservExceptions::BindFailed();
     }
+	// set the socket to listen mode
     if (listen(sockfd, 1024))
     {
         close(sockfd);
         throw WebservExceptions::ListenFailed();
     }
-    return sockfd;
+	
+    return (sockfd);
 }
 
 void ServerContainer::setup_default_server()
@@ -100,8 +109,10 @@ void ServerContainer::setup_default_server()
 	{
 		if (this->m_servers[i].is_default_server())
 		{
-			if (this->m_default_server)
+			if (this->m_default_server)// multiple default servers found
+			{
 				throw WebservExceptions::MultipleDefaultServers();
+			}
 			this->m_default_server = &this->m_servers[i];
 		}
 	}
@@ -109,28 +120,35 @@ void ServerContainer::setup_default_server()
 
 void ServerContainer::setup_webserv()
 {
+	// set the default server if exists and make sure there is only one
 	setup_default_server();
+	
 	bool success = false;
+	
 	for (size_t i = 0; i < this->m_servers.size(); i++)
     {
         Server& server = this->m_servers[i];
-        const std::vector<std::pair<std::string, std::string> >& listens = server.get_listen();
+        const std::vector<std::pair<std::string, std::string> >& listens = server.get_listen(); // current server listening addresses
+		
         for (size_t i = 0; i < listens.size(); i++)
         {
             try
             {
+				// create a listening socket for the current listen address
                 int sockfd = create_listen_socket(listens[i]);
                 this->m_servers_map[sockfd] = &server;
 				this->m_servers_listen_map[sockfd] = &listens[i];
+				// add the listening socket to the poll fds vector
+				// TO-DO: use the add_to_poll method instead or be gay
                 pollfd entry;
                 entry.fd = sockfd;
-                entry.events = POLLIN | POLLOUT;
+                entry.events = POLLIN | POLLOUT; // ready to read and write
                 this->m_poll_fds.push_back(entry);
 				success = true;
             }
             catch(const std::bad_alloc& e)
             {
-                throw;
+                throw ;
             }
             catch(const std::exception& e)
             {
@@ -150,10 +168,11 @@ static void debugClientConn(const std::pair<std::string, std::string>* server_ad
 void ServerContainer::remove_client(size_t poll_index)
 {
 	std::cout << "Client Removed!" << std::endl;
-	close(this->m_poll_fds[poll_index].fd);
-	delete this->m_clients_map[this->m_poll_fds[poll_index].fd];
-	this->m_clients_map.erase(this->m_poll_fds[poll_index].fd);
-	this->m_poll_fds[poll_index].fd = -1;
+	
+	close(this->m_poll_fds[poll_index].fd);// close the client socket
+	delete this->m_clients_map[this->m_poll_fds[poll_index].fd];// delete the client object
+	this->m_clients_map.erase(this->m_poll_fds[poll_index].fd);// remove the client from the clients map
+	this->m_poll_fds[poll_index].fd = -1;// mark the poll fd as invalid for cleanup later
 }
 
 void ServerContainer::accept_client(size_t poll_index)
@@ -161,14 +180,15 @@ void ServerContainer::accept_client(size_t poll_index)
 	pollfd& poll_data = this->m_poll_fds[poll_index];
 	sockaddr_in client_addr;
 	socklen_t client_addrlen = sizeof(sockaddr_in);
-	int client_fd = accept(poll_data.fd, (sockaddr*)&client_addr, &client_addrlen);
+	
+	int client_fd = accept(poll_data.fd, (sockaddr*)&client_addr, &client_addrlen);// accept new client connection, non-blocking
 	if (client_fd == -1)
 	{
 		std::cerr << "accept failed!" << std::endl;
-		return;
+		return ;
 	}
+	
 	std::pair<std::string, std::string> client_parsed_addr;
-
 	try
 	{
 		client_parsed_addr = parse_sockaddr(client_addr);
@@ -178,7 +198,7 @@ void ServerContainer::accept_client(size_t poll_index)
 		close(client_fd);
 		throw e;
 	}
-	
+	// create a new client object and add it to the clients map
 	this->m_clients_map.insert(
 		std::pair<int, Client*>(client_fd, new Client(
 			client_fd,
@@ -188,7 +208,10 @@ void ServerContainer::accept_client(size_t poll_index)
 			client_parsed_addr
 		))
 	);
+	
 	debugClientConn(this->m_servers_listen_map[poll_data.fd]);
+	// add the new client socket to the poll fds vector
+	// TO-DO: use the add_to_poll method instead or be gay
 	pollfd entry;
 	entry.fd = client_fd;
 	entry.events = POLLIN | POLLOUT;
@@ -199,10 +222,11 @@ void ServerContainer::accept_client(size_t poll_index)
 void ServerContainer::loop_cleanup()
 {
 	size_t i = 0;
+	
 	while (i < this->m_poll_fds.size())
 	{
 		if (this->m_poll_fds[i].fd == -1)
-			this->m_poll_fds.erase(this->m_poll_fds.begin() + i);
+			this->m_poll_fds.erase(this->m_poll_fds.begin() + i);// remove disconnected clients
 		else
 			i++;
 	}
@@ -211,9 +235,12 @@ void ServerContainer::loop_cleanup()
 bool is_client_timeout(Client* client)
 {
 	time_t raw_time = std::time(0);
+	
 	if (raw_time >= client->get_last_activity() + CLIENT_TIMEOUT_SEC)
-		return true;
-	return false;
+	{
+		return (true);
+	}
+	return (false);
 }
 
 void ServerContainer::loop()
@@ -221,39 +248,42 @@ void ServerContainer::loop()
     while (true)
     {
 		errno = 0;
+		// Polling for events
         if (poll(this->m_poll_fds.data(), this->m_poll_fds.size(), POLL_TIMEOUT_MS) < 0)
 		{
 			if (errno == EINTR)
-				break;
+				break ;
 			throw WebservExceptions::PollFailed();
 		}
 		for (size_t i = 0; i < this->m_poll_fds.size(); i++)
 		{
 			pollfd& poll_data = this->m_poll_fds[i];
-			if (poll_data.revents)
+			if (poll_data.revents)// if there are events
 			{
+				// check if the event is on a server socket (new connection) or a client socket (data to read/write)
 				if (this->m_servers_map.find(poll_data.fd) != this->m_servers_map.end())
-					accept_client(i);
-				else if (this->m_clients_map.find(poll_data.fd) != this->m_clients_map.end())
+					accept_client(i);// new connection
+				else if (this->m_clients_map.find(poll_data.fd) != this->m_clients_map.end())// existing client
 				{
-                    Client* client = this->m_clients_map[poll_data.fd];
+                    Client* client = this->m_clients_map[poll_data.fd];// get the client object
+					// Check if the client is still active
 					if (poll_data.revents & POLLHUP || client->get_client_status() > CLIENT_DONE || is_client_timeout(client))
 					{
 						remove_client(i);
-						continue;
+						continue ;
 					}
-					if (poll_data.revents & POLLIN)
+					if (poll_data.revents & POLLIN)// data to read
                         client->handle_read();
-					if (poll_data.revents & POLLOUT)
+					if (poll_data.revents & POLLOUT)// data to write
 						client->handle_send();
-					client->process();
+					client->process();// process the client request
 				}
 			}
 		}
-		loop_cleanup();
-		watch_cgis_term();
+		loop_cleanup();// cleanup the poll fds vector
+		watch_cgis_term();// check for terminated cgi processes
 		if (g_signum)
-			break;
+			break ;
     }
 }
 
@@ -271,7 +301,9 @@ pollfd& ServerContainer::get_poll_entry(int fd)
 	for (size_t i = 0; i < this->m_poll_fds.size(); i++)
 	{
 		if (this->m_poll_fds[i].fd == fd)
-			return this->m_poll_fds[i];
+		{
+			return (this->m_poll_fds[i]);
+		}
 	}
 	throw WebservExceptions::PollEntryNotFound();
 }
@@ -283,7 +315,7 @@ void ServerContainer::remove_from_poll(int fd)
 		if (this->m_poll_fds[i].fd == fd)
 		{
 			this->m_poll_fds[i].fd = -1;
-			return;
+			return ;
 		}
 	}
 	throw WebservExceptions::PollEntryNotFound();
@@ -304,23 +336,35 @@ const Server& ServerContainer::get_best_server(const std::string& ip, const std:
 {
 	std::string cleaned_virtual_host = virtual_host;
 	size_t pos = virtual_host.find(":");
+	
+	// remove port if exists
 	if (pos != std::string::npos)
+	{
 		cleaned_virtual_host = cleaned_virtual_host.substr(0, pos);
+	}
+		
     for (size_t i = 0; i < this->m_servers.size(); i++)
     {
         std::vector<std::pair<std::string, std::string> > listens = this->m_servers[i].get_listen();
+		// loop over the server listen addresses
         for (size_t j = 0; j < listens.size(); j++)
         {
-            if (listens[j].first == ip && listens[j].second == port)
+            if (listens[j].first == ip && listens[j].second == port)// matching ip and port
             {
-                if (this->m_servers[i].match_virtual_host(cleaned_virtual_host))
-                	return (this->m_servers[i]);
+                if (this->m_servers[i].match_virtual_host(cleaned_virtual_host))// and matching virtual host
+				{
+                	return (this->m_servers[i]);// got the best server, b**ch
+				}
             }
         }
     }
-	if (this->m_default_server)
-		return *this->m_default_server;
-    throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);
+	
+	if (this->m_default_server)// return the default server if exists
+	{
+		return (*this->m_default_server);
+	}
+	
+    throw WebservExceptions::HTTPException(HTTP_NOT_FOUND);// no matching server found, the client is mentally challenged
 }
 
 void ServerContainer::close_fds()
@@ -328,13 +372,15 @@ void ServerContainer::close_fds()
 	for (size_t i = 0; i < this->m_poll_fds.size(); i++)
 	{
 		if (this->m_poll_fds[i].fd != -1)
+		{
 			close(this->m_poll_fds[i].fd);
+		}
 	}
 }
 
 bool ServerContainer::is_child() const
 {
-	return this->m_is_child;
+	return (this->m_is_child);
 }
 
 void ServerContainer::set_child()
@@ -351,12 +397,15 @@ void ServerContainer::watch_cgis_term()
 {
 	time_t raw_time = std::time(0);
 	size_t i = 0;
+	
 	while (i < this->m_cgis_term_entries.size())
 	{
 		cgi_term_entry& entry = this->m_cgis_term_entries[i];
 		pid_t pid = waitpid(entry.pid, 0, WNOHANG);
 		if (pid)
+		{
 			this->m_cgis_term_entries.erase(this->m_cgis_term_entries.begin() + i);
+		}
 		else if (raw_time > entry.soft_term_time + CGI_TERM_TIMEOUT_SEC)
 		{
 			kill(entry.pid, SIGKILL);

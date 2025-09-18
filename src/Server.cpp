@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/17 23:21:38 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/18 19:59:44 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,11 +115,13 @@ bool Server::match_virtual_host(const std::string &virtual_host) const
 {
 	if (!this->m_server_names.size())
 		return (true);
+	
     if (this->m_server_names.find(virtual_host) == this->m_server_names.end())
 	{
         return (false);
 	}
-	return (true);
+	
+	return (true);// found matching virtual host
 }
 
 const Location& Server::match_location(std::string& route) const

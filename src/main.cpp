@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/17 21:51:55 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/18 17:28:11 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,10 +24,14 @@ static const std::string read_file(const std::string &file_name)
 {
    std::ifstream file(file_name.c_str());
    if (!file.is_open())
+   {
        throw WebservExceptions::FileOpenFailure();
-   std :: stringstream buffer;
+   }
+
+   std::stringstream buffer;
    buffer << file.rdbuf();
    std::string content = buffer.str();
+   
    return (content);
 }
 
