@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/14 00:52:36 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/19 14:59:18 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -214,6 +214,7 @@ void CGIHandler::init_cgi(const std::string& cgi_pass, const std::string& full_p
 		child_process(cgi_pass, full_path);
 	else
 	{
+		this->m_server_container->set_child();
 		this->m_pid = pid;
 		this->m_server_container->add_to_poll(this->m_pipe[0], POLLIN);
 		this->m_server_container->add_to_poll(this->m_pipe[1], POLLOUT);
