@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 02:30:29 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/19 17:14:41 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/20 01:19:28 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,36 +92,189 @@ class Client
 		size_t m_chunk_size;// the size of the current chunk being processed
 		const std::pair<std::string, std::string>* m_server_addr;// the server address (ip, port)
 		const std::pair<std::string, std::string> m_client_addr;// the client address (ip, port)
-		CGIHandler m_cgi_handler;// the cgi handler
-		bool m_cgi_header_finished;// indicates if the cgi header is finished
+		CGIHandler m_cgi_handler; ///< CGI execution handler for processing scripts
+		bool m_cgi_header_finished; ///< Flag indicating if CGI response headers are complete
 		
+		// Request Processing State Machine
+		/**
+		 * @brief Processes the HTTP request header from the request buffer.
+		 * Parses header fields, validates HTTP version, and extracts request information.
+		 */
 		void process_header();
+		
+		/**
+		 * @brief Processes the request body for standard (non-chunked) transfers.
+		 * Reads content based on Content-Length header.
+		 */
 		void process_body();
+		
+		/**
+		 * @brief Processes chunk size line in chunked transfer encoding.
+		 * Reads and parses the hexadecimal chunk size from the request stream.
+		 */
 		void process_body_chunked_size();
+		
+		/**
+		 * @brief Processes chunk data in chunked transfer encoding.
+		 * Reads the actual chunk content based on the previously parsed chunk size.
+		 */
 		void process_body_chunked_data();
+		
+		/**
+		 * @brief Processes the end of chunked transfer encoding.
+		 * Handles the final CRLF sequence and any trailing headers.
+		 */
 		void process_body_chunked_end();
+
+		// HTTP Method Handlers
+		/**
+		 * @brief Main request processing dispatcher.
+		 * Routes the request to appropriate method handler based on HTTP method.
+		 */
 		void process_request();
+		
+		/**
+		 * @brief Handles GET requests for file retrieval and directory listing.
+		 * Implements file serving, autoindex generation, and CGI execution.
+		 */
 		void process_request_get();
+		
+		/**
+		 * @brief Handles POST requests for data submission and file uploads.
+		 * Processes form data, file uploads, and CGI script execution.
+		 */
 		void process_request_post();
+		
+		/**
+		 * @brief Handles DELETE requests for file removal.
+		 * Validates permissions and removes specified files from the server.
+		 */
 		void process_request_delete();
+		
+		/**
+		 * @brief Generic request handler for method validation and routing.
+		 * Performs common checks before delegating to specific method handlers.
+		 */
 		void process_request_any();
+
+		// File and Response Processing
+		/**
+		 * @brief Processes file content streaming to the client.
+		 * Reads file data in chunks and sends it through the response buffer.
+		 */
 		void process_file_body();
+		
+		/**
+		 * @brief Processes file upload operations.
+		 * Handles multipart form data and saves uploaded files to disk.
+		 */
 		void process_file_upload();
+
+		// Target Selection and Routing
+		/**
+		 * @brief Selects the target location block based on the request URI.
+		 * Matches the request path against configured location blocks.
+		 */
 		void select_target();
+
+		// Error Handling
+		/**
+		 * @brief Generates HTTP error responses with custom error pages.
+		 * @param code HTTP status code for the error
+		 * @param msg Error message to include in response
+		 * @param location Location header value for redirects (optional)
+		 */
 		void generate_error(ushort code, const std::string& msg, const std::string& location);
+		
+		/**
+		 * @brief Fallback error generator for critical errors.
+		 * Used when custom error page generation fails.
+		 * @param msg Error message to include in response
+		 * @param location Location header value for redirects (optional)
+		 */
 		void fallback_generate_error(const std::string& msg, const std::string& location);
+
+		// State Management
+		/**
+		 * @brief Resets client state for processing the next request.
+		 * Clears buffers, resets counters, and prepares for new request cycle.
+		 */
 		void reset_client_state();
+		
+		/**
+		 * @brief Closes any open file descriptors associated with the client.
+		 * Ensures proper cleanup of file resources.
+		 */
 		void close_file();
+
+		// Response Generation Helpers
+		/**
+		 * @brief Prepares file body processing for response generation.
+		 * @param file_path Path to the file to be served
+		 * @param msg HTTP status message (defaults to "200 OK")
+		 */
 		void prep_process_file_body(const std::string& file_path, const std::string& msg = HTTP_OK_MSG);
+		
+		/**
+		 * @brief Generates and serves autoindex (directory listing) pages.
+		 * @param entries Deque of directory entries to display
+		 */
 		void serve_autoindex(const std::deque<AutoIndexEntry>& entries);
+		
+		/**
+		 * @brief Directly serves content from a location or server block.
+		 * @param location_target Target block containing serving configuration
+		 */
 		void direct_serve(const BaseBlock* location_target);
+		
+		/**
+		 * @brief Handles index file resolution and serving.
+		 * Attempts to serve configured index files in order of preference.
+		 */
 		void handle_index();
+
+		// CGI Processing
+		/**
+		 * @brief Initiates CGI script execution.
+		 * Sets up environment variables and executes the CGI script.
+		 */
 		void handle_cgi();
+		
+		/**
+		 * @brief Processes the beginning phase of CGI execution.
+		 * Handles initial CGI setup and environment preparation.
+		 */
 		void process_cgi_beginning();
+		
+		/**
+		 * @brief Processes CGI script output reading.
+		 * Reads data from CGI process and handles response formatting.
+		 */
 		void process_cgi_read();
+		
+		/**
+		 * @brief Handles chunked CGI output processing.
+		 * @param data Reference to CGI output data for chunked processing
+		 */
 		void handle_cgi_read_chunked(std::string& data);
+		
+		/**
+		 * @brief Handles standard CGI output processing.
+		 * @param data Reference to CGI output data for standard processing
+		 */
 		void handle_cgi_read(std::string& data);
+
+		// File Operations
+		/**
+		 * @brief Handles file upload processing and storage.
+		 * Processes multipart uploads and saves files to designated locations.
+		 */
 		void handle_file_upload();
+		
+		/**
+		 * @brief Handles file deletion requests.
+		 * Validates permissions and deletes specified files from the filesystem.
+		 */
 		void handle_file_delete();
 	public:
 		Client();
@@ -178,8 +331,8 @@ class Client
 		HTTPHeader& get_request_header();
 
 		/**
-		 * @brief Gets a reference to the client's HTTP response header as an HTTPHeader object.
-		 * @return A reference to the HTTPHeader object representing the client's response header.
+		 * @brief Gets the client address (IP and port) that connected to the server.
+		 * @return A constant reference to a pair containing the client's IP address and port as strings.
 		 */
 		const std::pair<std::string, std::string>& get_client_addr() const;
 
@@ -191,7 +344,7 @@ class Client
 		
 		/**
 		 * @brief Gets the script name associated with the client's request.
-		 * @return A constant reference to a string representing the document root path.
+		 * @return A constant reference to a string representing the script name.
 		 */
 		const std::string& get_script_name();
 
@@ -203,7 +356,7 @@ class Client
 
 		/**
 		 * @brief Gets the document root path associated with the client's request.
-		 * @return A constant reference to a string representing the translated path.
+		 * @return A constant reference to a string representing the document root path.
 		 */
 		const std::string& get_document_root();
 

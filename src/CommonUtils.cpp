@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/18 03:03:59 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/19 02:21:16 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/19 23:31:29 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,8 @@
 #include <iostream>
 
 /**
- * @brief intialize the media types map.
- * @return the map of media types.
+ * @brief Initialize the media types map with file extensions and their corresponding MIME types.
+ * @return A map containing file extensions as keys and MIME type strings as values.
  */
 static std::map<std::string, const char *> init_media_types()
 {

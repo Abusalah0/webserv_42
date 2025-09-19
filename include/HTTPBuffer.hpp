@@ -6,16 +6,16 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 01:09:42 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/19 16:19:52 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/20 01:21:54 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPBUFFER_HPP
-#define HTTPBUFFER_HPP
+# define HTTPBUFFER_HPP
 
-#include "CommonUtils.hpp"
-#include <deque>
-#include <string>
+# include "CommonUtils.hpp"
+# include <deque>
+# include <string>
 
 static const std::string dcrlf = "\r\n\r\n";
 
@@ -80,7 +80,7 @@ class HTTPBuffer
 		bool is_header_finished();
 		
 		/**
-		 * @brief  Checks if a CRLF sequence is found in the buffer. and sets the encoded cursor to the position after it.
+		 * @brief Checks if a CRLF sequence is found in the buffer and sets the encoded cursor to the position after it.
 		 * @return true if a CRLF sequence is found, false otherwise.
 		 */
 		bool is_crlf_found();
@@ -93,7 +93,7 @@ class HTTPBuffer
 		void header_lf_to_crlf();
 
 		/**
-		 * @brief Pulls the complete HTTP header from the buffer using the header and end cursor . and removes it from the buffer.
+		 * @brief Pulls the complete HTTP header from the buffer using the header end cursor and removes it from the buffer.
 		 * If the header is not complete, returns an empty string.
 		 * @return A string containing the complete HTTP header, or an empty string if the header is incomplete.
 		 */
