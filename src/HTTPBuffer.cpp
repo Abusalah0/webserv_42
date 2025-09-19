@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 01:19:47 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/19 02:55:50 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/19 15:54:27 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,8 @@ void HTTPBuffer::push(const char *buf, size_t len)
 
 void HTTPBuffer::create_barrier()
 {
-	size_t barriers_size = this->m_barriers.size();
-
+	size_t barriers_size = this->m_barriers.size();// get the current number of barriers
+	// only create a barrier if there are no barriers or the last barrier is not at the end of the buffer
 	if (barriers_size && this->m_barriers[barriers_size - 1] != this->m_data.size())
 		this->m_barriers.push_back(this->m_data.size());
 }
@@ -95,14 +95,15 @@ bool HTTPBuffer::is_header_finished()
 {
 	std::string::iterator limit_it;
 
-	if (this->m_data.size() <= CHUNK_SIZE)
-		limit_it = this->m_data.end();
+	if (this->m_data.size() <= CHUNK_SIZE)// if the buffer size is less than CHUNK_SIZE
+		limit_it = this->m_data.end();// set the limit to the end of the buffer
 	else
-		limit_it = this->m_data.begin() + CHUNK_SIZE;
+		limit_it = this->m_data.begin() + CHUNK_SIZE;// set the limit to CHUNK_SIZE
 	// search for the double CRLF sequence
 	std::string::iterator it = std::search(this->m_data.begin(), limit_it, dcrlf.begin(), dcrlf.begin() + 4);
-	if (it != limit_it)
+	if (it != limit_it)// if found
 	{
+		// set the header end cursor to the position after the found sequence
 		this->m_header_end_cursor = std::distance(this->m_data.begin(), it) + 4;
 		return (true);
 	}
@@ -112,8 +113,9 @@ bool HTTPBuffer::is_header_finished()
 
 void HTTPBuffer::header_lf_to_crlf()
 {
-	size_t pos = this->m_data.find('\n');
-
+	size_t pos = this->m_data.find('\n');// find the first LF character
+	// insert a CR before each LF that is not preceded by a CR
+	// stop if we reach a double CRLF sequence
 	while (pos != std::string::npos)
 	{
 		if (pos == 0 || this->m_data[pos - 1] != '\r')
@@ -123,16 +125,17 @@ void HTTPBuffer::header_lf_to_crlf()
 		}
 		if (pos > 2)
 		{
-			if (!this->m_data.compare(pos - 3, 4, "\r\n\r\n", 4))
+			if (!this->m_data.compare(pos - 3, 4, "\r\n\r\n", 4))// if we found a double CRLF sequence
 				return ;
 		}
-		pos = this->m_data.find('\n', pos + 1);
+		pos = this->m_data.find('\n', pos + 1);// find the next LF character
 	}
 }
 
 bool HTTPBuffer::is_crlf_found()
 {
 	size_t pos = this->m_data.find("\r\n");
+	// set the cursor to the position after the found CRLF sequence
 	if (pos != std::string::npos)
 	{
 		this->m_encoded_cursor = pos;

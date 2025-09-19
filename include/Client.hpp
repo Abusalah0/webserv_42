@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 02:30:29 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/19 02:48:28 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/19 17:14:41 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,31 +69,32 @@ class ServerContainer;
 class Client
 {
 	private:
-		int m_listen_fd;
-		int m_file_fd;
-		size_t m_body_size;
-		ClientStatus m_client_status;
-		ConnectionTypes m_connection_type;
-		int m_process_state;
-		const Server* m_base_server;
-		const BaseBlock* m_target_block;
-		ServerContainer* m_server_container;
-		time_t m_last_activity;
+		int m_listen_fd;// the listening socket fd
+		int m_file_fd;// the file fd if any
+		size_t m_body_size;// the size of the body read so far
+		ClientStatus m_client_status;// the status of the client, alive, done, error, disconnected
+		ConnectionTypes m_connection_type;// the connection type, keep-alive or close
+		int m_process_state;// the current state of the client processing, header, body, request, file body, cgi beginning, cgi read
+		const Server* m_base_server;// the base server selected based on the listening socket
+		const BaseBlock* m_target_block;// the target location or server block selected based on the request target
+		ServerContainer* m_server_container;// the server container
+		time_t m_last_activity;// the last activity timestamp
 		HTTPBuffer m_request_buffer;
 		HTTPBuffer m_response_buffer;
 		HTTPBuffer m_cgi_buffer;
 		HTTPHeader m_req_header;
 		HTTPHeader m_resp_header;
-		std::string m_body;
-		std::string m_script_name;
-		std::string m_server_name;
-		std::string m_document_root;
-		std::string m_path_translated;
-		size_t m_chunk_size;
-		const std::pair<std::string, std::string>* m_server_addr;
-		const std::pair<std::string, std::string> m_client_addr;
-		CGIHandler m_cgi_handler;
-		bool m_cgi_header_finished;
+		std::string m_body;// the body of the request if any
+		std::string m_script_name;// the script name if any
+		std::string m_server_name;// the server name if any
+		std::string m_document_root;// the document root if any
+		std::string m_path_translated;// the translated path if any
+		size_t m_chunk_size;// the size of the current chunk being processed
+		const std::pair<std::string, std::string>* m_server_addr;// the server address (ip, port)
+		const std::pair<std::string, std::string> m_client_addr;// the client address (ip, port)
+		CGIHandler m_cgi_handler;// the cgi handler
+		bool m_cgi_header_finished;// indicates if the cgi header is finished
+		
 		void process_header();
 		void process_body();
 		void process_body_chunked_size();
@@ -149,18 +150,67 @@ class Client
 		void handle_send();
 
 		/**
-		 * 
+		 * @brief Processes the client's request based on the current process state.
+		 * Handles different states such as processing headers, body, and executing the request.
+		 * If an HTTPException occurs, it generates an appropriate error response.
+		 * @throws WebservExceptions::HTTPException on HTTP errors during processing.
+		 * @return void
 		 */
 		void process();
+
+		/**
+		 * @brief Gets the current status of the client connection.
+		 * @return The current ClientStatus (e.g., CLIENT_ALIVE, CLIENT_DONE, CLIENT_ERROR, CLIENT_DISCONNECTED).
+		 */
 		int get_client_status();
-		void generate_redirection();
+		
+		// void generate_redirection();
+		/**
+		 * @brief Gets the timestamp of the last activity from the client.
+		 * @return The time_t value representing the last activity time.
+		 */
 		time_t get_last_activity() const;
+
+		/**
+		 * @brief Gets a reference to the client's HTTP request header as an HTTPHeader object.
+		 * @return A reference to the HTTPHeader object representing the client's request header.
+		 */
 		HTTPHeader& get_request_header();
+
+		/**
+		 * @brief Gets a reference to the client's HTTP response header as an HTTPHeader object.
+		 * @return A reference to the HTTPHeader object representing the client's response header.
+		 */
 		const std::pair<std::string, std::string>& get_client_addr() const;
+
+		/**
+		 * @brief Gets the server address (IP and port) the client is connected to.
+		 * @return A constant reference to a pair containing the server's IP address and port as strings.
+		 */
 		const std::pair<std::string, std::string>& get_server_addr() const;
+		
+		/**
+		 * @brief Gets the script name associated with the client's request.
+		 * @return A constant reference to a string representing the document root path.
+		 */
 		const std::string& get_script_name();
+
+		/**
+		 * @brief Gets the server name associated with the client's request.
+		 * @return A constant reference to a string representing the server name.
+		 */
 		const std::string& get_server_name();
+
+		/**
+		 * @brief Gets the document root path associated with the client's request.
+		 * @return A constant reference to a string representing the translated path.
+		 */
 		const std::string& get_document_root();
+
+		/**
+		 * @brief Gets the translated path associated with the client's request.
+		 * @return A constant reference to a string representing the translated path.
+		 */
 		const std::string& get_path_translated();
 };
 

@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:11:46 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 18:41:31 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/19 16:42:50 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../include/Location.hpp"
 #include "../include/Exceptions.hpp"
@@ -58,6 +58,7 @@ Location& Location::operator=(const Location& other)
     this->m_upload_path = other.m_upload_path;
     this->m_cgi_extension = other.m_cgi_extension;
 	this->m_cgi_pass = other.m_cgi_pass;
+
     return (*this);
 }
 
@@ -79,8 +80,11 @@ const std::set<std::string>& Location::get_allowed_methods() const
 void Location::set_upload_path(const std::string& path)
 {
     this->m_upload_path = path;
+
 	if (str_back(this->m_upload_path) != '/')
+    {
 		this->m_upload_path.push_back('/');
+    }
 }
 
 const std::string& Location::get_upload_path() const
@@ -95,7 +99,7 @@ void Location::set_cgi_extension(const std::string& extension)
 
 const std::string& Location::get_cgi_extension() const
 {
-	return this->m_cgi_extension;
+	return (this->m_cgi_extension);
 }
 
 void Location::set_cgi_pass(const std::string& cgi_pass)
@@ -105,22 +109,25 @@ void Location::set_cgi_pass(const std::string& cgi_pass)
 
 const std::string& Location::get_cgi_pass() const
 {
-	return this->m_cgi_pass;
+	return (this->m_cgi_pass);
 }
 
 bool Location::is_cgi_requirments(const std::string& target) const
 {
 	if (this->m_cgi_pass.empty())
-		return false;
+		return (false);
 	if (this->m_cgi_extension.empty())
-		return true;
+		return (true);
+
 	size_t pos = target.rfind(".");
 	if (pos == std::string::npos)
-		return false;
+		return (false);
+
 	std::string ext = target.substr(pos);
 	if (ext == this->m_cgi_extension)
-		return true;
-	return false;
+		return (true);
+
+	return (false);
 }
 
 void Location::add_allowed_method(const std::string& method)
@@ -137,7 +144,7 @@ bool Location::is_method_allowed(const std::string& method) const
 {
 	// If no methods are specified, all methods are allowed
 	if (this->m_allowed_methods.empty())
-		return true;
+		return (true);
 	
 	std::set<std::string>::const_iterator it = this->m_allowed_methods.find(method);
 	// Return true if method is found in allowed methods

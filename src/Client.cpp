@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 02:38:11 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/19 02:51:16 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/19 17:50:13 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,10 +117,10 @@ void Client::process_header()
 
 	if (this->m_request_buffer.is_header_finished())// header is complete
 	{
-		std::string input = this->m_request_buffer.pull_header();
-		this->m_req_header.parse_request(input);
-		this->m_connection_type = this->m_req_header.get_connection_type();
-		this->m_process_state = PROCESS_SELECT_TARGET;
+		std::string input = this->m_request_buffer.pull_header();// get header from buffer
+		this->m_req_header.parse_request(input);// parse the request header
+		this->m_connection_type = this->m_req_header.get_connection_type();// get connection type from header
+		this->m_process_state = PROCESS_SELECT_TARGET;// move to target selection state
 	}
 
 	if (this->m_request_buffer.size() > CHUNK_SIZE)
@@ -131,10 +131,10 @@ void Client::process_header()
 
 void Client::process_body()
 {
-	if (this->m_request_buffer.size() >= this->m_req_header.get_content_length())
+	if (this->m_request_buffer.size() >= this->m_req_header.get_content_length())// entire body received
 	{
-		this->m_body = this->m_request_buffer.pull(this->m_req_header.get_content_length());
-		this->m_process_state = PROCESS_REQUEST;
+		this->m_body = this->m_request_buffer.pull(this->m_req_header.get_content_length());// get body from buffer
+		this->m_process_state = PROCESS_REQUEST;// move to request processing state
 	}
 }
 
@@ -221,6 +221,7 @@ void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 void Client::handle_index()
 {
 	IndexEntry index_entry = this->m_target_block->get_index_page(this->m_req_header.get_aug_target());
+	
 	if (index_entry.is_dir)
 	{
 		const std::string& root = this->m_target_block->get_root();
@@ -464,50 +465,59 @@ void Client::select_target()
 	const Server* server = &this->m_server_container->get_best_server(
 		this->m_server_addr->first, this->m_server_addr->second, this->m_req_header.get_virtual_host()
 	);
-	if (server->get_server_names().size())
+	// set server name for logging and error pages
+	if (server->get_server_names().size())// if server has server names
 		this->m_server_name = this->m_req_header.get_virtual_host();
 	else
 		this->m_server_name.clear();
+
 	this->m_target_block = server;
-	this->m_req_header.set_aug_target(this->m_req_header.get_target());
+	this->m_req_header.set_aug_target(this->m_req_header.get_target());// reset aug target to original target
 	try
 	{
+		// find best matching location
 		const Location* location = &server->match_location(this->m_req_header.get_target());
 		this->m_target_block = location;
-		if (!location->is_method_allowed(this->m_req_header.get_request_method()))
+		
+		if (!location->is_method_allowed(this->m_req_header.get_request_method()))// method not allowed
 		{
+			// set allowed methods in response header for 405 response
 			this->m_resp_header.set_allowed_methods(location->get_allowed_methods());
 			throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
 		}
+		// update augmented target and translated path
 		std::string new_aug_target = this->m_req_header.get_aug_target();
-		new_aug_target.erase(0, location->get_upload_path().size() - 1);
-		this->m_req_header.set_aug_target(new_aug_target);
-		this->m_path_translated = this->m_req_header.get_target();
-		this->m_path_translated.erase(0, location->get_upload_path().size());
-		if (this->m_path_translated.empty() || this->m_path_translated[0] != '/')
-			this->m_path_translated.insert(this->m_path_translated.begin(), '/');
-		this->m_path_translated = concat_path(location->get_root(), this->m_path_translated);
+		new_aug_target.erase(0, location->get_upload_path().size() - 1);// remove upload path prefix and keep leading slash
+		
+		this->m_req_header.set_aug_target(new_aug_target);// set new augmented target
+		this->m_path_translated = this->m_req_header.get_target();// set translated path
+		this->m_path_translated.erase(0, location->get_upload_path().size());// remove upload path prefix
+		if (this->m_path_translated.empty() || this->m_path_translated[0] != '/')// ensure leading slash
+			this->m_path_translated.insert(this->m_path_translated.begin(), '/');// insert leading slash if missing
+		this->m_path_translated = concat_path(location->get_root(), this->m_path_translated);// full translated path
 	}
 	catch (const WebservExceptions::LocationNotFound& e)
 	{
 	}
-	this->m_document_root = this->m_target_block->get_root();
-	if (this->m_req_header.get_content_length())
+	
+	this->m_document_root = this->m_target_block->get_root();// set document root
+	if (this->m_req_header.get_content_length())// if there is a body
 	{
-		if (this->m_req_header.get_content_length() > this->m_target_block->get_client_max_body_size())
+		if (this->m_req_header.get_content_length() > this->m_target_block->get_client_max_body_size())// body too large
 			throw WebservExceptions::HTTPException(HTTP_CONTENT_TOO_LARGE);
-		this->m_process_state = PROCESS_BODY;
+		this->m_process_state = PROCESS_BODY;// move to body processing state
 	}
-	else if (this->m_req_header.is_chunked())
-		this->m_process_state = PROCESS_BODY_CHUNKED_SIZE;
+	else if (this->m_req_header.is_chunked())// if body is chunked
+		this->m_process_state = PROCESS_BODY_CHUNKED_SIZE;// move to chunked size processing state
 	else
-		this->m_process_state = PROCESS_REQUEST;
+		this->m_process_state = PROCESS_REQUEST;// move to request processing state
 }
 
 void Client::process_file_body()
 {
 	char buffer[CHUNK_SIZE];
 	ssize_t bytes_read = read(this->m_file_fd, buffer, CHUNK_SIZE);
+
 	if (bytes_read == 0)
 	{
 		this->m_response_buffer.create_barrier();

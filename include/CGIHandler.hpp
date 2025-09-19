@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:13 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/19 02:29:28 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/19 17:20:29 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,9 +38,11 @@ class CGIHandler
 		char** generate_args(const std::string& cgi_pass, const std::string& full_path);
 
 	public:
+		// constructors and destructor
 		CGIHandler();
 		CGIHandler(ServerContainer* server_container, Client* client);
 		~CGIHandler();
+
 		void init_cgi(const std::string& cgi_pass, const std::string& full_path);
 		void reset_cgi();
 		void handle_death();
