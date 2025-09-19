@@ -1,9 +1,9 @@
 http
 {
-	root /home/coderx64/www;
+	root /home/amsaleh/www;
 	server
 	{
-		listen 192.168.1.167:1090;
+		listen localhost:1090;
 		index index.html;
 		location / {
 		}
@@ -15,12 +15,14 @@ http
 			limit DELETE;
 		}
 		location /cgi_py {
-			root /home/coderx64/www/cgi;
+			autoindex on;
+			root /home/amsaleh/www/cgi;
 			cgi_pass /usr/bin/python3;
 			cgi_extension .py;
 		}
 		location /cgi {
-			root /home/coderx64/www/cgi;
+			autoindex on;
+			root /home/amsaleh/www/cgi;
 			cgi_pass executable;
 			cgi_extension .cgi;
 		}

@@ -85,7 +85,9 @@ void Client::handle_send()
 		this->m_client_status = CLIENT_ERROR;
 		return;
 	}
-	if (this->m_client_status == CLIENT_DONE && !this->m_request_buffer.size())
+	if (this->m_client_status == CLIENT_DONE
+		&& !this->m_response_buffer.size()
+		&& this->m_process_state == PROCESS_HEADER)
 	{
 		this->m_client_status = CLIENT_DISCONNECTED;
 		return;
@@ -427,10 +429,7 @@ void Client::process_request_any()
 void Client::process_request()
 {
 	if (this->m_connection_type == CONNECTION_CLOSE)
-	{
-		this->m_request_buffer.erase(this->m_request_buffer.size());
 		this->m_client_status = CLIENT_DONE;
-	}
 	std::string& request_method = this->m_req_header.get_request_method();
 	if (request_method == "GET")
 		process_request_get();
@@ -719,7 +718,8 @@ void Client::process()
 		switch (this->m_process_state)
 		{	
 			case PROCESS_HEADER:
-				process_header();
+				if (this->m_client_status == CLIENT_ALIVE)
+					process_header();
 				break;
 			case PROCESS_SELECT_TARGET:
 				select_target();
