@@ -6,7 +6,7 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:09:36 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/19 02:17:03 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/19 23:31:29 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,17 +30,22 @@ struct IndexEntry
 	std::string path;
 };
 
+/**
+ * @brief Base class for configuration blocks (server and location).
+ * Contains common configuration directives shared between server and location blocks,
+ * including root directory, autoindex settings, index pages, error pages, and client limits.
+ */
 class BaseBlock
 {
 	private:
-		bool m_auto_index; // to check if autoindex is on or off
-		bool m_index_set;// to check if index is set by user
-		std::string m_root;// the root directory
-		std::size_t m_client_max_body_size;// the size in bytes
-		std::vector<const std::string*> m_indexes;
-		std::set<ushort> m_set_error_pages;// to avoid duplicate error codes
-		std::map<ushort, const std::string*> m_error_page;// map of error code to error page
-		std::set<std::string> m_pages_cache;
+		bool m_auto_index; ///< Flag to enable/disable directory listing generation
+		bool m_index_set; ///< Flag indicating if index directive was explicitly set by user
+		std::string m_root; ///< Root directory path for serving files
+		std::size_t m_client_max_body_size; ///< Maximum allowed request body size in bytes
+		std::vector<const std::string*> m_indexes; ///< Ordered list of index files to try
+		std::set<ushort> m_set_error_pages; ///< Set of error codes to avoid duplicates
+		std::map<ushort, const std::string*> m_error_page; ///< Map of HTTP error codes to custom error pages
+		std::set<std::string> m_pages_cache; ///< Cache for page paths to manage memory
 	public:
 		/**
 		* @brief Sets autoindex based on the value of str.
