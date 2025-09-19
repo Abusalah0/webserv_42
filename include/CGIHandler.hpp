@@ -1,26 +1,26 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   CGIHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:13 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/13 23:56:58 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/19 02:29:28 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef CGIHANDLER_HPP
-#define CGIHANDLER_HPP
+# define CGIHANDLER_HPP
 
-#include "CommonUtils.hpp"
-#include <map>
+# include "CommonUtils.hpp"
+# include <map>
 
 class Client;
 class Server;
 class ServerContainer;
 
-#define CGI_TIMEOUT 10
+# define CGI_TIMEOUT 10
 
 class CGIHandler
 {
@@ -36,6 +36,7 @@ class CGIHandler
 		void child_process(const std::string& cgi_pass, const std::string& full_path);
 		char** generate_env();
 		char** generate_args(const std::string& cgi_pass, const std::string& full_path);
+
 	public:
 		CGIHandler();
 		CGIHandler(ServerContainer* server_container, Client* client);

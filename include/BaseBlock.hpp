@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   BaseBlock.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 14:09:36 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/07 22:18:59 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/19 02:17:03 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef BASEBLOCK_HPP
 #define BASEBLOCK_HPP
@@ -21,6 +21,9 @@
 #include <sys/stat.h>
 #include "CommonUtils.hpp"
 
+/**
+ * @brief Structure to represent an index entry, which can be a file or a directory.
+ */
 struct IndexEntry
 {
 	bool is_dir;
@@ -30,13 +33,13 @@ struct IndexEntry
 class BaseBlock
 {
 	private:
-		bool m_auto_index;
-		bool m_index_set;
-		std::string m_root;
-		std::size_t m_client_max_body_size;
+		bool m_auto_index; // to check if autoindex is on or off
+		bool m_index_set;// to check if index is set by user
+		std::string m_root;// the root directory
+		std::size_t m_client_max_body_size;// the size in bytes
 		std::vector<const std::string*> m_indexes;
-		std::set<ushort> m_set_error_pages;
-		std::map<ushort, const std::string*> m_error_page;
+		std::set<ushort> m_set_error_pages;// to avoid duplicate error codes
+		std::map<ushort, const std::string*> m_error_page;// map of error code to error page
 		std::set<std::string> m_pages_cache;
 	public:
 		/**
