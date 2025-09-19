@@ -1,17 +1,38 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Client.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/19 02:30:29 by abdsalah          #+#    #+#             */
+/*   Updated: 2025/09/19 02:48:28 by abdsalah         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef CLIENT_HPP
-#define CLIENT_HPP
+# define CLIENT_HPP
 
-#include "../include/Server.hpp"
-#include "../include/HTTPBuffer.hpp"
-#include "../include/HTTPHeader.hpp"
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <arpa/inet.h>
-#include <ctime>
-#include <poll.h>
-#include "../include/Exceptions.hpp"
-#include "../include/CGIHandler.hpp"
+# include "../include/Server.hpp"
+# include "../include/HTTPBuffer.hpp"
+# include "../include/HTTPHeader.hpp"
+# include <sys/socket.h>
+# include <sys/types.h>
+# include <arpa/inet.h>
+# include <ctime>
+# include <poll.h>
+# include "../include/Exceptions.hpp"
+# include "../include/CGIHandler.hpp"
 
+/**
+ * @brief Enumeration representing the status of a client connection.
+ * Each status indicates a specific state of the client during its interaction with the server.
+ * @note CLIENT_ALIVE indicates that the client is active and can send/receive data.
+ * @note CLIENT_DONE indicates that the client has completed its request and the connection can be closed
+ * if the connection type is not keep-alive.
+ * @note CLIENT_ERROR indicates that an error occurred during the client's request processing.
+ * @note CLIENT_DISCONNECTED indicates that the client has disconnected from the server.
+ */
 enum ClientStatus
 {
 	CLIENT_ALIVE,
@@ -20,6 +41,12 @@ enum ClientStatus
 	CLIENT_DISCONNECTED
 };
 
+/**
+ * @brief Enumeration representing the various states of client request processing.
+ * Each state corresponds to a specific phase in handling an HTTP request.
+ * @note The states include processing the header, body (including chunked transfer encoding),
+ * selecting the target resource, handling the request, serving file bodies, and managing CGI interactions.
+ */
 enum ClientProcessState
 {
 	PROCESS_HEADER,
@@ -35,7 +62,7 @@ enum ClientProcessState
 	PROCESS_FILE_UPLOAD
 };
 
-static const std::string str_template = "{template}";
+static const std::string str_template = "{template}";// to be replaced with actual data
 
 class ServerContainer;
 
@@ -104,8 +131,26 @@ class Client
 			const std::pair<std::string, std::string>& client_addr
 		);
 		~Client();
+
+		/**
+		 * @brief Handles reading data from the client socket.
+		 * Reads data into the request buffer and updates the last activity timestamp.
+		 * If an error occurs during reading, the client status is set to CLIENT_ERROR.
+		 * @return void
+		 */
 		void handle_read();
+
+		/**
+		 * @brief Handles sending data to the client socket.
+		 * Sends data from the response buffer to the client and updates the last activity timestamp.
+		 * If an error occurs during sending, the client status is set to CLIENT_ERROR.
+		 * @return void
+		 */
 		void handle_send();
+
+		/**
+		 * 
+		 */
 		void process();
 		int get_client_status();
 		void generate_redirection();

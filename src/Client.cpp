@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Client.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/19 02:38:11 by abdsalah          #+#    #+#             */
+/*   Updated: 2025/09/19 02:51:16 by abdsalah         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../include/Client.hpp"
 #include "../include/ServerContainer.hpp"
 #include <unistd.h>
@@ -50,61 +62,67 @@ Client::~Client()
 
 int Client::get_client_status()
 {
-	return this->m_client_status;
+	return (this->m_client_status);
 }
 
 void Client::handle_read()
 {
-	if (this->m_client_status != CLIENT_ALIVE)
-		return;
-	char buffer[CHUNK_SIZE];
-	ssize_t bytes_read = recv(this->m_listen_fd, buffer, CHUNK_SIZE, 0);
-	if (bytes_read == 0)
-	{
-		this->m_client_status = CLIENT_DISCONNECTED;
-		return;
-	}
-	if (bytes_read == -1)
-	{
-		this->m_client_status = CLIENT_ERROR;
-		return;
-	}
-	this->m_request_buffer.push(buffer, bytes_read);
-	this->m_last_activity = std::time(0);
+	if (this->m_client_status != CLIENT_ALIVE)// ignore if not alive
+		return ;
 	
+	char buffer[CHUNK_SIZE];
+	ssize_t bytes_read = recv(this->m_listen_fd, buffer, CHUNK_SIZE, 0);// read data from socket into buffer
+	if (bytes_read == 0)// connection closed by client
+	{
+		this->m_client_status = CLIENT_DISCONNECTED;// mark client as disconnected
+		return ;
+	}
+	
+	if (bytes_read == -1)// error reading from socket
+	{
+		this->m_client_status = CLIENT_ERROR;// mark client as error
+		return ;
+	}
+	
+	this->m_request_buffer.push(buffer, bytes_read);// push data into request buffer for processing
+	this->m_last_activity = std::time(0);// update last activity time
 }
 
 void Client::handle_send()
 {
-	if (this->m_client_status > CLIENT_DONE || !this->m_response_buffer.size())
-		return;
-	std::string buffer = this->m_response_buffer.pull(CHUNK_SIZE);
-	ssize_t bytes_sent = send(this->m_listen_fd, buffer.c_str(), buffer.size(), 0);
-	if (bytes_sent == -1)
+	if (this->m_client_status > CLIENT_DONE || !this->m_response_buffer.size())// nothing to send or client not alive
+		return ;
+		
+	std::string buffer = this->m_response_buffer.pull(CHUNK_SIZE);// get data from response buffer to send
+	ssize_t bytes_sent = send(this->m_listen_fd, buffer.c_str(), buffer.size(), 0);// send data to socket 
+	if (bytes_sent == -1)// error sending data
 	{
-		this->m_client_status = CLIENT_ERROR;
-		return;
+		this->m_client_status = CLIENT_ERROR;// mark client as error
+		return ;
 	}
-	if (this->m_client_status == CLIENT_DONE
-		&& !this->m_response_buffer.size()
-		&& this->m_process_state == PROCESS_HEADER)
+	
+	if (this->m_client_status == CLIENT_DONE // all data sent
+		&& !this->m_response_buffer.size()// response buffer empty
+		&& this->m_process_state == PROCESS_HEADER)// in header processing state
 	{
-		this->m_client_status = CLIENT_DISCONNECTED;
-		return;
+		this->m_client_status = CLIENT_DISCONNECTED;// mark client as done if all data sent and in header processing state
+		return ;
 	}
 	this->m_last_activity = std::time(0);
 }
 
 void Client::process_header()
 {
-	this->m_request_buffer.header_lf_to_crlf();
-	if (this->m_request_buffer.is_header_finished())
+	this->m_request_buffer.header_lf_to_crlf();// convert LF to CRLF for header parsing
+
+	if (this->m_request_buffer.is_header_finished())// header is complete
 	{
 		std::string input = this->m_request_buffer.pull_header();
 		this->m_req_header.parse_request(input);
 		this->m_connection_type = this->m_req_header.get_connection_type();
 		this->m_process_state = PROCESS_SELECT_TARGET;
 	}
+
 	if (this->m_request_buffer.size() > CHUNK_SIZE)
 	{
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
@@ -711,46 +729,47 @@ void Client::process_file_upload()
 
 void Client::process()
 {
-	if (this->m_client_status > CLIENT_DONE)
-		return;
+	if (this->m_client_status > CLIENT_DONE)// ignore if not alive
+		return ;
+
 	try
 	{
 		switch (this->m_process_state)
 		{	
 			case PROCESS_HEADER:
-				if (this->m_client_status == CLIENT_ALIVE)
+				if (this->m_client_status == CLIENT_ALIVE)// only process header if client is alive
 					process_header();
-				break;
+				break ;
 			case PROCESS_SELECT_TARGET:
 				select_target();
-				break;
+				break ;
 			case PROCESS_BODY:
 				process_body();
-				break;
+				break ;
 			case PROCESS_BODY_CHUNKED_SIZE:
 				process_body_chunked_size();
-				break;
+				break ;
 			case PROCESS_BODY_CHUNKED_DATA:
 				process_body_chunked_data();
-				break;
+				break ;
 			case PROCESS_BODY_CHUNKED_END:
 				process_body_chunked_end();
-				break;
+				break ;
 			case PROCESS_REQUEST:
 				process_request();
-				break;
+				break ;
 			case PROCESS_FILE_BODY:
 				process_file_body();
-				break;
+				break ;
 			case PROCESS_CGI_BEGINNING:
 				process_cgi_beginning();
-				break;
+				break ;
 			case PROCESS_CGI_READ:
 				process_cgi_read();
-				break;
+				break ;
 			case PROCESS_FILE_UPLOAD:
 				process_file_upload();
-				break;
+				break ;
 		}
 	}
 	catch (const WebservExceptions::HTTPException& e)
@@ -758,7 +777,7 @@ void Client::process()
 		if (this->m_process_state == PROCESS_CGI_READ)
 		{
 			this->m_client_status = CLIENT_DISCONNECTED;
-			return;
+			return ;
 		}
 		if (e.get_error_code() == HTTP_BAD_REQUEST)
 		{
@@ -796,40 +815,40 @@ void Client::close_file()
 
 time_t Client::get_last_activity() const
 {
-	return this->m_last_activity;
+	return (this->m_last_activity);
 }
 
 HTTPHeader& Client::get_request_header()
 {
-	return this->m_req_header;
+	return (this->m_req_header);
 }
 
 const std::pair<std::string, std::string>& Client::get_client_addr() const
 {
-	return this->m_client_addr;
+	return (this->m_client_addr);
 }
 
 const std::pair<std::string, std::string>& Client::get_server_addr() const
 {
-	return *this->m_server_addr;
+	return (*this->m_server_addr);
 }
 
 const std::string& Client::get_script_name()
 {
-	return this->m_script_name;
+	return (this->m_script_name);
 }
 
 const std::string& Client::get_server_name()
 {
-	return this->m_server_name;
+	return (this->m_server_name);
 }
 
 const std::string& Client::get_document_root()
 {
-	return this->m_document_root;
+	return (this->m_document_root);
 }
 
 const std::string& Client::get_path_translated()
 {
-	return this->m_path_translated;
+	return (this->m_path_translated);
 }

@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   HTTPBuffer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 01:19:47 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/14 00:52:27 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/19 02:55:50 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../include/HTTPBuffer.hpp"
 #include <iostream>
@@ -34,6 +34,7 @@ void HTTPBuffer::push(const char *buf, size_t len)
 void HTTPBuffer::create_barrier()
 {
 	size_t barriers_size = this->m_barriers.size();
+
 	if (barriers_size && this->m_barriers[barriers_size - 1] != this->m_data.size())
 		this->m_barriers.push_back(this->m_data.size());
 }
@@ -45,64 +46,74 @@ void HTTPBuffer::erase(size_t n)
 
 std::string HTTPBuffer::pull(size_t n)
 {
+	// pull up to the first barrier if exists and n is larger than it
 	if (this->m_barriers.size() && n > this->m_barriers[0])
 	{
 		n = this->m_barriers[0];
 		this->m_barriers.pop_front();
 	}
-	std::string data = this->m_data.substr(0, n);
-	this->m_data.erase(0, n);
+
+	std::string data = this->m_data.substr(0, n);// get the data to be pulled
+	this->m_data.erase(0, n);// erase it from the buffer
 	size_t i = 0;
+
 	while (i < this->m_barriers.size())
 	{
 		this->m_barriers[i] -= n;
-		if (!this->m_barriers[i])
+
+		if (!this->m_barriers[i])// if the barrier reached 0, remove it
 			this->m_barriers.erase(this->m_barriers.begin() + i);
 		else
 			++i;
 	}
-	return data;
+
+	return (data);
 }
 
 std::string HTTPBuffer::pull_header()
 {
-	std::string header = this->m_data.substr(0, this->m_header_end_cursor);
-	this->m_data.erase(0, this->m_header_end_cursor);
-	return header;
+	std::string header = this->m_data.substr(0, this->m_header_end_cursor);// get the header
+	this->m_data.erase(0, this->m_header_end_cursor);// erase it from the buffer
+
+	return (header);
 }
 
 std::string HTTPBuffer::pull_encoded()
 {
-	std::string encoded = this->m_data.substr(0, this->m_encoded_cursor);
-	this->m_data.erase(0, this->m_encoded_cursor);
-	return encoded;
+	std::string encoded = this->m_data.substr(0, this->m_encoded_cursor);// get the encoded part
+	this->m_data.erase(0, this->m_encoded_cursor);// erase it from the buffer
+
+	return (encoded);
 }
 
 size_t HTTPBuffer::size()
 {
-	return this->m_data.size();
+	return (this->m_data.size());
 }
 
 bool HTTPBuffer::is_header_finished()
 {
 	std::string::iterator limit_it;
+
 	if (this->m_data.size() <= CHUNK_SIZE)
 		limit_it = this->m_data.end();
 	else
 		limit_it = this->m_data.begin() + CHUNK_SIZE;
-	
+	// search for the double CRLF sequence
 	std::string::iterator it = std::search(this->m_data.begin(), limit_it, dcrlf.begin(), dcrlf.begin() + 4);
 	if (it != limit_it)
 	{
 		this->m_header_end_cursor = std::distance(this->m_data.begin(), it) + 4;
-		return true;
+		return (true);
 	}
-	return false;
+
+	return (false);
 }
 
 void HTTPBuffer::header_lf_to_crlf()
 {
 	size_t pos = this->m_data.find('\n');
+
 	while (pos != std::string::npos)
 	{
 		if (pos == 0 || this->m_data[pos - 1] != '\r')
@@ -113,7 +124,7 @@ void HTTPBuffer::header_lf_to_crlf()
 		if (pos > 2)
 		{
 			if (!this->m_data.compare(pos - 3, 4, "\r\n\r\n", 4))
-				return;
+				return ;
 		}
 		pos = this->m_data.find('\n', pos + 1);
 	}
@@ -125,7 +136,7 @@ bool HTTPBuffer::is_crlf_found()
 	if (pos != std::string::npos)
 	{
 		this->m_encoded_cursor = pos;
-		return true;
+		return (true);
 	}
-	return false;
+	return (false);
 }
