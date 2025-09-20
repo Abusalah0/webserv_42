@@ -410,7 +410,7 @@ void HTTPHeader::parse_content_len()
 
 	// Convert string to unsigned long with error checking
 	errno = 0;
-	this->m_content_len = strtoul(value.c_str(), &endptr, 10);
+	this->m_content_len = std::strtoul(value.c_str(), &endptr, 10);
 	
 	// Check for conversion errors or trailing characters
 	if (errno == ERANGE || endptr != value.c_str() + value.size())
@@ -519,7 +519,7 @@ void HTTPHeader::parse_response_content_len()
 
 	errno = 0;
 	// convert to unsigned long
-	this->m_content_len = strtoul(value.c_str(), &endptr, 10);
+	this->m_content_len = std::strtoul(value.c_str(), &endptr, 10);
 	if (errno == ERANGE || endptr != value.c_str() + value.size())// conversion error or out of range
 		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
 }

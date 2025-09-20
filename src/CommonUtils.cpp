@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CommonUtils.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/18 03:03:59 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/19 23:31:29 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/20 14:19:36 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,7 +154,7 @@ ushort parse_http_code(const std::string& str)
 	}
 
 	errno = 0;
-	long code = strtol(str.c_str(), &endptr, 10);
+	long code = std::strtol(str.c_str(), &endptr, 10);
 	if (*endptr || errno == ERANGE)// not fully converted or out of range
 	{
 		throw WebservExceptions::InvalidValue();
@@ -247,7 +247,7 @@ size_t parse_chunk_size(std::string& str)
 			throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
 		}
 	}
-	size_t chunk_size = strtoul(str.c_str(), 0, 16);
+	size_t chunk_size = std::strtoul(str.c_str(), 0, 16);
 
 	return (chunk_size);
 }

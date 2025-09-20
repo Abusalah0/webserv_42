@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   normalize_path.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 23:33:28 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/19 17:19:05 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/20 14:14:51 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,11 +23,11 @@
  */
 static char char_to_hex(int c)
 {
-    if (isdigit(c))
+    if (std::isdigit(c))
         return (c - '0');
-    else if (isupper(c))
+    else if (std::isupper(c))
         return (c - 'A' + 10);
-    else if (islower(c))
+    else if (std::islower(c))
         return (c - 'a' + 10);
     return (0);
 }

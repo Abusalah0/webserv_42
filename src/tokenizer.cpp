@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   tokenizer.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 14:15:44 by sbibers           #+#    #+#             */
-/*   Updated: 2025/08/19 16:34:22 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/20 14:18:24 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ static Type find_type(const std::string &str)
     bool all_digits = true;
     for (size_t i = 0; i < str.length(); i++)
     {
-        if (!isdigit(str[i]))
+        if (!std::isdigit(str[i]))
         {
             all_digits = false;
             break;

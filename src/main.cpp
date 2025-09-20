@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/18 17:28:11 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/20 14:18:02 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,17 +22,17 @@ int g_signum = 0;
 
 static const std::string read_file(const std::string &file_name)
 {
-   std::ifstream file(file_name.c_str());
-   if (!file.is_open())
-   {
-       throw WebservExceptions::FileOpenFailure();
-   }
+	std::ifstream file(file_name.c_str());
+	if (!file.is_open())
+    	throw WebservExceptions::FileOpenFailure();
+	file.exceptions(std::ifstream::badbit);
 
-   std::stringstream buffer;
-   buffer << file.rdbuf();
-   std::string content = buffer.str();
-   
-   return (content);
+	std::stringstream buffer;
+	buffer.exceptions(std::ifstream::badbit);
+	buffer << file.rdbuf();
+	std::string content = buffer.str();
+
+	return (content);
 }
 
 void signal_handler(int signum)

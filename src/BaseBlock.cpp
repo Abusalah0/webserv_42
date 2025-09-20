@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BaseBlock.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 02:17:11 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/19 02:27:38 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/20 14:19:33 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ void BaseBlock::set_client_max_body_size(const std::string& str_size)
     char *endptr;
 	const char *excpected_endptr;
 
-	if (str_size.empty() || !isdigit(str_size[0]))
+	if (str_size.empty() || !std::isdigit(str_size[0]))
 		throw WebservExceptions::InvalidValue();
     if (str_size.find('.') != std::string::npos)// decimal point found, not an integer
 	{
@@ -58,14 +58,14 @@ void BaseBlock::set_client_max_body_size(const std::string& str_size)
 	}
 	
 	excpected_endptr = str_size.c_str() + str_size.size();
-    if (!isdigit(str_back(str_size)))
+    if (!std::isdigit(str_back(str_size)))
 	{
         sizeCategory = tolower(str_back(str_size));
 		--excpected_endptr;
 	}
 	
 	errno = 0;
-    this->m_client_max_body_size = strtoul(str_size.c_str(), &endptr, 10);
+    this->m_client_max_body_size = std::strtoul(str_size.c_str(), &endptr, 10);
     if (endptr != excpected_endptr || errno == ERANGE)// not fully converted or out of range
 	{
         throw WebservExceptions::InvalidValue();

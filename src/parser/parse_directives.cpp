@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   parse_directives.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:36:13 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/07 22:20:34 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/20 14:19:48 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../../include/parser.hpp"
 
@@ -139,11 +139,11 @@ __attribute__((unused)) static int check_port_number(std::string &port)
     // make sure there is only digits
     for (size_t i = 0; i < port.length(); i++)
     {
-        if (!isdigit(port[i]))
+        if (!std::isdigit(port[i]))
             throw_parse_error("Expected digits for the port number");
     }
     
-    int pnum = strtol(port.c_str(), NULL, 10);
+    int pnum = std::strtol(port.c_str(), NULL, 10);
     if (pnum > 65535)// check range
         throw_parse_error("Invalid port number, max port number is 65535");
     
@@ -154,7 +154,7 @@ __attribute__((unused)) static std::string& check_listen_address(std::string &ad
 {
     for (size_t i = 0; i < address.length(); i++)
     {
-        if (!(isdigit(address[i]) || address[i] == '.'))
+        if (!(std::isdigit(address[i]) || address[i] == '.'))
             throw_parse_error("Invalid character in listen address");
     }
     //check each octet from the address
@@ -167,7 +167,7 @@ __attribute__((unused)) static std::string& check_listen_address(std::string &ad
         if (octet.empty() || octet.length() > 3)
             throw_parse_error("Invalid IP address in listen directive");
         // check range
-        int octet_num = strtol(octet.c_str(), NULL, 10);
+        int octet_num = std::strtol(octet.c_str(), NULL, 10);
         if (octet_num < 0 || octet_num > 255)
             throw_parse_error("IP address octet out of range (0-255)");
         // move to next octet
