@@ -6,9 +6,28 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/18 22:38:34 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/20 02:51:35 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+/**
+ * @file ServerContainer.cpp
+ * @brief Implementation of the HTTP server container with poll-based I/O and connection management.
+ * 
+ * This file implements the core server functionality including:
+ * - Multi-server setup with virtual host support and socket binding
+ * - Poll-based event loop for scalable I/O multiplexing
+ * - Client connection lifecycle management with timeout handling
+ * - CGI process monitoring and controlled termination
+ * - Resource cleanup and graceful shutdown procedures
+ * - Host-based server routing and request delegation
+ * 
+ * The implementation provides a robust, production-ready HTTP server capable of:
+ * - Handling hundreds of concurrent connections efficiently
+ * - Supporting multiple virtual hosts on shared IP/port combinations
+ * - Managing CGI script execution with proper process control
+ * - Graceful handling of network errors and resource limitations
+ */
 
 #include "../include/ServerContainer.hpp"
 #include "../include/Client.hpp"
@@ -17,27 +36,44 @@
 #include <sys/socket.h>
 #include <stdio.h>
 
+/**
+ * @brief Default constructor initializes server container with empty state.
+ * Sets up all internal data structures for managing servers, clients, and CGI processes.
+ * The container starts in parent process mode (m_is_child = false) for proper resource management.
+ */
 ServerContainer::ServerContainer():
-	m_is_child(false),
-	m_default_server(0),
-	m_servers(),
-	m_servers_map(),
-	m_servers_listen_map(),
-	m_clients_map(),
-	m_poll_fds(),
-	m_cgis_term_entries()
+	m_is_child(false),         // Start as parent process
+	m_default_server(0),       // No default server initially
+	m_servers(),               // Empty server collection
+	m_servers_map(),          // Empty socket-to-server mapping
+	m_servers_listen_map(),   // Empty socket-to-address mapping
+	m_clients_map(),          // Empty client connection mapping
+	m_poll_fds(),             // Empty poll file descriptor collection
+	m_cgis_term_entries()     // Empty CGI termination queue
 {}
 
+/**
+ * @brief Destructor performs comprehensive resource cleanup.
+ * Closes all file descriptors, deallocates client objects, and ensures proper
+ * CGI process termination. Only performs CGI cleanup in parent process to avoid
+ * conflicts in fork scenarios.
+ */
 ServerContainer::~ServerContainer()
 {
+	// Close all managed file descriptors (sockets)
 	close_fds();
+	
+	// Clean up all client objects and their associated resources
 	for (std::map<int, Client*>::iterator it = this->m_clients_map.begin();
 		it != this->m_clients_map.end(); it++)
 	{
 		delete (*it).second;
 	}
+	
+	// Only handle CGI termination in parent process to prevent conflicts
 	if (!this->m_is_child)
 	{
+		// Wait for all pending CGI processes to terminate
 		while (!this->m_cgis_term_entries.empty())
 			watch_cgis_term();
 	}
@@ -175,13 +211,24 @@ void ServerContainer::remove_client(size_t poll_index)
 	this->m_poll_fds[poll_index].fd = -1;// mark the poll fd as invalid for cleanup later
 }
 
+/**
+ * @brief Accepts a new client connection on a server listening socket.
+ * 
+ * Creates a new Client object for the accepted connection and adds it to the
+ * client management structures. The client is immediately added to the poll
+ * array for I/O event monitoring. Handles address parsing and proper error
+ * cleanup if client creation fails.
+ * 
+ * @param poll_index Index in poll_fds array where the listening socket is located
+ */
 void ServerContainer::accept_client(size_t poll_index)
 {
 	pollfd& poll_data = this->m_poll_fds[poll_index];
 	sockaddr_in client_addr;
 	socklen_t client_addrlen = sizeof(sockaddr_in);
 	
-	int client_fd = accept(poll_data.fd, (sockaddr*)&client_addr, &client_addrlen);// accept new client connection, non-blocking
+	// Accept new client connection (non-blocking socket)
+	int client_fd = accept(poll_data.fd, (sockaddr*)&client_addr, &client_addrlen);
 	if (client_fd == -1)
 	{
 		std::cerr << "accept failed!" << std::endl;
@@ -243,45 +290,69 @@ bool is_client_timeout(Client* client)
 	return (false);
 }
 
+/**
+ * @brief Main event loop handling all server I/O operations and client connections.
+ * 
+ * This is the core of the HTTP server, implementing a poll-based event loop that:
+ * - Monitors all server listening sockets for new connections
+ * - Handles client socket I/O (reading requests, writing responses)
+ * - Processes client state machines and HTTP request/response cycles
+ * - Manages client timeouts and connection cleanup
+ * - Monitors CGI process termination and resource cleanup
+ * 
+ * The loop continues until interrupted by a signal (SIGINT/SIGTERM).
+ * Poll timeout is set to 1 second to allow periodic maintenance tasks.
+ */
 void ServerContainer::loop()
 {
     while (true)
     {
 		errno = 0;
-		// Polling for events
+		
+		// Poll all file descriptors for I/O events with timeout
         if (poll(this->m_poll_fds.data(), this->m_poll_fds.size(), POLL_TIMEOUT_MS) < 0)
 		{
+			// Break on interrupt signal (graceful shutdown)
 			if (errno == EINTR)
 				break ;
 			throw WebservExceptions::PollFailed();
 		}
+		// Process all file descriptors that have pending events
 		for (size_t i = 0; i < this->m_poll_fds.size(); i++)
 		{
 			pollfd& poll_data = this->m_poll_fds[i];
-			if (poll_data.revents)// if there are events
+			if (poll_data.revents) // File descriptor has pending events
 			{
-				// check if the event is on a server socket (new connection) or a client socket (data to read/write)
+				// Check if event is on a server listening socket (new connection)
 				if (this->m_servers_map.find(poll_data.fd) != this->m_servers_map.end())
-					accept_client(i);// new connection
-				else if (this->m_clients_map.find(poll_data.fd) != this->m_clients_map.end())// existing client
+					accept_client(i); // Accept new client connection
+				// Check if event is on existing client socket
+				else if (this->m_clients_map.find(poll_data.fd) != this->m_clients_map.end())
 				{
-                    Client* client = this->m_clients_map[poll_data.fd];// get the client object
-					// Check if the client is still active
+                    Client* client = this->m_clients_map[poll_data.fd];
+					
+					// Check for client disconnection, completion, or timeout
 					if (poll_data.revents & POLLHUP || client->get_client_status() > CLIENT_DONE || is_client_timeout(client))
 					{
-						remove_client(i);
+						remove_client(i); // Clean up disconnected/finished client
 						continue ;
 					}
-					if (poll_data.revents & POLLIN)// data to read
+					
+					// Handle different I/O events
+					if (poll_data.revents & POLLIN)  // Data available for reading
                         client->handle_read();
-					if (poll_data.revents & POLLOUT)// data to write
+					if (poll_data.revents & POLLOUT) // Socket ready for writing
 						client->handle_send();
-					client->process();// process the client request
+					
+					// Process client state machine (parse, route, respond)
+					client->process();
 				}
 			}
 		}
-		loop_cleanup();// cleanup the poll fds vector
-		watch_cgis_term();// check for terminated cgi processes
+		
+		// Perform maintenance tasks
+		loop_cleanup();   // Remove closed file descriptors from poll array
+		watch_cgis_term(); // Monitor and terminate expired CGI processes
 		if (g_signum)
 			break ;
     }

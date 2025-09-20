@@ -6,9 +6,29 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 15:42:52 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/18 22:20:44 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/20 02:51:35 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+/**
+ * @file ServerContainer.hpp
+ * @brief Core HTTP server container managing multiple server instances and client connections.
+ * 
+ * This class provides the main event loop and connection management for the webserv HTTP server.
+ * Features include:
+ * - Poll-based I/O multiplexing for handling multiple concurrent connections
+ * - Multiple virtual server support with host-based routing  
+ * - Client connection lifecycle management with timeout handling
+ * - CGI process monitoring and termination control
+ * - Socket-based server listening and client accept/processing
+ * - Resource cleanup and graceful shutdown capabilities
+ * 
+ * The ServerContainer acts as the central orchestrator, coordinating between:
+ * - Server instances (virtual hosts configuration)
+ * - Client instances (individual HTTP connections)
+ * - CGI processes (script execution and monitoring)
+ * - System resources (sockets, file descriptors, processes)
+ */
 
 #ifndef SERVERCONTAINER_HPP
 # define SERVERCONTAINER_HPP
@@ -36,23 +56,39 @@
  */
 struct cgi_term_entry
 {
-	time_t soft_term_time;
-	pid_t pid;
+	time_t soft_term_time; ///< Timestamp when CGI should be forcefully terminated
+	pid_t pid;            ///< Process ID of the CGI process to monitor
 };
 
 class Client;
 
+/**
+ * @brief Main server container managing multiple HTTP server instances and client connections.
+ * 
+ * The ServerContainer class serves as the central orchestrator for the webserv HTTP server,
+ * providing comprehensive connection management, event-driven I/O processing, and resource
+ * coordination between multiple virtual servers and client connections.
+ * 
+ * Key responsibilities include:
+ * - Managing multiple Server instances (virtual hosts) with distinct configurations
+ * - Handling client connection lifecycle from accept to cleanup
+ * - Coordinating poll-based I/O multiplexing for scalable concurrent processing
+ * - Monitoring and controlling CGI process execution and termination
+ * - Providing graceful resource cleanup and shutdown procedures
+ * 
+ * @see Server, Client, CGIHandler
+ */
 class ServerContainer
 {
     private:
-		bool m_is_child;// used to silent exceptions and prevent killing conflicts
-        Server* m_default_server;// pointer to the default server if exists
-        std::vector<Server> m_servers;// vector of server objects
-        std::map<int, Server*> m_servers_map;// map of listening socket fds to server objects
-		std::map<int, const std::pair<std::string, std::string>* > m_servers_listen_map;// map of listening socket fds to their corresponding listen address (ip, port)
-		std::map<int, Client*> m_clients_map;// map of client socket fds to client objects
-        std::vector<pollfd> m_poll_fds;// vector of pollfd structures for polling sockets
-		std::deque<cgi_term_entry> m_cgis_term_entries;// deque of cgi termination entries to monitor and kill if needed
+		bool m_is_child;                    ///< Child process flag to prevent conflicts in fork scenarios
+        Server* m_default_server;           ///< Default server for unmatched host requests
+        std::vector<Server> m_servers;      ///< Collection of configured server instances
+        std::map<int, Server*> m_servers_map; ///< Mapping from listening socket FDs to server objects
+		std::map<int, const std::pair<std::string, std::string>* > m_servers_listen_map; ///< Socket FD to (IP, port) mapping
+		std::map<int, Client*> m_clients_map; ///< Mapping from client socket FDs to client objects
+        std::vector<pollfd> m_poll_fds;      ///< Poll file descriptors for I/O event monitoring
+		std::deque<cgi_term_entry> m_cgis_term_entries; ///< CGI processes pending termination
     public:
         // constructors and destructor
         ServerContainer();
