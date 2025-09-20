@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/20 14:06:56 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/20 14:07:39 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,15 +139,8 @@ const Location& Server::match_location(std::string& route) const
 		// Break down both location path and request route into components
 		std::deque<std::string> location_components = extract_route_components(this->m_locations[i].get_upload_path());
 		std::deque<std::string> route_components = extract_route_components(route);
-<<<<<<< HEAD
 		size_t comp_i = 0;
 		while (comp_i < location_components.size() && comp_i < route_components.size())
-=======
-		
-		// Count matching path components from the beginning
-		comp_i = 0;
-		while (comp_i < location_components.size())
->>>>>>> c1641f0a74d849daa8412c019ada0e05ec37be1b
 		{
 			if (location_components[comp_i] != route_components[comp_i])
 				break ;

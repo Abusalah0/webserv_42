@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/20 14:06:51 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/20 14:07:49 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -271,20 +271,10 @@ void CGIHandler::init_cgi(const std::string& cgi_pass, const std::string& full_p
 		child_process(cgi_pass, full_path); // Execute CGI script (does not return)
 	else // Parent process
 	{
-<<<<<<< HEAD
 		this->m_server_container->set_child();
 		this->m_pid = pid;
 		this->m_server_container->add_to_poll(this->m_pipe[0], POLLIN);
 		this->m_server_container->add_to_poll(this->m_pipe[1], POLLOUT);
-=======
-		this->m_pid = pid; // Store child process ID
-		
-		// Add pipes to poll monitoring for I/O events
-		this->m_server_container->add_to_poll(this->m_pipe[0], POLLIN);  // Read from CGI
-		this->m_server_container->add_to_poll(this->m_pipe[1], POLLOUT); // Write to CGI
-		
-		// Initialize activity timestamp for timeout monitoring
->>>>>>> c1641f0a74d849daa8412c019ada0e05ec37be1b
 		this->m_last_activity = std::time(0);
 	}
 }
