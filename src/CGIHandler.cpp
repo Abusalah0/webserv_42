@@ -1,14 +1,34 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   CGIHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/19 14:59:18 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/20 14:06:51 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
+
+/**
+ * @file CGIHandler.cpp
+ * @brief Implementation of CGI script execution with process management and environment setup.
+ * 
+ * This file implements the complete CGI/1.1 specification support including:
+ * - Fork-based process isolation and secure script execution
+ * - Comprehensive CGI environment variable setup per RFC 3875
+ * - Bi-directional pipe communication for stdin/stdout redirection
+ * - Process monitoring with timeout-based termination
+ * - Proper resource cleanup and file descriptor management
+ * - HTTP header parsing and CGI meta-variable generation
+ * 
+ * The implementation ensures security through:
+ * - Isolated child process execution preventing server compromise
+ * - Proper environment variable sanitization and validation
+ * - Timeout protection against infinite loops or hanging processes
+ * - Safe execve() usage with proper argument and environment setup
+ * - Comprehensive error handling with graceful fallback
+ */
 
 #include "../include/CGIHandler.hpp"
 #include "../include/Client.hpp"
@@ -17,20 +37,37 @@
 #include <cstring>
 #include <sys/wait.h>
 
+/**
+ * @brief Default constructor creates uninitialized CGI handler.
+ * Used when CGI handler needs to be created but not immediately initialized.
+ */
 CGIHandler::CGIHandler()
 {}
 
+/**
+ * @brief Initialize CGI handler with client and server context.
+ * Sets up the handler with necessary references for CGI execution
+ * and initializes pipe file descriptors to invalid state.
+ * @param server_container Server container for process management
+ * @param client Associated client connection for request context
+ */
 CGIHandler::CGIHandler(ServerContainer* server_container, Client* client):
-	m_client(client),
-	m_server_container(server_container),
-	m_pipe(),
-	m_pid(-1),
-	m_last_activity()
+	m_client(client),           // Client connection context
+	m_server_container(server_container), // Server container for process tracking
+	m_pipe(),                   // Communication pipes (initialized below)
+	m_pid(-1),                  // No child process initially
+	m_last_activity()           // Activity timestamp
 {
-	this->m_pipe[0] = -1;
-	this->m_pipe[1] = -1;
+	// Initialize pipes to invalid state (not yet created)
+	this->m_pipe[0] = -1; // Read end
+	this->m_pipe[1] = -1; // Write end
 }
 
+/**
+ * @brief Destructor ensures proper resource cleanup.
+ * Cleans up all CGI handler resources including pipes, processes,
+ * and any allocated memory for environment variables.
+ */
 CGIHandler::~CGIHandler()
 {
 	clean_handler();
@@ -99,27 +136,30 @@ char** CGIHandler::generate_env()
 {
 	char** env;
 	size_t env_len = this->m_env_map.size();
-	env = new char*[env_len + 1]();
+	env = new char*[env_len + 1]();// Null-terminated array
 	size_t env_i = 0;
+
 	for (std::map<std::string, std::string>::iterator it = this->m_env_map.begin();
 		it != this->m_env_map.end(); it++)
 	{
+		// Generate "KEY=VALUE" strings for environment
 		std::pair<std::string, std::string> entry = *it;
 		try
 		{
-			env[env_i] = new char[entry.first.size() + entry.second.size() + 2];
+			env[env_i] = new char[entry.first.size() + entry.second.size() + 2];// +2 for '=' and null terminator
 		}
 		catch (const std::exception& e)
 		{
 			delete_darray(env);
 			throw e;
 		}
+		// Copy key and value into the environment variable
 		std::strcpy(env[env_i], entry.first.c_str());
 		env[env_i][entry.first.size()] = '=';
 		std::strcpy(env[env_i] + entry.first.size() + 1, entry.second.c_str());
 		env_i++;
 	}
-	return env;
+	return (env);
 }
 
 char** CGIHandler::generate_args(const std::string& cgi_pass, const std::string& full_path)
@@ -153,7 +193,7 @@ char** CGIHandler::generate_args(const std::string& cgi_pass, const std::string&
 		std::strcpy(args[1], full_path.c_str());
 	}
 	
-	return args;
+	return (args);
 }
 
 void CGIHandler::child_process(const std::string& cgi_pass, const std::string& full_path)
@@ -199,25 +239,52 @@ void CGIHandler::child_process(const std::string& cgi_pass, const std::string& f
 	throw WebservExceptions::ExitChild();
 }
 
+/**
+ * @brief Initialize and start CGI process execution.
+ * 
+ * Creates pipes for communication, forks a child process, and sets up the CGI environment.
+ * The parent process manages the pipes and monitors the child, while the child process
+ * executes the CGI script with proper environment and I/O redirection.
+ * 
+ * @param cgi_pass Path to the CGI interpreter executable (e.g., "/usr/bin/php")
+ * @param full_path Full path to the script file to execute
+ * @throws HTTPException with HTTP_INTERNAL_SERVER_ERROR on pipe or fork failure
+ */
 void CGIHandler::init_cgi(const std::string& cgi_pass, const std::string& full_path)
 {
+	// Set up CGI environment variables based on HTTP request
 	init_env_map();
+	
+	// Create pipe for parent-child communication
 	if (pipe(this->m_pipe))
 		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
+	
+	// Fork child process for CGI execution
 	pid_t pid = fork();
 	if (pid == -1)
 	{
-		clean_handler();
+		clean_handler(); // Clean up pipes on fork failure
 		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
 	}
-	if (!pid)
-		child_process(cgi_pass, full_path);
-	else
+	
+	if (!pid) // Child process
+		child_process(cgi_pass, full_path); // Execute CGI script (does not return)
+	else // Parent process
 	{
+<<<<<<< HEAD
 		this->m_server_container->set_child();
 		this->m_pid = pid;
 		this->m_server_container->add_to_poll(this->m_pipe[0], POLLIN);
 		this->m_server_container->add_to_poll(this->m_pipe[1], POLLOUT);
+=======
+		this->m_pid = pid; // Store child process ID
+		
+		// Add pipes to poll monitoring for I/O events
+		this->m_server_container->add_to_poll(this->m_pipe[0], POLLIN);  // Read from CGI
+		this->m_server_container->add_to_poll(this->m_pipe[1], POLLOUT); // Write to CGI
+		
+		// Initialize activity timestamp for timeout monitoring
+>>>>>>> c1641f0a74d849daa8412c019ada0e05ec37be1b
 		this->m_last_activity = std::time(0);
 	}
 }
@@ -225,29 +292,34 @@ void CGIHandler::init_cgi(const std::string& cgi_pass, const std::string& full_p
 void CGIHandler::handle_death()
 {
 	if (this->m_pid == -1)
-		return;
+		return ;
+
 	int wstatus;
-	pid_t pid = waitpid(this->m_pid, &wstatus, WNOHANG);
+	pid_t pid = waitpid(this->m_pid, &wstatus, WNOHANG);// Non-blocking wait
 	if (!pid)
-		return;
+		return ;
+
 	this->m_pid = -1;
 }
 
 void CGIHandler::clean_handler()
 {
-	this->m_env_map.clear();
+	this->m_env_map.clear();// Clear environment variables
+
 	if (this->m_pid != -1)
 	{
+		// Terminate CGI process if still running
 		kill(this->m_pid, SIGTERM);
 		cgi_term_entry entry;
-		entry.soft_term_time = std::time(0);
+		entry.soft_term_time = std::time(0);// current time for timeout tracking
 		entry.pid = this->m_pid;
-		this->m_server_container->add_cgi_term_entry(entry);
+		this->m_server_container->add_cgi_term_entry(entry);// add entry to tracking list
 	}
-	this->m_pid = -1;
-	if (this->m_pipe[0] != -1)
+
+	this->m_pid = -1;// Reset process ID
+	if (this->m_pipe[0] != -1)// Close read end if open
 		close_read();
-	if (this->m_pipe[1] != -1)
+	if (this->m_pipe[1] != -1)// Close write end if open
 		close_write();
 }
 
@@ -264,15 +336,17 @@ std::string CGIHandler::read_cgi()
 		close_read();
 	buffer[res] = 0;
 	std::string str_buffer = buffer;
-	return str_buffer;
+	return (str_buffer);
 }
 
 void CGIHandler::write_cgi(const std::string& str)
 {
 	ssize_t res = write(this->m_pipe[1], str.c_str(), str.size());
+	// Check for write errors
 	if (res == -1)
 	{
 		clean_handler();
+
 		if (errno == EPIPE)
 			throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
 		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
@@ -282,27 +356,31 @@ void CGIHandler::write_cgi(const std::string& str)
 bool CGIHandler::is_read_ready()
 {
 	if (this->m_pipe[0] == -1)
-		return false;
+		return (false);
+	// Check if the read end of the pipe is ready for reading
 	pollfd& entry = this->m_server_container->get_poll_entry(this->m_pipe[0]);
 	if (entry.revents & POLLIN || entry.revents & POLLHUP)
 	{
 		this->m_last_activity = std::time(0);
-		return true;
+		return (true);
 	}
-	return false;
+
+	return (false);
 }
 
 bool CGIHandler::is_write_ready()
 {
 	if (this->m_pipe[1] == -1)
-		return false;
+		return (false);
+	// Check if the write end of the pipe is ready for writing
 	pollfd& entry = this->m_server_container->get_poll_entry(this->m_pipe[1]);
 	if (entry.revents & POLLOUT)
 	{
 		this->m_last_activity = std::time(0);
-		return true;
+		return (true);
 	}
-	return false;
+
+	return (false);
 }
 
 void CGIHandler::close_write()
@@ -322,21 +400,22 @@ void CGIHandler::close_read()
 bool CGIHandler::is_write_open()
 {
 	if (this->m_pipe[1] != -1)
-		return true;
-	return false;
+		return (true);
+	return (false);
 }
 
 bool CGIHandler::is_read_open()
 {
 	if (this->m_pipe[0] != -1)
-		return true;
-	return false;
+		return (true);
+	return (false);
 }
 
 bool CGIHandler::is_timeout()
 {
 	time_t raw_time = std::time(0);
+
 	if (raw_time >= this->m_last_activity + CGI_TIMEOUT)
-		return true;
-	return false;
+		return (true);
+	return (false);
 }

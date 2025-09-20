@@ -1,31 +1,42 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   normalize_path.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/30 23:33:28 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 22:51:18 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/19 17:19:05 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../include/CommonUtils.hpp"
 #include <stdexcept>
 #include <cctype>
 #include <cstring>
 
+/**
+ * @brief Convert a hexadecimal character to its integer value.
+ * @param c The hexadecimal character (0-9, a-f, A-F).
+ * @return The integer value of the hexadecimal character.
+ * @note If the character is not a valid hexadecimal digit, returns 0.
+ */
 static char char_to_hex(int c)
 {
     if (isdigit(c))
-        return c - '0';
+        return (c - '0');
     else if (isupper(c))
-        return c - 'A' + 10;
+        return (c - 'A' + 10);
     else if (islower(c))
-        return c - 'a' + 10;
-    return 0;
+        return (c - 'a' + 10);
+    return (0);
 }
 
+/**
+ * @brief Compress consecutive slashes in a path to a single slash eg. "//foo///bar" -> "/foo/bar"
+ * @param path The input path string to be modified in place.
+ * @note This function modifies the input string directly.
+ */
 static void compress_slashes(std::string& path)
 {
     std::string result;
@@ -125,7 +136,7 @@ static std::vector<std::string> resolve_path_components(const std::string &path)
 std::string normalize_path(const std::string& path)
 {
     if (path.empty())
-        return "/";
+        return ("/");
     
     std::string result = path;
     // Ensure path starts with '/'
@@ -139,7 +150,7 @@ std::string normalize_path(const std::string& path)
     components = resolve_path_components(result); 
     // Rebuild the path
     if (components.empty())
-        return "/";
+        return ("/");
     
     result = "";
     for (size_t i = 0; i < components.size(); ++i)
@@ -147,5 +158,5 @@ std::string normalize_path(const std::string& path)
         result += "/" + components[i];
     }
     
-    return result;
+    return (result);
 }

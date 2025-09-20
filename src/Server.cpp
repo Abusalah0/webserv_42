@@ -1,14 +1,14 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/19 15:07:34 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/20 14:06:56 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #include "../include/Server.hpp"
 #include "../include/Exceptions.hpp"
@@ -77,6 +77,7 @@ void Server::set_locations(std::vector<Location>& locations)
 
 void Server::add_location(Location& location)
 {
+	// Check if this is the root location ("/") and update root location tracking
 	if (location.get_upload_path() == "/")
 	{
 		this->m_root_location_exist = true;
@@ -113,42 +114,58 @@ const std::vector<Location> Server::get_locations() const
 
 bool Server::match_virtual_host(const std::string &virtual_host) const
 {
+	// If no server names are configured, accept any virtual host
 	if (!this->m_server_names.size())
 		return (true);
 	
+	// Check if the virtual host matches any configured server name
     if (this->m_server_names.find(virtual_host) == this->m_server_names.end())
 	{
-        return (false);
+        return (false); // Virtual host not found in server names
 	}
 	
-	return (true);// found matching virtual host
+	return (true); // Found matching virtual host
 }
 
 const Location& Server::match_location(std::string& route) const
 {
 	const Location* location = NULL;
-	size_t max_i = 0;
-	size_t comp_i = 0;
+	size_t max_i = 0; // Tracks the maximum number of matching components found
+	size_t comp_i = 0; // Counter for current matching components
 	
+	// Iterate through all locations to find the best match
 	for (size_t i = 0; i < this->m_locations.size(); i++)
 	{
+		// Break down both location path and request route into components
 		std::deque<std::string> location_components = extract_route_components(this->m_locations[i].get_upload_path());
 		std::deque<std::string> route_components = extract_route_components(route);
+<<<<<<< HEAD
 		size_t comp_i = 0;
 		while (comp_i < location_components.size() && comp_i < route_components.size())
+=======
+		
+		// Count matching path components from the beginning
+		comp_i = 0;
+		while (comp_i < location_components.size())
+>>>>>>> c1641f0a74d849daa8412c019ada0e05ec37be1b
 		{
 			if (location_components[comp_i] != route_components[comp_i])
 				break ;
-			comp_i++;// count matching components
+			comp_i++; // Count matching components
 		}
-		if (comp_i == location_components.size() && comp_i + 1 > max_i)// full match a location path and more specific than previous matches
+		
+		// Check if this is a complete match and more specific than previous matches
+		if (comp_i == location_components.size() && comp_i + 1 > max_i)
 		{
-			location = &this->m_locations[i];
-			max_i = comp_i + 1;
+			location = &this->m_locations[i]; // Store the best matching location
+			max_i = comp_i + 1; // Update maximum specificity
 		}
 	}
-	if (location)// if we found a matching location
+	
+	if (location) // If we found a matching location
 		return (*location);
+	
+	// No matching location found, throw exception
 	throw WebservExceptions::LocationNotFound();
 }
 

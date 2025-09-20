@@ -6,9 +6,32 @@
 /*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 02:38:11 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/19 02:51:16 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/20 01:19:28 by abdsalah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+/**
+ * @file Client.cpp
+ * @brief Implementation of the Client class for HTTP request/response handling.
+ * 
+ * This file contains the core HTTP processing logic for the webserv project.
+ * The Client class implements a state machine that handles the complete HTTP
+ * request/response cycle, including:
+ * 
+ * - HTTP header parsing and validation
+ * - Request body processing (standard and chunked transfer encoding)
+ * - HTTP method handling (GET, POST, DELETE)
+ * - Static file serving with MIME type detection
+ * - Directory listing (autoindex) generation
+ * - CGI script execution and output processing
+ * - File upload handling (multipart/form-data)
+ * - Error response generation with custom error pages
+ * - Connection management (keep-alive vs close)
+ * - Non-blocking I/O with poll-based event handling
+ * 
+ * The implementation follows HTTP/1.1 standards and provides robust error
+ * handling, security validation, and resource management.
+ */
 
 #include "../include/Client.hpp"
 #include "../include/ServerContainer.hpp"
@@ -67,62 +90,91 @@ int Client::get_client_status()
 
 void Client::handle_read()
 {
-	if (this->m_client_status != CLIENT_ALIVE)// ignore if not alive
+	// Only process reads if client is still alive and active
+	if (this->m_client_status != CLIENT_ALIVE)
 		return ;
 	
 	char buffer[CHUNK_SIZE];
-	ssize_t bytes_read = recv(this->m_listen_fd, buffer, CHUNK_SIZE, 0);// read data from socket into buffer
-	if (bytes_read == 0)// connection closed by client
+	// Attempt to read data from the client socket (non-blocking)
+	ssize_t bytes_read = recv(this->m_listen_fd, buffer, CHUNK_SIZE, 0);
+	
+	// Connection closed gracefully by client
+	if (bytes_read == 0)
 	{
-		this->m_client_status = CLIENT_DISCONNECTED;// mark client as disconnected
+		this->m_client_status = CLIENT_DISCONNECTED;
 		return ;
 	}
 	
-	if (bytes_read == -1)// error reading from socket
+	// Error occurred during socket read operation
+	if (bytes_read == -1)
 	{
-		this->m_client_status = CLIENT_ERROR;// mark client as error
+		this->m_client_status = CLIENT_ERROR;
 		return ;
 	}
 	
-	this->m_request_buffer.push(buffer, bytes_read);// push data into request buffer for processing
-	this->m_last_activity = std::time(0);// update last activity time
+	// Successfully read data, append to request buffer for processing
+	this->m_request_buffer.push(buffer, bytes_read);
+	
+	// Update activity timestamp for connection timeout tracking
+	this->m_last_activity = std::time(0);
 }
 
 void Client::handle_send()
 {
-	if (this->m_client_status > CLIENT_DONE || !this->m_response_buffer.size())// nothing to send or client not alive
+	// Only send if client is alive/done and there's data to send
+	if (this->m_client_status > CLIENT_DONE || !this->m_response_buffer.size())
 		return ;
 		
-	std::string buffer = this->m_response_buffer.pull(CHUNK_SIZE);// get data from response buffer to send
-	ssize_t bytes_sent = send(this->m_listen_fd, buffer.c_str(), buffer.size(), 0);// send data to socket 
-	if (bytes_sent == -1)// error sending data
+	// Pull up to CHUNK_SIZE bytes from response buffer for sending
+	std::string buffer = this->m_response_buffer.pull(CHUNK_SIZE);
+	
+	// Send data to client socket (non-blocking)
+	ssize_t bytes_sent = send(this->m_listen_fd, buffer.c_str(), buffer.size(), 0);
+	
+	// Handle send error (socket closed, network error, etc.)
+	if (bytes_sent == -1)
 	{
-		this->m_client_status = CLIENT_ERROR;// mark client as error
+		this->m_client_status = CLIENT_ERROR;
 		return ;
 	}
 	
-	if (this->m_client_status == CLIENT_DONE // all data sent
-		&& !this->m_response_buffer.size()// response buffer empty
-		&& this->m_process_state == PROCESS_HEADER)// in header processing state
+	// Check if we've finished sending all response data
+	// Client is marked DONE, response buffer is empty, and we're back to header processing
+	if (this->m_client_status == CLIENT_DONE 
+		&& !this->m_response_buffer.size()
+		&& this->m_process_state == PROCESS_HEADER)
 	{
-		this->m_client_status = CLIENT_DISCONNECTED;// mark client as done if all data sent and in header processing state
+		// All response data sent successfully, client can be disconnected
+		this->m_client_status = CLIENT_DISCONNECTED;
 		return ;
 	}
+	
+	// Update activity timestamp for connection timeout tracking
 	this->m_last_activity = std::time(0);
 }
 
 void Client::process_header()
 {
-	this->m_request_buffer.header_lf_to_crlf();// convert LF to CRLF for header parsing
+	// Normalize line endings: convert lone LF to CRLF for proper HTTP header parsing
+	this->m_request_buffer.header_lf_to_crlf();
 
-	if (this->m_request_buffer.is_header_finished())// header is complete
+	// Check if we have received the complete HTTP header (ends with \r\n\r\n)
+	if (this->m_request_buffer.is_header_finished())
 	{
+		// Extract the complete header from the request buffer
 		std::string input = this->m_request_buffer.pull_header();
+		
+		// Parse HTTP request line and headers into structured data
 		this->m_req_header.parse_request(input);
+		
+		// Extract connection type (keep-alive vs close) from headers
 		this->m_connection_type = this->m_req_header.get_connection_type();
+		
+		// Move to next processing phase: target selection and routing
 		this->m_process_state = PROCESS_SELECT_TARGET;
 	}
 
+	// Prevent header buffer overflow attacks - headers shouldn't exceed CHUNK_SIZE
 	if (this->m_request_buffer.size() > CHUNK_SIZE)
 	{
 		throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
@@ -131,68 +183,114 @@ void Client::process_header()
 
 void Client::process_body()
 {
+	// Check if we have received the complete request body based on Content-Length
 	if (this->m_request_buffer.size() >= this->m_req_header.get_content_length())
 	{
+		// Extract the request body data from buffer
 		this->m_body = this->m_request_buffer.pull(this->m_req_header.get_content_length());
+		
+		// Body fully received, proceed to request processing
 		this->m_process_state = PROCESS_REQUEST;
 	}
+	// If body is incomplete, we wait for more data in subsequent handle_read() calls
 }
 
 void Client::process_body_chunked_size()
 {
+	// Look for CRLF that terminates the chunk size line
 	if (this->m_request_buffer.is_crlf_found())
 	{
+		// Extract the chunk size line (hex value + optional extensions)
 		std::string chunk_size_str = this->m_request_buffer.pull_encoded();
+		
+		// Remove the trailing CRLF from buffer
 		this->m_request_buffer.erase(2);
+		
+		// Parse hexadecimal chunk size into integer
 		this->m_chunk_size = parse_chunk_size(chunk_size_str);
+		
+		// If chunk size > 0, prepare to read chunk data
 		if (this->m_chunk_size)
 		{
+			// Accumulate total body size for validation against limits
 			this->m_body_size += this->m_chunk_size;
+			
+			// Enforce client_max_body_size limit to prevent resource exhaustion
 			if (this->m_body_size > this->m_target_block->get_client_max_body_size())
 				throw WebservExceptions::HTTPException(HTTP_CONTENT_TOO_LARGE);
+			
+			// Move to chunk data reading phase
 			this->m_process_state = PROCESS_BODY_CHUNKED_DATA;
 		}
 		else
+		{
+			// Chunk size is 0, indicating end of chunked transfer
 			this->m_process_state = PROCESS_BODY_CHUNKED_END;
+		}
 	}
 }
 
 void Client::process_body_chunked_data()
 {
+	// Check if we have enough data: chunk size + trailing CRLF
 	if (this->m_request_buffer.size() >= this->m_chunk_size + 2)
 	{
+		// Pull the chunk data plus its trailing CRLF
 		std::string chunk_data = this->m_request_buffer.pull(this->m_chunk_size + 2);
+		
+		// Validate that chunk ends with proper CRLF
 		if (chunk_data.compare(this->m_chunk_size, 2, "\r\n"))
 			throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+		
+		// Remove the trailing CRLF from chunk data
 		chunk_data.erase(this->m_chunk_size);
+		
+		// Append this chunk to the accumulated request body
 		this->m_body.append(chunk_data);
+		
+		// Return to chunk size reading for next chunk
 		this->m_process_state = PROCESS_BODY_CHUNKED_SIZE;
 	}
 }
 
 void Client::process_body_chunked_end()
 {
+	// Wait for final CRLF that terminates chunked transfer
 	if (this->m_request_buffer.size() >= 2)
 	{
+		// Pull the final CRLF sequence
 		std::string crlf = this->m_request_buffer.pull(2);
+		
+		// Validate proper chunked transfer termination
 		if (crlf.compare("\r\n"))
 			throw WebservExceptions::HTTPException(HTTP_BAD_REQUEST);
+		
+		// Chunked transfer complete, proceed to request processing
 		this->m_process_state = PROCESS_REQUEST;
 	}
 }
 
 void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 {
+	// Create HTML template for directory listing page
 	std::string body = "<html>\n"
 		"<head><title>Index of {template}</title></head>\n"
 		"<body>\n"
 		"<h1>Index of {template}</h1><hr><pre>\n";
+	
+	// Replace template placeholder with actual directory path
 	replace_template_str(body, str_template, this->m_req_header.get_target());
+	
+	// Generate HTML entries for each file/directory in the listing
 	for (size_t i = 0; i < entries.size(); i++)
 	{
 		const AutoIndexEntry& entry = entries[i];
+		
+		// Create clickable link for each entry
 		std::string entry_html = "<a href=\"{template}\">{template}</a>";
 		replace_template_str(entry_html, str_template, entry.ent_name);
+		
+		// For files (not directories), add timestamp and size information
 		if (!S_ISDIR(entry.statbuf.st_mode))
 		{
 			std::string date = generate_autoindex_date();
@@ -201,34 +299,52 @@ void Client::serve_autoindex(const std::deque<AutoIndexEntry>& entries)
 			entry_html.push_back(' ');
 			entry_html.append(ul_to_str(entry.statbuf.st_size));
 		}
+		
 		entry_html.push_back('\n');
 		body.append(entry_html);
 	}
+	
+	// Close HTML structure
 	body.append(
 		"</pre><hr></body>\n"
 		"</html>\n"
 	);
 
+	// Generate complete HTTP response with autoindex content
 	this->m_resp_header.set_content_length(body.size());
 	this->m_resp_header.generate_response_fields(this->m_connection_type, HTTP_OK_MSG, false, "text/html");
 	std::string response_header = this->m_resp_header.generate_response_header();
+	
+	// Push response header and body to output buffer
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
 	this->m_response_buffer.push(body.c_str(), body.size());
 	this->m_response_buffer.create_barrier();
+	
+	// Reset client state for next request processing
 	reset_client_state();
 }
 
 void Client::handle_index()
 {
+	// Attempt to find an appropriate index file for the requested directory
 	IndexEntry index_entry = this->m_target_block->get_index_page(this->m_req_header.get_aug_target());
+	
+	// If the resolved index is actually a directory, redirect with trailing slash
 	if (index_entry.is_dir)
 	{
 		const std::string& root = this->m_target_block->get_root();
+		
+		// Create relative path for redirect location
 		std::string location = index_entry.path.substr(root.size());
+		
+		// Send 301 redirect to ensure proper directory URL format
 		generate_error(HTTP_MOVED_PERMANENTLY, HTTP_MOVED_PERMANENTLY_MSG, location);
 	}
 	else
+	{
+		// Found a valid index file, prepare to serve it
 		prep_process_file_body(index_entry.path);
+	}
 }
 
 void Client::direct_serve(const BaseBlock* location_target)
@@ -461,53 +577,71 @@ void Client::process_request()
 
 void Client::select_target()
 {
+	// Find the best matching server based on listen address and virtual host
 	const Server* server = &this->m_server_container->get_best_server(
 		this->m_server_addr->first, this->m_server_addr->second, this->m_req_header.get_virtual_host()
 	);
-	if (server->get_server_names().size())
+	
+	// Set server name for logging and error page generation
+	if (server->get_server_names().size()) // Server has configured server names
 		this->m_server_name = this->m_req_header.get_virtual_host();
 	else
-		this->m_server_name.clear();
+		this->m_server_name.clear(); // No server names configured
+
+	// Initially target the server block
 	this->m_target_block = server;
+	
+	// Reset augmented target to original request target for location matching
 	this->m_req_header.set_aug_target(this->m_req_header.get_target());
+	
 	try
 	{
+		// Attempt to find the best matching location block within the server
 		const Location* location = &server->match_location(this->m_req_header.get_target());
 		this->m_target_block = location;
+		
+		// Validate that the HTTP method is allowed for this location
 		if (!location->is_method_allowed(this->m_req_header.get_request_method()))
 		{
+			// Set Allow header with permitted methods for 405 response
 			this->m_resp_header.set_allowed_methods(location->get_allowed_methods());
 			throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
 		}
+		
+		// Adjust the augmented target by removing the location prefix
 		std::string new_aug_target = this->m_req_header.get_aug_target();
+		// Remove location path prefix but preserve the leading slash
 		new_aug_target.erase(0, location->get_upload_path().size() - 1);
-		this->m_req_header.set_aug_target(new_aug_target);
-		this->m_path_translated = this->m_req_header.get_target();
-		this->m_path_translated.erase(0, location->get_upload_path().size());
-		if (this->m_path_translated.empty() || this->m_path_translated[0] != '/')
-			this->m_path_translated.insert(this->m_path_translated.begin(), '/');
-		this->m_path_translated = concat_path(location->get_root(), this->m_path_translated);
+		
+		this->m_req_header.set_aug_target(new_aug_target); // Update for further processing
+		this->m_path_translated = this->m_req_header.get_target(); // Store original path
+		this->m_path_translated.erase(0, location->get_upload_path().size());// remove upload path prefix
+		if (this->m_path_translated.empty() || this->m_path_translated[0] != '/')// ensure leading slash
+			this->m_path_translated.insert(this->m_path_translated.begin(), '/');// insert leading slash if missing
+		this->m_path_translated = concat_path(location->get_root(), this->m_path_translated);// full translated path
 	}
 	catch (const WebservExceptions::LocationNotFound& e)
 	{
 	}
-	this->m_document_root = this->m_target_block->get_root();
-	if (this->m_req_header.get_content_length())
+	
+	this->m_document_root = this->m_target_block->get_root();// set document root
+	if (this->m_req_header.get_content_length())// if there is a body
 	{
-		if (this->m_req_header.get_content_length() > this->m_target_block->get_client_max_body_size())
+		if (this->m_req_header.get_content_length() > this->m_target_block->get_client_max_body_size())// body too large
 			throw WebservExceptions::HTTPException(HTTP_CONTENT_TOO_LARGE);
-		this->m_process_state = PROCESS_BODY;
+		this->m_process_state = PROCESS_BODY;// move to body processing state
 	}
-	else if (this->m_req_header.is_chunked())
-		this->m_process_state = PROCESS_BODY_CHUNKED_SIZE;
+	else if (this->m_req_header.is_chunked())// if body is chunked
+		this->m_process_state = PROCESS_BODY_CHUNKED_SIZE;// move to chunked size processing state
 	else
-		this->m_process_state = PROCESS_REQUEST;
+		this->m_process_state = PROCESS_REQUEST;// move to request processing state
 }
 
 void Client::process_file_body()
 {
 	char buffer[CHUNK_SIZE];
 	ssize_t bytes_read = read(this->m_file_fd, buffer, CHUNK_SIZE);
+
 	if (bytes_read == 0)
 	{
 		this->m_response_buffer.create_barrier();
@@ -561,18 +695,29 @@ void Client::generate_error(ushort code, const std::string& msg, const std::stri
 
 	try
 	{
+		// Attempt to find a custom error page for this HTTP status code
 		error_page = this->m_target_block->get_error_page(code);
+		
+		// If custom error page exists and is a file path (starts with '/')
 		if (!error_page.empty() && error_page[0] == '/')
+		{
+			// Serve the custom error page file
 			prep_process_file_body(error_page, msg);
+		}
 		else
+		{
+			// Error page is a redirect URL, generate redirect response
 			fallback_generate_error(HTTP_FOUND_MSG, error_page);
+		}
 	}
 	catch(const WebservExceptions::HTTPException& e)
 	{
+		// Error occurred while processing custom error page, use fallback
 		fallback_generate_error(e.what(), location);
 	}
 	catch(const WebservExceptions::NoAvailablePage& e)
 	{
+		// No custom error page configured, use default error response
 		fallback_generate_error(msg, location);
 	}
 }
@@ -580,18 +725,36 @@ void Client::generate_error(ushort code, const std::string& msg, const std::stri
 void Client::prep_process_file_body(const std::string& file_path, const std::string& msg)
 {
 	struct stat statbuf;
+	
+	// Get file information (size, modification time, etc.)
 	if (stat(file_path.c_str(), &statbuf))
-		handle_http_file_errno();
+		handle_http_file_errno(); // File doesn't exist or permission denied
+	
+	// Set Content-Length header based on file size
 	this->m_resp_header.set_content_length(statbuf.st_size);
+	
+	// Open file for reading
 	this->m_file_fd = open(file_path.c_str(), O_RDONLY);
 	if (this->m_file_fd == -1)
-		handle_http_file_errno();
+		handle_http_file_errno(); // Failed to open file
+	
+	// Add file descriptor to poll set for non-blocking I/O
 	this->m_server_container->add_to_poll(this->m_file_fd);
+	
+	// Determine appropriate MIME type based on file extension
 	const char* media_type = get_media_type(file_path);
+	
+	// Set Last-Modified header for caching
 	this->m_resp_header.set_last_modified(statbuf.st_mtim.tv_sec);
+	
+	// Generate HTTP response headers
 	this->m_resp_header.generate_response_fields(this->m_connection_type, msg, false, media_type);
 	std::string response_header = this->m_resp_header.generate_response_header();
+	
+	// Send response headers to client
 	this->m_response_buffer.push(response_header.c_str(), response_header.size());
+	
+	// Switch to file body streaming state
 	this->m_process_state = PROCESS_FILE_BODY;
 }
 
@@ -729,86 +892,133 @@ void Client::process_file_upload()
 
 void Client::process()
 {
-	if (this->m_client_status > CLIENT_DONE)// ignore if not alive
+	// Only process if client is alive or in the process of finishing (CLIENT_DONE)
+	if (this->m_client_status > CLIENT_DONE)
 		return ;
 
 	try
 	{
+		// State machine for HTTP request processing
+		// Each state handles a specific phase of request/response cycle
 		switch (this->m_process_state)
 		{	
 			case PROCESS_HEADER:
-				if (this->m_client_status == CLIENT_ALIVE)// only process header if client is alive
+				// Parse HTTP request headers (only if client is still alive)
+				if (this->m_client_status == CLIENT_ALIVE)
 					process_header();
 				break ;
+				
 			case PROCESS_SELECT_TARGET:
+				// Route request to appropriate server/location block
 				select_target();
 				break ;
+				
 			case PROCESS_BODY:
+				// Read request body using Content-Length
 				process_body();
 				break ;
+				
 			case PROCESS_BODY_CHUNKED_SIZE:
+				// Parse chunk size in chunked transfer encoding
 				process_body_chunked_size();
 				break ;
+				
 			case PROCESS_BODY_CHUNKED_DATA:
+				// Read chunk data in chunked transfer encoding
 				process_body_chunked_data();
 				break ;
+				
 			case PROCESS_BODY_CHUNKED_END:
+				// Handle end of chunked transfer
 				process_body_chunked_end();
 				break ;
+				
 			case PROCESS_REQUEST:
+				// Execute the actual HTTP request (GET/POST/DELETE)
 				process_request();
 				break ;
+				
 			case PROCESS_FILE_BODY:
+				// Stream file content to client
 				process_file_body();
 				break ;
+				
 			case PROCESS_CGI_BEGINNING:
+				// Initialize CGI script execution
 				process_cgi_beginning();
 				break ;
+				
 			case PROCESS_CGI_READ:
+				// Read and process CGI script output
 				process_cgi_read();
 				break ;
+				
 			case PROCESS_FILE_UPLOAD:
+				// Handle file upload processing
 				process_file_upload();
 				break ;
 		}
 	}
 	catch (const WebservExceptions::HTTPException& e)
 	{
+		// Special handling for CGI errors: disconnect immediately
 		if (this->m_process_state == PROCESS_CGI_READ)
 		{
 			this->m_client_status = CLIENT_DISCONNECTED;
 			return ;
 		}
+		
+		// For bad requests, clear buffer and force connection close
 		if (e.get_error_code() == HTTP_BAD_REQUEST)
 		{
+			// Clear any remaining malformed data from buffer
 			this->m_request_buffer.erase(this->m_request_buffer.size());
 			this->m_client_status = CLIENT_DONE;
 			this->m_connection_type = CONNECTION_CLOSE;
 		}
+		
+		// Generate appropriate HTTP error response
 		generate_error(e.get_error_code(), e.what(), "");
 	}
 }
 
 void Client::reset_client_state()
 {
+	// Close any open file descriptors
 	close_file();
+	
+	// Reset processing state to beginning of request cycle
 	this->m_process_state = PROCESS_HEADER;
+	
+	// Reset target block to base server (before location matching)
 	this->m_target_block = this->m_base_server;
+	
+	// Clear request-specific data
 	this->m_body_size = 0;
 	this->m_cgi_header_finished = false;
+	
+	// Clear HTTP headers and body data
 	this->m_req_header.clear();
 	this->m_resp_header.clear();
 	this->m_body.clear();
+	
+	// Clear CGI-related buffers and handlers
 	this->m_cgi_buffer.erase(this->m_cgi_buffer.size());
 	this->m_cgi_handler.clean_handler();
 }
 
 void Client::close_file()
 {
+	// Close file descriptor if it's open
 	if (this->m_file_fd != -1)
 	{
+		// Close the file descriptor
 		close(this->m_file_fd);
+		
+		// Remove from poll set to prevent further monitoring
 		this->m_server_container->remove_from_poll(this->m_file_fd);
+		
+		// Mark as closed
 		this->m_file_fd = -1;
 	}
 }

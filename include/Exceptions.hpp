@@ -1,27 +1,31 @@
-/******************************************************************************/
+/* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Exceptions.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
+/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 12:01:53 by sbibers           #+#    #+#             */
-/*   Updated: 2025/09/11 18:32:04 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/19 14:42:29 by abdsalah         ###   ########.fr       */
 /*                                                                            */
-/******************************************************************************/
+/* ************************************************************************** */
 
 #ifndef EXCEPTIONS_HPP
-#define EXCEPTIONS_HPP
+# define EXCEPTIONS_HPP
 
-#include <exception>
-#include "CommonUtils.hpp"
+# include <exception>
+# include "CommonUtils.hpp"
 
+/**
+ * @brief Structure to hold HTTP status codes and their corresponding messages.
+ */
 struct HTTPStatus
 {
 	ushort code;
 	const char* msg;
 };
 
+// HTTP status codes and their corresponding messages
 static const HTTPStatus statusTable[] = {
 	{HTTP_OK, HTTP_OK_MSG},
 	{HTTP_CREATED, HTTP_CREATED_MSG},
@@ -54,6 +58,11 @@ namespace WebservExceptions
 		public:
 			HTTPException(ushort code);
 			virtual ~HTTPException() throw();
+
+            /**
+             * @brief Get the error code associated with the exception.
+             * @return The HTTP error code.
+             */
 			ushort get_error_code() const;
 			const char* what() const throw();
 	};
