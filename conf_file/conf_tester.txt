@@ -1,6 +1,6 @@
 http
 {
-	root /home/amsaleh/www;
+	root /home/coderx64/www;
 	server
 	{
 		listen localhost:1090;
@@ -16,13 +16,13 @@ http
 		}
 		location /cgi_py {
 			autoindex on;
-			root /home/amsaleh/www/cgi;
+			root /home/coderx64/www/cgi;
 			cgi_pass /usr/bin/python3;
 			cgi_extension .py;
 		}
 		location /cgi {
 			autoindex on;
-			root /home/amsaleh/www/cgi;
+			root /home/coderx64/www/cgi;
 			cgi_pass executable;
 			cgi_extension .cgi;
 		}

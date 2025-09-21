@@ -6,7 +6,7 @@
 /*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 02:38:11 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/21 17:38:42 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/21 18:00:17 by amsaleh          ###   ########.fr       */
 /*                                                                            */
 /******************************************************************************/
 
@@ -833,7 +833,11 @@ void Client::handle_cgi_read(std::string& data)
 
 void Client::process_cgi_read()
 {
-	this->m_response_buffer.push(this->m_cgi_resp_header.c_str(), this->m_cgi_resp_header.size());
+	if (!this->m_cgi_resp_header.empty())
+	{
+		this->m_response_buffer.push(this->m_cgi_resp_header.c_str(), this->m_cgi_resp_header.size());
+		this->m_cgi_resp_header.clear();
+	}
 	if (this->m_cgi_buffer.size())
 	{
 		std::string data = this->m_cgi_buffer.pull(this->m_cgi_buffer.size());
