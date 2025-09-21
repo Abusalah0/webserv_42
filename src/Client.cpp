@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 02:38:11 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/20 01:19:28 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/21 17:38:42 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 /**
  * @file Client.cpp
@@ -67,10 +67,12 @@ Client::Client(int fd,
 	m_script_name(),
 	m_document_root(),
 	m_path_translated(),
+	m_cgi_resp_header(),
 	m_server_addr(server_addr),
 	m_client_addr(client_addr),
 	m_cgi_handler(server_container, this),
-	m_cgi_header_finished(false)
+	m_cgi_header_finished(false),
+	m_allowed_methods(0)
 {
 	this->m_last_activity = std::time(0);
 }
@@ -97,7 +99,6 @@ void Client::handle_read()
 	char buffer[CHUNK_SIZE];
 	// Attempt to read data from the client socket (non-blocking)
 	ssize_t bytes_read = recv(this->m_listen_fd, buffer, CHUNK_SIZE, 0);
-	
 	// Connection closed gracefully by client
 	if (bytes_read == 0)
 	{
@@ -135,17 +136,6 @@ void Client::handle_send()
 	if (bytes_sent == -1)
 	{
 		this->m_client_status = CLIENT_ERROR;
-		return ;
-	}
-	
-	// Check if we've finished sending all response data
-	// Client is marked DONE, response buffer is empty, and we're back to header processing
-	if (this->m_client_status == CLIENT_DONE 
-		&& !this->m_response_buffer.size()
-		&& this->m_process_state == PROCESS_HEADER)
-	{
-		// All response data sent successfully, client can be disconnected
-		this->m_client_status = CLIENT_DISCONNECTED;
 		return ;
 	}
 	
@@ -604,7 +594,7 @@ void Client::select_target()
 		if (!location->is_method_allowed(this->m_req_header.get_request_method()))
 		{
 			// Set Allow header with permitted methods for 405 response
-			this->m_resp_header.set_allowed_methods(location->get_allowed_methods());
+			this->m_allowed_methods = &location->get_allowed_methods();
 			throw WebservExceptions::HTTPException(HTTP_METHOD_NOT_ALLOWED);
 		}
 		
@@ -693,6 +683,9 @@ void Client::generate_error(ushort code, const std::string& msg, const std::stri
 {
 	std::string error_page;
 
+	this->m_resp_header.clear();
+	if (this->m_allowed_methods)
+		this->m_resp_header.set_allowed_methods(*this->m_allowed_methods);
 	try
 	{
 		// Attempt to find a custom error page for this HTTP status code
@@ -766,7 +759,7 @@ void Client::process_cgi_beginning()
 		{
 			std::string chunk = this->m_body.substr(0, CHUNK_SIZE);
 			this->m_body.erase(0, CHUNK_SIZE);
-			this->m_cgi_handler.write_cgi(this->m_body);
+			this->m_cgi_handler.write_cgi(chunk);
 			if (this->m_body.empty())
 				this->m_cgi_handler.close_write();
 		}
@@ -782,17 +775,16 @@ void Client::process_cgi_beginning()
 			this->m_cgi_buffer.header_lf_to_crlf();
 			if (this->m_cgi_buffer.is_header_finished())
 			{
-				std::string header_str = this->m_cgi_buffer.pull_header();
+				this->m_cgi_resp_header = this->m_cgi_buffer.pull_header();
 				HTTPHeader tmp_header;
 				tmp_header.set_chunked();
-				tmp_header.parse_response(header_str);
+				tmp_header.parse_response(this->m_cgi_resp_header);
 				this->m_resp_header.ignore_content_len_field();
 				this->m_resp_header.generate_response_fields(
 					this->m_connection_type, HTTP_OK_MSG, tmp_header.is_chunked(), "text/html"
 				);
-				this->m_resp_header.parse_response(header_str);
-				header_str = this->m_resp_header.generate_response_header();
-				this->m_response_buffer.push(header_str.c_str(), header_str.size());
+				this->m_resp_header.parse_response(this->m_cgi_resp_header);
+				this->m_cgi_resp_header = this->m_resp_header.generate_response_header();
 				this->m_cgi_header_finished = true;
 			}
 			else if (this->m_cgi_buffer.size() > CHUNK_SIZE)
@@ -804,7 +796,13 @@ void Client::process_cgi_beginning()
 		this->m_cgi_handler.clean_handler();
 		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
 	}
-	if (this->m_cgi_header_finished && this->m_body.empty())
+	if (this->m_cgi_handler.is_dead() && !this->m_body.empty())
+	{
+		this->m_cgi_handler.clean_handler();
+		throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
+	}
+	if (this->m_cgi_header_finished
+		&& (this->m_body.empty() || !this->m_cgi_handler.is_write_open()))
 	{
 		this->m_body_size = 0;
 		this->m_process_state = PROCESS_CGI_READ;
@@ -835,6 +833,7 @@ void Client::handle_cgi_read(std::string& data)
 
 void Client::process_cgi_read()
 {
+	this->m_response_buffer.push(this->m_cgi_resp_header.c_str(), this->m_cgi_resp_header.size());
 	if (this->m_cgi_buffer.size())
 	{
 		std::string data = this->m_cgi_buffer.pull(this->m_cgi_buffer.size());
@@ -986,7 +985,7 @@ void Client::reset_client_state()
 {
 	// Close any open file descriptors
 	close_file();
-	
+	this->m_allowed_methods = 0;
 	// Reset processing state to beginning of request cycle
 	this->m_process_state = PROCESS_HEADER;
 	
@@ -1061,4 +1060,19 @@ const std::string& Client::get_document_root()
 const std::string& Client::get_path_translated()
 {
 	return (this->m_path_translated);
+}
+
+bool Client::is_client_completed()
+{
+	// Check if we've finished sending all response data
+	// Client is marked DONE, response buffer is empty, and we're back to header processing
+	if (this->m_client_status == CLIENT_DONE 
+		&& !this->m_response_buffer.size()
+		&& this->m_process_state == PROCESS_HEADER)
+	{
+		// All response data sent successfully, client can be disconnected
+		this->m_client_status = CLIENT_DISCONNECTED;
+		return true;
+	}
+	return false;
 }

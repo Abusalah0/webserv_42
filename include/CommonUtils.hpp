@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   CommonUtils.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/18 00:02:50 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/18 03:01:26 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/21 15:14:22 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef COMMONUTILS_HPP
 # define COMMONUTILS_HPP
@@ -26,6 +26,7 @@
 # include <arpa/inet.h>
 
 extern int g_signum;
+extern int g_sigpipe;
 
 typedef enum EConnectionTypes
 {

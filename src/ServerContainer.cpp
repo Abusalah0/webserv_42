@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   ServerContainer.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:18:04 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/20 02:51:35 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/21 15:17:11 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 /**
  * @file ServerContainer.cpp
@@ -166,14 +166,14 @@ void ServerContainer::setup_webserv()
         Server& server = this->m_servers[i];
         const std::vector<std::pair<std::string, std::string> >& listens = server.get_listen(); // current server listening addresses
 		
-        for (size_t i = 0; i < listens.size(); i++)
+        for (size_t j = 0; j < listens.size(); j++)
         {
             try
             {
 				// create a listening socket for the current listen address
-                int sockfd = create_listen_socket(listens[i]);
+                int sockfd = create_listen_socket(listens[j]);
                 this->m_servers_map[sockfd] = &server;
-				this->m_servers_listen_map[sockfd] = &listens[i];
+				this->m_servers_listen_map[sockfd] = &listens[j];
 				// add the listening socket to the poll fds vector
 				// TO-DO: use the add_to_poll method instead or be gay
                 pollfd entry;
@@ -335,7 +335,7 @@ void ServerContainer::loop()
 					if (poll_data.revents & POLLHUP || client->get_client_status() > CLIENT_DONE || is_client_timeout(client))
 					{
 						remove_client(i); // Clean up disconnected/finished client
-						continue ;
+						continue;
 					}
 					
 					// Handle different I/O events
@@ -346,6 +346,11 @@ void ServerContainer::loop()
 					
 					// Process client state machine (parse, route, respond)
 					client->process();
+					if (client->is_client_completed())
+					{
+						remove_client(i); // Clean up disconnected/finished client
+						continue;
+					}
 				}
 			}
 		}

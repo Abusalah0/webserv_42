@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   CGIHandler.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:11 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/20 14:07:49 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/21 17:16:48 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 /**
  * @file CGIHandler.cpp
@@ -34,7 +34,10 @@
 #include "../include/Client.hpp"
 #include "../include/Server.hpp"
 #include "../include/ServerContainer.hpp"
+#include <cstddef>
 #include <cstring>
+#include <iterator>
+#include <sys/poll.h>
 #include <sys/wait.h>
 
 /**
@@ -54,13 +57,16 @@ CGIHandler::CGIHandler()
 CGIHandler::CGIHandler(ServerContainer* server_container, Client* client):
 	m_client(client),           // Client connection context
 	m_server_container(server_container), // Server container for process tracking
-	m_pipe(),                   // Communication pipes (initialized below)
+	m_in_pipe(),				// In Pipe
+	m_out_pipe(),				// Out Pipe
 	m_pid(-1),                  // No child process initially
 	m_last_activity()           // Activity timestamp
 {
 	// Initialize pipes to invalid state (not yet created)
-	this->m_pipe[0] = -1; // Read end
-	this->m_pipe[1] = -1; // Write end
+	this->m_in_pipe[0] = -1; // Read end
+	this->m_in_pipe[1] = -1; // Write end
+	this->m_out_pipe[0] = -1; // Read end
+	this->m_out_pipe[1] = -1; // Write end
 }
 
 /**
@@ -200,21 +206,27 @@ void CGIHandler::child_process(const std::string& cgi_pass, const std::string& f
 {
 	int res;
 
+	this->m_server_container->set_child();
 	this->m_server_container->close_fds();
+
+	close(this->m_in_pipe[1]);
+	close(this->m_out_pipe[0]);
+	this->m_in_pipe[1] = -1;
+	this->m_out_pipe[0] = -1;
 
 	size_t pos = full_path.rfind('/');
 	std::string dir_path = full_path.substr(0, pos);
 	if (chdir(dir_path.c_str()))
 		throw WebservExceptions::ExitChild();
 
-	res = dup2(this->m_pipe[0], STDIN_FILENO);
-	close(this->m_pipe[0]);
-	this->m_pipe[0] = -1;
+	res = dup2(this->m_in_pipe[0], STDIN_FILENO);
+	close(this->m_in_pipe[0]);
+	this->m_in_pipe[0] = -1;
 	if (res == -1)
 		throw WebservExceptions::ExitChild();
-	res = dup2(this->m_pipe[1], STDOUT_FILENO);
-	close(this->m_pipe[1]);
-	this->m_pipe[1] = -1;
+	res = dup2(this->m_out_pipe[1], STDOUT_FILENO);
+	close(this->m_out_pipe[1]);
+	this->m_out_pipe[1] = -1;
 	if (res == -1)
 		throw WebservExceptions::ExitChild();
 
@@ -256,7 +268,9 @@ void CGIHandler::init_cgi(const std::string& cgi_pass, const std::string& full_p
 	init_env_map();
 	
 	// Create pipe for parent-child communication
-	if (pipe(this->m_pipe))
+	if (pipe(this->m_in_pipe))
+		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
+	if (pipe(this->m_out_pipe))
 		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
 	
 	// Fork child process for CGI execution
@@ -271,10 +285,13 @@ void CGIHandler::init_cgi(const std::string& cgi_pass, const std::string& full_p
 		child_process(cgi_pass, full_path); // Execute CGI script (does not return)
 	else // Parent process
 	{
-		this->m_server_container->set_child();
+		close(this->m_in_pipe[0]);
+		close(this->m_out_pipe[1]);
+		this->m_in_pipe[0] = -1;
+		this->m_out_pipe[1] = -1;
 		this->m_pid = pid;
-		this->m_server_container->add_to_poll(this->m_pipe[0], POLLIN);
-		this->m_server_container->add_to_poll(this->m_pipe[1], POLLOUT);
+		this->m_server_container->add_to_poll(this->m_in_pipe[1], POLLOUT);
+		this->m_server_container->add_to_poll(this->m_out_pipe[0], POLLIN);
 		this->m_last_activity = std::time(0);
 	}
 }
@@ -307,16 +324,26 @@ void CGIHandler::clean_handler()
 	}
 
 	this->m_pid = -1;// Reset process ID
-	if (this->m_pipe[0] != -1)// Close read end if open
-		close_read();
-	if (this->m_pipe[1] != -1)// Close write end if open
+	if (this->m_in_pipe[1] != -1)
 		close_write();
+	if (this->m_out_pipe[0] != -1)
+		close_read();
+	if (this->m_in_pipe[0] != -1)
+	{
+		close(this->m_in_pipe[0]);
+		this->m_in_pipe[0] = -1;
+	}
+	if (this->m_out_pipe[1] != -1)
+	{
+		close(this->m_out_pipe[1]);
+		this->m_out_pipe[1] = -1;
+	}
 }
 
 std::string CGIHandler::read_cgi()
 {
 	char buffer[CHUNK_SIZE + 1];
-	ssize_t res = read(this->m_pipe[0], buffer, CHUNK_SIZE);
+	ssize_t res = read(this->m_out_pipe[0], buffer, CHUNK_SIZE);
 	if (res == -1)
 	{
 		clean_handler();
@@ -331,24 +358,27 @@ std::string CGIHandler::read_cgi()
 
 void CGIHandler::write_cgi(const std::string& str)
 {
-	ssize_t res = write(this->m_pipe[1], str.c_str(), str.size());
+	ssize_t res = write(this->m_in_pipe[1], str.c_str(), str.size());
 	// Check for write errors
 	if (res == -1)
 	{
 		clean_handler();
 
-		if (errno == EPIPE)
+		if (g_sigpipe == SIGPIPE)
+		{
+			g_sigpipe = 0;
 			throw WebservExceptions::HTTPException(HTTP_BAD_GATEWAY);
+		}
 		throw WebservExceptions::HTTPException(HTTP_INTERNAL_SERVER_ERROR);
 	}
 }
 
 bool CGIHandler::is_read_ready()
 {
-	if (this->m_pipe[0] == -1)
+	if (this->m_out_pipe[0] == -1)
 		return (false);
 	// Check if the read end of the pipe is ready for reading
-	pollfd& entry = this->m_server_container->get_poll_entry(this->m_pipe[0]);
+	pollfd& entry = this->m_server_container->get_poll_entry(this->m_out_pipe[0]);
 	if (entry.revents & POLLIN || entry.revents & POLLHUP)
 	{
 		this->m_last_activity = std::time(0);
@@ -360,10 +390,10 @@ bool CGIHandler::is_read_ready()
 
 bool CGIHandler::is_write_ready()
 {
-	if (this->m_pipe[1] == -1)
+	if (this->m_in_pipe[1] == -1)
 		return (false);
 	// Check if the write end of the pipe is ready for writing
-	pollfd& entry = this->m_server_container->get_poll_entry(this->m_pipe[1]);
+	pollfd& entry = this->m_server_container->get_poll_entry(this->m_in_pipe[1]);
 	if (entry.revents & POLLOUT)
 	{
 		this->m_last_activity = std::time(0);
@@ -375,28 +405,28 @@ bool CGIHandler::is_write_ready()
 
 void CGIHandler::close_write()
 {
-	this->m_server_container->remove_from_poll(this->m_pipe[1]);
-	close(this->m_pipe[1]);
-	this->m_pipe[1] = -1;
+	this->m_server_container->remove_from_poll(this->m_in_pipe[1]);
+	close(this->m_in_pipe[1]);
+	this->m_in_pipe[1] = -1;
 }
 
 void CGIHandler::close_read()
 {
-	this->m_server_container->remove_from_poll(this->m_pipe[0]);
-	close(this->m_pipe[0]);
-	this->m_pipe[0] = -1;
+	this->m_server_container->remove_from_poll(this->m_out_pipe[0]);
+	close(this->m_out_pipe[0]);
+	this->m_out_pipe[0] = -1;
 }
 
 bool CGIHandler::is_write_open()
 {
-	if (this->m_pipe[1] != -1)
+	if (this->m_in_pipe[1] != -1)
 		return (true);
 	return (false);
 }
 
 bool CGIHandler::is_read_open()
 {
-	if (this->m_pipe[0] != -1)
+	if (this->m_out_pipe[0] != -1)
 		return (true);
 	return (false);
 }
@@ -408,4 +438,16 @@ bool CGIHandler::is_timeout()
 	if (raw_time >= this->m_last_activity + CGI_TIMEOUT)
 		return (true);
 	return (false);
+}
+
+bool CGIHandler::is_dead()
+{
+	if (this->m_pid == -1)
+		return true;
+	if (waitpid(this->m_pid, 0, WNOHANG))
+	{
+		this->m_pid = -1;
+		return true;
+	}
+	return false;
 }

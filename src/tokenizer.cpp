@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   tokenizer.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/11 14:15:44 by sbibers           #+#    #+#             */
-/*   Updated: 2025/09/20 14:18:24 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/21 15:04:25 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../include/tokenizer.hpp"
 
@@ -73,7 +73,7 @@ std::vector<t_token> tokenize_string(const std::string &buffer)
             token.type = find_type(token.word);
             vector_tokens.push_back(token);
         }
-        else if (isspace(static_cast<unsigned char>(c))) // handle spaces (whitspaces).
+        else if (std::isspace(static_cast<unsigned char>(c))) // handle spaces (whitspaces).
         {
             if (!current.empty())
             {

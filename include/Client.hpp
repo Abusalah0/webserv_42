@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/19 02:30:29 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/20 01:19:28 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/21 17:36:40 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
@@ -89,11 +89,13 @@ class Client
 		std::string m_server_name;// the server name if any
 		std::string m_document_root;// the document root if any
 		std::string m_path_translated;// the translated path if any
+		std::string m_cgi_resp_header;
 		size_t m_chunk_size;// the size of the current chunk being processed
 		const std::pair<std::string, std::string>* m_server_addr;// the server address (ip, port)
 		const std::pair<std::string, std::string> m_client_addr;// the client address (ip, port)
 		CGIHandler m_cgi_handler; ///< CGI execution handler for processing scripts
 		bool m_cgi_header_finished; ///< Flag indicating if CGI response headers are complete
+		const std::set<std::string>* m_allowed_methods;
 		
 		// Request Processing State Machine
 		/**
@@ -365,6 +367,7 @@ class Client
 		 * @return A constant reference to a string representing the translated path.
 		 */
 		const std::string& get_path_translated();
+		bool is_client_completed();
 };
 
 #endif

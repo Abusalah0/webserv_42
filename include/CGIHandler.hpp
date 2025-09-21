@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   CGIHandler.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/05 15:19:13 by amsaleh           #+#    #+#             */
-/*   Updated: 2025/09/20 02:51:35 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/21 17:15:31 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 /**
  * @file CGIHandler.hpp
@@ -74,7 +74,8 @@ class CGIHandler
 	private:
 		Client* m_client;                               ///< Associated client connection
 		ServerContainer* m_server_container;            ///< Server container for process management
-		int m_pipe[2];                                  ///< Pipe for parent-child communication
+		int m_in_pipe[2];                               ///< Pipe to send data to child
+		int m_out_pipe[2];                              ///< Pipe to read data from child
 		pid_t m_pid;                                    ///< Child process ID
 		std::map<std::string, std::string> m_env_map;   ///< CGI environment variables
 		time_t m_last_activity;                         ///< Last activity timestamp for timeout detection
@@ -146,6 +147,7 @@ class CGIHandler
 		/// @brief Check if CGI process has exceeded timeout
 		/// @return true if process should be terminated
 		bool is_timeout();
+		bool is_dead();
 };
 
 #endif

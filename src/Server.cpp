@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 18:15:57 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/20 14:07:39 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/21 15:17:20 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../include/Server.hpp"
 #include "../include/Exceptions.hpp"
@@ -131,7 +131,6 @@ const Location& Server::match_location(std::string& route) const
 {
 	const Location* location = NULL;
 	size_t max_i = 0; // Tracks the maximum number of matching components found
-	size_t comp_i = 0; // Counter for current matching components
 	
 	// Iterate through all locations to find the best match
 	for (size_t i = 0; i < this->m_locations.size(); i++)

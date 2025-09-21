@@ -1,18 +1,19 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   parser_utils.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abdsalah <abdsalah@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 13:11:56 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/03 16:25:58 by abdsalah         ###   ########.fr       */
+/*   Updated: 2025/09/21 15:06:34 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../../include/parser.hpp"
 
-// i will throw better errors later.
+// abdsalah: i will throw better errors later.
+// amsaleh: and later never happened
 void throw_parse_error(const std::string &msg)
 {
     

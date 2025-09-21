@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   parse_directives.cpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/25 12:36:13 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/20 14:19:48 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/21 15:05:17 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../../include/parser.hpp"
 
@@ -127,54 +127,6 @@ void parse_client_max_body_size_directive(const std::vector<t_token> &tokens, Ba
         throw_parse_error("Expected size after client_max_body_size");
     }
     baseBlock.set_client_max_body_size(tokens[pos].word);// set size in baseblock
-}
-
-__attribute__((unused)) static int check_port_number(std::string &port)
-{
-    // check port length
-    if (port.empty() || port.length() > 5)
-    {
-        throw_parse_error("Invalid port number, port too large ;)");
-    }
-    // make sure there is only digits
-    for (size_t i = 0; i < port.length(); i++)
-    {
-        if (!std::isdigit(port[i]))
-            throw_parse_error("Expected digits for the port number");
-    }
-    
-    int pnum = std::strtol(port.c_str(), NULL, 10);
-    if (pnum > 65535)// check range
-        throw_parse_error("Invalid port number, max port number is 65535");
-    
-    return (pnum);
-}
-
-__attribute__((unused)) static std::string& check_listen_address(std::string &address)
-{
-    for (size_t i = 0; i < address.length(); i++)
-    {
-        if (!(std::isdigit(address[i]) || address[i] == '.'))
-            throw_parse_error("Invalid character in listen address");
-    }
-    //check each octet from the address
-    size_t start = 0;
-    size_t end = address.find('.');
-    while (end != std::string::npos)
-    {
-        // extract octet
-        std::string octet = address.substr(start, end - start);
-        if (octet.empty() || octet.length() > 3)
-            throw_parse_error("Invalid IP address in listen directive");
-        // check range
-        int octet_num = std::strtol(octet.c_str(), NULL, 10);
-        if (octet_num < 0 || octet_num > 255)
-            throw_parse_error("IP address octet out of range (0-255)");
-        // move to next octet
-        start = end + 1;
-        end = address.find('.', start);
-    }
-    return (address);
 }
 
 void    parse_listen_directive(const std::vector<t_token> &tokens, Server &srv, std::size_t &pos)

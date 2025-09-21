@@ -1,14 +1,14 @@
-/* ************************************************************************** */
+/******************************************************************************/
 /*                                                                            */
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amsaleh <amsaleh@student.42.fr>            +#+  +:+       +#+        */
+/*   By: amsaleh <amsaleh@student.42amman.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 01:34:00 by abdsalah          #+#    #+#             */
-/*   Updated: 2025/09/20 14:18:02 by amsaleh          ###   ########.fr       */
+/*   Updated: 2025/09/21 15:13:09 by amsaleh          ###   ########.fr       */
 /*                                                                            */
-/* ************************************************************************** */
+/******************************************************************************/
 
 #include "../include/tokenizer.hpp"
 #include "../include/Exceptions.hpp"
@@ -19,6 +19,7 @@
 #include "../include/parser.hpp"
 
 int g_signum = 0;
+int g_sigpipe = 0;
 
 static const std::string read_file(const std::string &file_name)
 {
@@ -35,9 +36,14 @@ static const std::string read_file(const std::string &file_name)
 	return (content);
 }
 
-void signal_handler(int signum)
+static void common_signal_handler(int signum)
 {
 	g_signum = signum;
+}
+
+static void sigpipe_handler(int signum)
+{
+	g_sigpipe = signum;
 }
 
 int main(int argc, char **argv)
@@ -48,9 +54,9 @@ int main(int argc, char **argv)
         return (EXIT_FAILURE);
     }
 	// signal handling
-	signal(SIGINT, signal_handler);
-	signal(SIGQUIT, signal_handler);
-	signal(SIGPIPE, SIG_IGN);
+	signal(SIGINT, common_signal_handler);
+	signal(SIGQUIT, common_signal_handler);
+	signal(SIGPIPE, sigpipe_handler);
 	
 	ServerContainer server_container;
 	try
